@@ -1,4 +1,8 @@
 pandas
 click
+
+# dev-requirements
 pytest
 pytest-cov
+xlrd
+openpyxl
