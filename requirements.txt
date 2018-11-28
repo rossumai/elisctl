@@ -1,2 +1,4 @@
+pandas
+click
 pytest
 pytest-cov
