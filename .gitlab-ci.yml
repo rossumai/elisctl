@@ -1,0 +1,29 @@
+stages:
+- test
+
+linting:
+  stage: test
+  image: python:3.7-slim
+  before_script:
+  - apt-get update
+  - apt-get install -y git
+  - pip3 install -U pre-commit==1.12.0
+  script:
+  - pre-commit run --all-files
+
+test:
+  stage: test
+  variables:
+    PYTHONPATH: $PWD:$PYTHONPATH
+  before_script:
+  - pip install -r requirements.txt
+  script:
+  - pytest --cov=tools
+
+security:
+  stage: test
+  allow_failure: true
+  before_script:
+  - pip install safety
+  script:
+  - safety check
