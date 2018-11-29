@@ -1,5 +1,12 @@
 # How to use
 
 ```shell
-./xls_to_csv.py ~/Downloads/WASSA_osnova.xlsx --header 0 --sheet 0 | ./csv_to_options.py - | ./transform_schema.py ../schema.json substitute-options --id gl_code - | ./transform_schema.py - remove centre > ../schema2.json
+tools/xls_to_csv.py ~/Downloads/ERA_osnova_strediska.xlsx --header 0 --sheet 1 \
+ | tools/csv_to_options.py - \
+ | tools/transform_schema.py <( \
+ xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 \
+   | tools/csv_to_options.py - \
+   | tools/transform_schema.py default_schema.json substitute-options --id gl_code - \
+   | tools/transform_schema.py - remove contract \
+ ) substitute-options --id centre - > era_schema.json
 ```

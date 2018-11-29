@@ -87,3 +87,25 @@ class TestTransformSchema:
             }
         )
         assert new_schema == json.loads(result.stdout)
+
+    def test_wrap_in_multivalue(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open(SCHEMA_NAME, "w") as schema:
+                json.dump(ORIGINAL_SCHEMA, schema)
+
+            result = runner.invoke(transform_schema.cli, [SCHEMA_NAME, "wrap-in-multivalue"])
+        assert not result.exit_code
+        new_schema = deepcopy(ORIGINAL_SCHEMA)
+        single_value = new_schema[0]["children"].pop()
+        new_schema[0]["children"].append(
+            {
+                "id": f'{single_value["id"]}_multi',
+                "label": single_value["label"],
+                "children": {"use_rir_content": True, **single_value},
+                "category": "multivalue",
+                "max_occurrences": None,
+                "min_occurrences": None,
+            }
+        )
+        assert new_schema == json.loads(result.stdout)

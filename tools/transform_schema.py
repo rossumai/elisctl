@@ -5,7 +5,7 @@ import json
 import warnings
 from contextlib import suppress
 from copy import deepcopy
-from typing import List, Callable, Optional, IO, Tuple, Iterable, Dict, Union, Iterator
+from typing import List, Callable, Optional, IO, Tuple, Iterable, Dict, Union, Iterator, Set
 
 import click as click
 
@@ -39,6 +39,18 @@ def substitute_options_command(ctx: click.Context, options: IO[str], id_: str) -
 @click.argument("ids", nargs=-1, type=str)
 def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> None:
     new_schema = traverse_schema(ctx.obj["SCHEMA"], remove, ids=ids)
+    click.echo(
+        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
+    )
+
+
+@cli.command(name="wrap-in-multivalue")
+@click.pass_context
+@click.argument("exclude_ids", nargs=-1, type=str)
+def wrap_in_multivalue_command(ctx: click.Context, exclude_ids: Tuple[str, ...]) -> None:
+    new_schema = traverse_schema(
+        ctx.obj["SCHEMA"], wrap_in_multivalue, exclude_ids=set(exclude_ids)
+    )
     click.echo(
         json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
     )
@@ -137,6 +149,25 @@ def remove(datapoint: dict, parent_categories: List[str], ids: Tuple[str, ...]) 
             return None
     else:
         return datapoint
+
+
+def wrap_in_multivalue(
+    datapoint: dict, parent_categories: List[str], exclude_ids: Set[str]
+) -> dict:
+    if (
+        "multivalue" in parent_categories
+        or datapoint["category"] in ("multivalue", "section")
+        or datapoint["id"] in exclude_ids
+    ):
+        return datapoint
+    return {
+        "id": f'{datapoint["id"]}_multi',
+        "label": datapoint["label"],
+        "children": {"use_rir_content": True, **datapoint},
+        "category": "multivalue",
+        "max_occurrences": None,
+        "min_occurrences": None,
+    }
 
 
 def add(
