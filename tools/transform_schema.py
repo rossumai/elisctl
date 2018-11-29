@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import json
+import warnings
 from copy import deepcopy
-from typing import List, Callable
+from typing import List, Callable, Optional, IO, Tuple
 
 import click as click
 
@@ -11,7 +12,7 @@ import click as click
 @click.argument("schema", type=click.File("rb"))
 @click.option("--indent", default=2, type=int)
 @click.option("--ensure-ascii", is_flag=True, type=bool)
-def cli(ctx: click.Context, schema: click.File, indent: int, ensure_ascii: bool) -> None:
+def cli(ctx: click.Context, schema: IO[str], indent: int, ensure_ascii: bool) -> None:
     ctx.obj = {"SCHEMA": json.load(schema), "INDENT": indent, "ENSURE_ASCII": ensure_ascii}
 
 
@@ -19,12 +20,23 @@ def cli(ctx: click.Context, schema: click.File, indent: int, ensure_ascii: bool)
 @click.pass_context
 @click.argument("options", type=click.File("rb"))
 @click.option("--id", "id_", type=str)
-def substitute_options_command(ctx: click.Context, options: click.File, id_: str) -> None:
+def substitute_options_command(ctx: click.Context, options: IO[str], id_: str) -> None:
     options_dict = json.load(options)
 
     new_schema = traverse_schema(
         ctx.obj["SCHEMA"], substitute_options, id_=id_, options=options_dict
     )
+    click.echo(
+        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
+    )
+
+
+@cli.command(name="remove")
+@click.pass_context
+@click.argument("ids", nargs=-1, type=str)
+def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> None:
+
+    new_schema = traverse_schema(ctx.obj["SCHEMA"], remove, ids=ids)
     click.echo(
         json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
     )
@@ -62,7 +74,8 @@ def traverse_datapoints(
                     children, transformation, parent_categories_, **kwargs
                 )
         new_datapoint = transformation(new_datapoint, parent_categories, **kwargs)
-        new_datapoints.append(new_datapoint)
+        if new_datapoint:
+            new_datapoints.append(new_datapoint)
 
     return new_datapoints
 
@@ -79,6 +92,17 @@ def substitute_options(
 
     new_datapoint = deepcopy(datapoint)
     return {**new_datapoint, "options": options}
+
+
+def remove(datapoint: dict, parent_categories: List[str], ids: Tuple[str, ...]) -> Optional[dict]:
+    if datapoint["id"] in ids:
+        if parent_categories and "multivalue" == parent_categories[-1]:
+            warnings.warn("Cannot delete child of a multivalue.")
+            return datapoint
+        else:
+            return None
+    else:
+        return datapoint
 
 
 if __name__ == "__main__":

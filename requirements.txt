@@ -1,8 +1,8 @@
 pandas
 click
+xlrd
 
 # dev-requirements
 pytest
 pytest-cov
-xlrd
 openpyxl
