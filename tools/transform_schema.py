@@ -6,18 +6,28 @@ from typing import List, Callable
 import click as click
 
 
-@click.command()
-@click.argument("options", type=click.File("rb"))
-@click.option("--schema", type=click.File("rb"))
-@click.option("--id", "id_", type=str)
+@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.pass_context
+@click.argument("schema", type=click.File("rb"))
 @click.option("--indent", default=2, type=int)
 @click.option("--ensure-ascii", is_flag=True, type=bool)
-def cli(options: click.File, schema: click.File, id_: str, indent: int, ensure_ascii: bool) -> None:
-    schema_dict = json.load(schema)
+def cli(ctx: click.Context, schema: click.File, indent: int, ensure_ascii: bool) -> None:
+    ctx.obj = {"SCHEMA": json.load(schema), "INDENT": indent, "ENSURE_ASCII": ensure_ascii}
+
+
+@cli.command(name="substitute-options")
+@click.pass_context
+@click.argument("options", type=click.File("rb"))
+@click.option("--id", "id_", type=str)
+def substitute_options_command(ctx: click.Context, options: click.File, id_: str) -> None:
     options_dict = json.load(options)
 
-    new_schema = traverse_schema(schema_dict, substitute_options, id_=id_, options=options_dict)
-    click.echo(json.dumps(new_schema, indent=indent, ensure_ascii=ensure_ascii))
+    new_schema = traverse_schema(
+        ctx.obj["SCHEMA"], substitute_options, id_=id_, options=options_dict
+    )
+    click.echo(
+        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
+    )
 
 
 def traverse_schema(schema: List[dict], transformation: Callable, **kwargs) -> List[dict]:
