@@ -6,3 +6,4 @@ xlrd
 pytest
 pytest-cov
 openpyxl
+pre-commit
