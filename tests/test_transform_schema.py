@@ -62,3 +62,28 @@ class TestTransformSchema:
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[0]["children"] = []
         assert new_schema == json.loads(result.stdout)
+
+    def test_add(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open(SCHEMA_NAME, "w") as schema:
+                json.dump(ORIGINAL_SCHEMA, schema)
+
+            result = runner.invoke(
+                transform_schema.cli, [SCHEMA_NAME, "add", "basic_info", "id=test"]
+            )
+        assert not result.exit_code
+        new_schema = deepcopy(ORIGINAL_SCHEMA)
+        new_schema[0]["children"].append(
+            {
+                "category": "datapoint",
+                "constraints": {"required": False},
+                "default_value": None,
+                "id": "test",
+                "label": "test",
+                "rir_field_names": [],
+                "type": "string",
+                "width_chars": 10,
+            }
+        )
+        assert new_schema == json.loads(result.stdout)

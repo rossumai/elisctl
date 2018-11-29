@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import json
 import warnings
+from contextlib import suppress
 from copy import deepcopy
-from typing import List, Callable, Optional, IO, Tuple
+from typing import List, Callable, Optional, IO, Tuple, Iterable, Dict, Union, Iterator
 
 import click as click
 
@@ -35,8 +38,35 @@ def substitute_options_command(ctx: click.Context, options: IO[str], id_: str) -
 @click.pass_context
 @click.argument("ids", nargs=-1, type=str)
 def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> None:
-
     new_schema = traverse_schema(ctx.obj["SCHEMA"], remove, ids=ids)
+    click.echo(
+        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
+    )
+
+
+@cli.command(name="add")
+@click.pass_context
+@click.argument("parent_id", type=str)
+@click.argument("datapoint_parameters", nargs=-1, type=str)
+def add_command(ctx: click.Context, parent_id: str, datapoint_parameters: Iterable[str]) -> None:
+    def split_datapoint_params() -> Iterator[Tuple[str, DataPointDictItem]]:
+        for param in datapoint_parameters:
+            key, value = param.split("=", 1)
+            with suppress(ValueError):
+                value = json.loads(value)
+            yield key, value
+
+    try:
+        datapoint_parameters_dict = dict(split_datapoint_params())
+    except ValueError as e:
+        raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
+
+    new_schema = traverse_schema(
+        ctx.obj["SCHEMA"],
+        add,
+        parent_id=parent_id,
+        datapoint_to_add=_new_datapoint(datapoint_parameters_dict),
+    )
     click.echo(
         json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
     )
@@ -48,8 +78,12 @@ def traverse_schema(schema: List[dict], transformation: Callable, **kwargs) -> L
         new_section = deepcopy(section)
 
         children = new_section.pop("children", [])
-        new_section["children"] = traverse_datapoints(children, transformation, **kwargs)
-        new_schema.append(new_section)
+        new_section["children"] = traverse_datapoints(
+            children, transformation, ["section"], **kwargs
+        )
+        new_section = transformation(new_section, [], **kwargs)
+        if new_section:
+            new_schema.append(new_section)
 
     return new_schema
 
@@ -103,6 +137,73 @@ def remove(datapoint: dict, parent_categories: List[str], ids: Tuple[str, ...]) 
             return None
     else:
         return datapoint
+
+
+def add(
+    datapoint: dict, parent_categories: List[str], parent_id: str, datapoint_to_add: dict
+) -> dict:
+    if datapoint["id"] != parent_id:
+        return datapoint
+
+    if datapoint["category"] in ("tuple", "section"):
+        new_datapoint = deepcopy(datapoint)
+        new_datapoint["children"].append(datapoint_to_add)
+        return new_datapoint
+    elif datapoint["category"] == "multivalue":
+        warnings.warn("Cannot add child to a multivalue.")
+        return datapoint
+    else:
+        return datapoint
+
+
+def _new_datapoint(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa: F821
+    try:
+        id_ = datapoint_to_add.pop("id")
+    except KeyError as e:
+        raise click.BadArgumentUsage("Missing key 'id'.") from e
+
+    category = datapoint_to_add.pop("category", "datapoint")
+    default = {"id": id_, "label": id_}
+    if category == "datapoint":
+        default = {**default, "rir_field_names": [], **_new_singlevalue(datapoint_to_add)}
+    elif category == "multivalue":
+        default = {
+            **default,
+            "children": None,
+            "default_value": None,
+            "min_occurrences": None,
+            "max_occurrences": None,
+        }
+    elif category == "tuple":
+        default = {**default, "rir_field_names": [], "children": []}
+    elif category == "section":
+        raise click.BadArgumentUsage("Cannot add section.")
+    else:
+        raise click.BadArgumentUsage("Unknown category.")
+    return {**default, **datapoint_to_add, "category": category}
+
+
+def _new_singlevalue(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa: F821
+    type_ = datapoint_to_add.pop("type", "string")
+    default: DataPointDict = {
+        "width_chars": 10,
+        "default_value": None,
+        "constraints": {"required": False},
+    }
+    if type_ == "enum":
+        default = {**default, "options": [{"value": "0", "label": "---"}]}
+    elif type_ == "date":
+        default = {**default, "format": "D. M. YYYY"}
+    elif type_ == "number":
+        default = {**default, "format": "# ##0.#"}
+    elif type_ != "string":
+        raise click.BadArgumentUsage("Unknown type.")
+
+    return {**default, "type": type_}
+
+
+DataPointDictItem = Union[str, int, dict, None, list]
+DataPointDict = Dict[str, DataPointDictItem]
 
 
 if __name__ == "__main__":
