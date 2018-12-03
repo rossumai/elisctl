@@ -61,15 +61,8 @@ def wrap_in_multivalue_command(ctx: click.Context, exclude_ids: Tuple[str, ...])
 @click.argument("parent_id", type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
 def add_command(ctx: click.Context, parent_id: str, datapoint_parameters: Iterable[str]) -> None:
-    def split_datapoint_params() -> Iterator[Tuple[str, DataPointDictItem]]:
-        for param in datapoint_parameters:
-            key, value = param.split("=", 1)
-            with suppress(ValueError):
-                value = json.loads(value)
-            yield key, value
-
     try:
-        datapoint_parameters_dict = dict(split_datapoint_params())
+        datapoint_parameters_dict = dict(_split_datapoint_params(datapoint_parameters))
     except ValueError as e:
         raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
 
@@ -78,6 +71,24 @@ def add_command(ctx: click.Context, parent_id: str, datapoint_parameters: Iterab
         add,
         parent_id=parent_id,
         datapoint_to_add=_new_datapoint(datapoint_parameters_dict),
+    )
+    click.echo(
+        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
+    )
+
+
+@cli.command(name="change")
+@click.pass_context
+@click.argument("id_", metavar="id", type=str)
+@click.argument("datapoint_parameters", nargs=-1, type=str)
+def change_command(ctx: click.Context, id_: str, datapoint_parameters: Iterable[str]) -> None:
+    try:
+        datapoint_parameters_dict = dict(_split_datapoint_params(datapoint_parameters))
+    except ValueError as e:
+        raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
+
+    new_schema = traverse_schema(
+        ctx.obj["SCHEMA"], change, id_=id_, to_change=datapoint_parameters_dict
     )
     click.echo(
         json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
@@ -187,6 +198,13 @@ def add(
         return datapoint
 
 
+def change(datapoint: dict, parent_categories: List[str], id_: str, to_change: dict) -> dict:
+    if datapoint["id"] != id_:
+        return datapoint
+    else:
+        return {**datapoint, **to_change}
+
+
 def _new_datapoint(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa: F821
     try:
         id_ = datapoint_to_add.pop("id")
@@ -231,6 +249,16 @@ def _new_singlevalue(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa:
         raise click.BadArgumentUsage("Unknown type.")
 
     return {**default, "type": type_}
+
+
+def _split_datapoint_params(
+    datapoint_parameters: Iterable[str]
+) -> Iterator[Tuple[str, DataPointDictItem]]:  # noqa: F821
+    for param in datapoint_parameters:
+        key, value = param.split("=", 1)
+        with suppress(ValueError):
+            value = json.loads(value)
+        yield key, value
 
 
 DataPointDictItem = Union[str, int, dict, None, list]

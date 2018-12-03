@@ -51,6 +51,21 @@ class TestTransformSchema:
         new_schema[0]["children"][0]["options"] = OPTIONS
         assert new_schema == json.loads(result.stdout)
 
+    def test_change(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open(SCHEMA_NAME, "w") as schema:
+                json.dump(ORIGINAL_SCHEMA, schema)
+
+            result = runner.invoke(
+                transform_schema.cli,
+                [SCHEMA_NAME, "change", "vat_rate", f"options={json.dumps(OPTIONS)}"],
+            )
+        assert not result.exit_code
+        new_schema = deepcopy(ORIGINAL_SCHEMA)
+        new_schema[0]["children"][0]["options"] = OPTIONS
+        assert new_schema == json.loads(result.stdout)
+
     def test_remove(self):
         runner = CliRunner()
         with runner.isolated_filesystem():
