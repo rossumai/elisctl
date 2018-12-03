@@ -95,24 +95,46 @@ def change_command(ctx: click.Context, id_: str, datapoint_parameters: Iterable[
     )
 
 
-def traverse_schema(schema: List[dict], transformation: Callable, **kwargs) -> List[dict]:
+@cli.command(name="move")
+@click.pass_context
+@click.argument("source_id", type=str)
+@click.argument("target_id", type=str)
+def move_command(ctx: click.Context, source_id: str, target_id: str) -> None:
+    [source_dp] = traverse_schema(ctx.obj["SCHEMA"], get, id_=source_id, retrieve=True)
+    new_schema = traverse_schema(ctx.obj["SCHEMA"], remove, ids=(source_id,))
+    new_schema = traverse_schema(new_schema, add, parent_id=target_id, datapoint_to_add=source_dp)
+
+    click.echo(
+        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
+    )
+
+
+def traverse_schema(
+    schema: List[dict], transformation: Callable, retrieve: bool = False, **kwargs
+) -> List[dict]:
     new_schema = []
     for section in schema:
         new_section = deepcopy(section)
 
         children = new_section.pop("children", [])
         new_section["children"] = traverse_datapoints(
-            children, transformation, ["section"], **kwargs
+            children, transformation, ["section"], retrieve=retrieve, **kwargs
         )
         new_section = transformation(new_section, [], **kwargs)
         if new_section:
+            if retrieve:
+                return [new_section]
             new_schema.append(new_section)
 
     return new_schema
 
 
 def traverse_datapoints(
-    datapoints: List[dict], transformation: Callable, parent_categories: List[str] = None, **kwargs
+    datapoints: List[dict],
+    transformation: Callable,
+    parent_categories: List[str] = None,
+    retrieve: bool = False,
+    **kwargs,
 ) -> List[dict]:
     new_datapoints = []
     parent_categories = parent_categories or []
@@ -132,6 +154,8 @@ def traverse_datapoints(
                 )
         new_datapoint = transformation(new_datapoint, parent_categories, **kwargs)
         if new_datapoint:
+            if retrieve:
+                return [new_datapoint]
             new_datapoints.append(new_datapoint)
 
     return new_datapoints
@@ -203,6 +227,16 @@ def change(datapoint: dict, parent_categories: List[str], id_: str, to_change: d
         return datapoint
     else:
         return {**datapoint, **to_change}
+
+
+def get(datapoint: dict, parent_categories: List[str], id_: str) -> Optional[dict]:
+    if datapoint["category"] == "section":
+        datapoints = datapoint["children"]
+        if not datapoints:
+            return None
+    else:
+        datapoints = [datapoint]
+    return next((dp for dp in datapoints if dp["id"] == id_), None)
 
 
 def _new_datapoint(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa: F821

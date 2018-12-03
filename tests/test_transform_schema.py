@@ -1,5 +1,6 @@
 import json
 from copy import deepcopy
+from traceback import format_tb, print_tb
 
 from click.testing import CliRunner
 
@@ -25,7 +26,14 @@ ORIGINAL_SCHEMA = [
                 "options": [],
             }
         ],
-    }
+    },
+    {
+        "category": "section",
+        "id": "other",
+        "label": "Other",
+        "icon": "questionmark",
+        "children": [],
+    },
 ]
 OPTIONS = [
     {"value": "1", "label": "1: abc"},
@@ -76,6 +84,18 @@ class TestTransformSchema:
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[0]["children"] = []
+        assert new_schema == json.loads(result.stdout)
+
+    def test_move(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open(SCHEMA_NAME, "w") as schema:
+                json.dump(ORIGINAL_SCHEMA, schema)
+
+            result = runner.invoke(transform_schema.cli, [SCHEMA_NAME, "move", "vat_rate", "other"])
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        new_schema = deepcopy(ORIGINAL_SCHEMA)
+        new_schema[1]["children"].append(new_schema[0]["children"].pop())
         assert new_schema == json.loads(result.stdout)
 
     def test_add(self):
