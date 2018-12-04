@@ -1,12 +1,16 @@
 # How to use
 
+Install the package:
 ```shell
-tools/xls_to_csv.py ~/Downloads/ERA_osnova_strediska.xlsx --header 0 --sheet 1 \
- | tools/csv_to_options.py - \
- | tools/transform_schema.py <( \
- xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 \
-   | tools/csv_to_options.py - \
-   | tools/transform_schema.py default_schema.json substitute-options --id gl_code - \
-   | tools/transform_schema.py - remove contract \
- ) substitute-options --id centre - > era_schema.json
+pip install -e .
+```
+
+Run something like:
+```shell
+transform_schema default_schema.json substitute-options --id centre <( \
+    xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 --sheet 1 | csv_to_options - ) \
+ | transform_schema - substitute-options --id gl_code <( \
+    xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 | csv_to_options - ) \
+ | transform_schema - remove contract \
+ > era_schema.json
 ```

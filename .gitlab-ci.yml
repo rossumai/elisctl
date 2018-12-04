@@ -16,16 +16,15 @@ test:
   image: python:3.7
   variables:
     PYTHONPATH: $PWD:$PYTHONPATH
-  before_script:
-  - pip install -r requirements.txt
   script:
-  - pytest --cov=tools
+  - ./setup.py test
 
 security:
   stage: test
   image: python:3.7-slim
   allow_failure: true
   before_script:
+  - pip install .
   - pip install safety
   script:
   - safety check

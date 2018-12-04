@@ -1,9 +1,0 @@
-pandas
-click
-xlrd
-
-# dev-requirements
-pytest
-pytest-cov
-openpyxl
-pre-commit
