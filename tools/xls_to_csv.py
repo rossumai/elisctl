@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import operator
 from io import StringIO
 from typing import Optional
 
@@ -26,16 +27,17 @@ def cli(
         skiprows_list = [int(r.strip()) for r in skiprows.split(",") if r]
     except ValueError as e:
         raise click.BadArgumentUsage('skiprows: Expecting list of ints delimited by ",".') from e
-
+    cols = {"value": value, "label": label}
     df = pd.read_excel(
         xls,
         sheet_name=sheet,
         usecols=[value, label],
-        names=["value", "label"],
+        names=[col for col, _ in sorted(cols.items(), key=operator.itemgetter(1))],
         dtype=(str, str),
         header=header,
         skiprows=skiprows_list,
     )
+    df = df[list(cols.keys())]
     with StringIO() as buffer:
         df.to_csv(buffer, header=False, sep=";", index=False)
         click.echo(buffer.getvalue())
