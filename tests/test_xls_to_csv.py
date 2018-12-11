@@ -1,4 +1,3 @@
-import json
 from io import StringIO
 
 from click.testing import CliRunner

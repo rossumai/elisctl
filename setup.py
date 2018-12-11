@@ -16,7 +16,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     packages=find_packages(exclude=("tests*",)),
-    install_requires=["pandas", "click", "xlrd"],
+    install_requires=["pandas", "click", "xlrd", "requests"],
     python_requires="~=3.7",
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "pytest-cov", "openpyxl"],
@@ -26,6 +26,7 @@ setup(
             "csv_to_options = tools.csv_to_options:cli",
             "xls_to_csv = tools.xls_to_csv:cli",
             "transform_schema = tools.transform_schema:cli",
+            "download = tools.download:cli",
         ]
     },
 )

@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import json
 import warnings
-from contextlib import suppress
 from copy import deepcopy
-from typing import List, Callable, Optional, IO, Tuple, Iterable, Dict, Union, Iterator, Set
+from typing import List, Callable, Optional, IO, Tuple, Iterable, Dict, Union, Set
 
 import click as click
+
+from tools.lib import split_dict_params
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
@@ -62,7 +63,7 @@ def wrap_in_multivalue_command(ctx: click.Context, exclude_ids: Tuple[str, ...])
 @click.argument("datapoint_parameters", nargs=-1, type=str)
 def add_command(ctx: click.Context, parent_id: str, datapoint_parameters: Iterable[str]) -> None:
     try:
-        datapoint_parameters_dict = dict(_split_datapoint_params(datapoint_parameters))
+        datapoint_parameters_dict = dict(split_dict_params(datapoint_parameters))
     except ValueError as e:
         raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
 
@@ -83,7 +84,7 @@ def add_command(ctx: click.Context, parent_id: str, datapoint_parameters: Iterab
 @click.argument("datapoint_parameters", nargs=-1, type=str)
 def change_command(ctx: click.Context, id_: str, datapoint_parameters: Iterable[str]) -> None:
     try:
-        datapoint_parameters_dict = dict(_split_datapoint_params(datapoint_parameters))
+        datapoint_parameters_dict = dict(split_dict_params(datapoint_parameters))
     except ValueError as e:
         raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
 
@@ -283,16 +284,6 @@ def _new_singlevalue(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa:
         raise click.BadArgumentUsage("Unknown type.")
 
     return {**default, "type": type_}
-
-
-def _split_datapoint_params(
-    datapoint_parameters: Iterable[str]
-) -> Iterator[Tuple[str, DataPointDictItem]]:  # noqa: F821
-    for param in datapoint_parameters:
-        key, value = param.split("=", 1)
-        with suppress(ValueError):
-            value = json.loads(value)
-        yield key, value
 
 
 DataPointDictItem = Union[str, int, dict, None, list]
