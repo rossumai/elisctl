@@ -16,10 +16,10 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     packages=find_packages(exclude=("tests*",)),
-    install_requires=["pandas", "click", "xlrd", "requests"],
+    install_requires=["pandas", "click", "xlrd", "requests", "jsondiff"],
     python_requires="~=3.7",
     setup_requires=["pytest-runner"],
-    tests_require=["pytest", "pytest-cov", "openpyxl"],
+    tests_require=["pytest", "pytest-cov", "openpyxl", "requests_mock"],
     zip_safe=False,
     entry_points={
         "console_scripts": [
@@ -27,6 +27,7 @@ setup(
             "xls_to_csv = tools.xls_to_csv:cli",
             "transform_schema = tools.transform_schema:cli",
             "download = tools.download:cli",
+            "compare = tools.compare:cli",
         ]
     },
 )
