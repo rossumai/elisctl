@@ -146,9 +146,13 @@ def traverse_datapoints(
             parent_categories_ = parent_categories[:] + [category]
             children = new_datapoint.pop("children", [])
             if datapoint["category"] == "multivalue":
-                [new_datapoint["children"]] = traverse_datapoints(
-                    [children], transformation, parent_categories_, **kwargs
-                )
+                try:
+                    [new_children] = traverse_datapoints(
+                        [children], transformation, parent_categories_, **kwargs
+                    )
+                except ValueError:
+                    new_children = None  # type: ignore
+                new_datapoint["children"] = new_children
             else:
                 new_datapoint["children"] = traverse_datapoints(
                     children, transformation, parent_categories_, **kwargs
