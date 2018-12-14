@@ -27,7 +27,7 @@ def cli(ctx: click.Context, schema: IO[str], indent: int, ensure_ascii: bool) ->
 def substitute_options_command(ctx: click.Context, options: IO[str], id_: str) -> None:
     options_dict = json.load(options)
 
-    new_schema = traverse_schema(
+    new_schema = traverse_datapoints(
         ctx.obj["SCHEMA"], substitute_options, id_=id_, options=options_dict
     )
     click.echo(
@@ -39,7 +39,7 @@ def substitute_options_command(ctx: click.Context, options: IO[str], id_: str) -
 @click.pass_context
 @click.argument("ids", nargs=-1, type=str)
 def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> None:
-    new_schema = traverse_schema(ctx.obj["SCHEMA"], remove, ids=ids)
+    new_schema = traverse_datapoints(ctx.obj["SCHEMA"], remove, ids=ids)
     click.echo(
         json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
     )
@@ -49,7 +49,7 @@ def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> None:
 @click.pass_context
 @click.argument("exclude_ids", nargs=-1, type=str)
 def wrap_in_multivalue_command(ctx: click.Context, exclude_ids: Tuple[str, ...]) -> None:
-    new_schema = traverse_schema(
+    new_schema = traverse_datapoints(
         ctx.obj["SCHEMA"], wrap_in_multivalue, exclude_ids=set(exclude_ids)
     )
     click.echo(
@@ -67,7 +67,7 @@ def add_command(ctx: click.Context, parent_id: str, datapoint_parameters: Iterab
     except ValueError as e:
         raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
 
-    new_schema = traverse_schema(
+    new_schema = traverse_datapoints(
         ctx.obj["SCHEMA"],
         add,
         parent_id=parent_id,
@@ -88,7 +88,7 @@ def change_command(ctx: click.Context, id_: str, datapoint_parameters: Iterable[
     except ValueError as e:
         raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
 
-    new_schema = traverse_schema(
+    new_schema = traverse_datapoints(
         ctx.obj["SCHEMA"], change, id_=id_, to_change=datapoint_parameters_dict
     )
     click.echo(
@@ -101,41 +101,19 @@ def change_command(ctx: click.Context, id_: str, datapoint_parameters: Iterable[
 @click.argument("source_id", type=str)
 @click.argument("target_id", type=str)
 def move_command(ctx: click.Context, source_id: str, target_id: str) -> None:
-    [source_dp] = traverse_schema(ctx.obj["SCHEMA"], get, id_=source_id, retrieve=True)
-    new_schema = traverse_schema(ctx.obj["SCHEMA"], remove, ids=(source_id,))
-    new_schema = traverse_schema(new_schema, add, parent_id=target_id, datapoint_to_add=source_dp)
+    source_dp = get(ctx.obj["SCHEMA"], id_=source_id)
+    new_schema = traverse_datapoints(ctx.obj["SCHEMA"], remove, ids=(source_id,))
+    new_schema = traverse_datapoints(
+        new_schema, add, parent_id=target_id, datapoint_to_add=source_dp
+    )
 
     click.echo(
         json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
     )
 
 
-def traverse_schema(
-    schema: List[dict], transformation: Callable, retrieve: bool = False, **kwargs
-) -> List[dict]:
-    new_schema = []
-    for section in schema:
-        new_section = deepcopy(section)
-
-        children = new_section.pop("children", [])
-        new_section["children"] = traverse_datapoints(
-            children, transformation, ["section"], retrieve=retrieve, **kwargs
-        )
-        new_section = transformation(new_section, [], **kwargs)
-        if new_section:
-            if retrieve:
-                return [new_section]
-            new_schema.append(new_section)
-
-    return new_schema
-
-
 def traverse_datapoints(
-    datapoints: List[dict],
-    transformation: Callable,
-    parent_categories: List[str] = None,
-    retrieve: bool = False,
-    **kwargs,
+    datapoints: List[dict], transformation: Callable, parent_categories: List[str] = None, **kwargs
 ) -> List[dict]:
     new_datapoints = []
     parent_categories = parent_categories or []
@@ -146,21 +124,15 @@ def traverse_datapoints(
             parent_categories_ = parent_categories[:] + [category]
             children = new_datapoint.pop("children", [])
             if datapoint["category"] == "multivalue":
-                try:
-                    [new_children] = traverse_datapoints(
-                        [children], transformation, parent_categories_, **kwargs
-                    )
-                except ValueError:
-                    new_children = None  # type: ignore
-                new_datapoint["children"] = new_children
+                [new_datapoint["children"]] = traverse_datapoints(
+                    [children], transformation, parent_categories_, **kwargs
+                )
             else:
                 new_datapoint["children"] = traverse_datapoints(
                     children, transformation, parent_categories_, **kwargs
                 )
         new_datapoint = transformation(new_datapoint, parent_categories, **kwargs)
         if new_datapoint:
-            if retrieve:
-                return [new_datapoint]
             new_datapoints.append(new_datapoint)
 
     return new_datapoints
@@ -234,14 +206,21 @@ def change(datapoint: dict, parent_categories: List[str], id_: str, to_change: d
         return {**datapoint, **to_change}
 
 
-def get(datapoint: dict, parent_categories: List[str], id_: str) -> Optional[dict]:
-    if datapoint["category"] == "section":
-        datapoints = datapoint["children"]
-        if not datapoints:
-            return None
-    else:
-        datapoints = [datapoint]
-    return next((dp for dp in datapoints if dp["id"] == id_), None)
+def get(datapoints: List[dict], id_: str) -> Optional[dict]:
+    res = None
+
+    for datapoint in datapoints:
+        if datapoint["id"] == id_:
+            return datapoint
+
+        category = datapoint["category"]
+        if category in ("section", "tuple"):
+            res = get(datapoint["children"], id_)
+        elif category == "multivalue":
+            res = get([datapoint["children"]], id_)
+        if res is not None:
+            return res
+    return res
 
 
 def _new_datapoint(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa: F821
