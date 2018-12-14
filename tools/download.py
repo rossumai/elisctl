@@ -5,10 +5,9 @@ from io import StringIO
 
 import click as click
 import pandas as pd
-import requests
 from math import ceil
 
-from tools.lib.api_client import APIClient
+from tools.lib.api_client import APIClient, get_text, get_json
 
 now = datetime.datetime.utcnow()
 FORMATS = [
@@ -47,8 +46,7 @@ def csv(
     while stop > start:
         start += step
         rsp = api_client.get(f"byperiod/{ceil(step.total_seconds())}/{int(start.timestamp())}")
-        assert isinstance(rsp, str)
-        dfs.append(pd.read_csv(StringIO(rsp), sep=";"))
+        dfs.append(pd.read_csv(StringIO(get_text(rsp)), sep=";"))
 
     df = pd.concat(dfs)
     with StringIO() as buffer:
@@ -63,8 +61,7 @@ def csv(
 @click.option("--ensure-ascii", is_flag=True, type=bool)
 def schema(ctx: click.Context, id_: str, indent: int, ensure_ascii: bool):
     with APIClient() as api_client:
-        schema_dict = api_client.get(f"schemas/{id_}")
-    assert isinstance(schema_dict, dict)
+        schema_dict = get_json(api_client.get(f"schemas/{id_}"))
     click.echo(
         json.dumps(schema_dict["content"], indent=indent, ensure_ascii=ensure_ascii, sort_keys=True)
     )
