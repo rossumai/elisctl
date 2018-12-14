@@ -27,6 +27,7 @@ setup(
             "xls_to_csv = tools.xls_to_csv:cli",
             "transform_schema = tools.transform_schema:cli",
             "download = tools.download:cli",
+            "upload = tools.upload:cli",
             "compare = tools.compare:cli",
         ]
     },

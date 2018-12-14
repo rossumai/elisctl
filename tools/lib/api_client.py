@@ -95,6 +95,9 @@ class APIClient(AbstractContextManager):
             "post", f"{self.url}/{path}", json=data, expected_status_code=expected_status_code
         )
 
+    def patch(self, path: str, data: dict) -> Response:
+        return self._request_url("patch", f"{self.url}/{path}", json=data)
+
     def get(self, path: str, query: dict = None) -> Response:
         return self._request_url("get", f"{self.url}/{path}", query)
 
