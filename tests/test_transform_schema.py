@@ -32,7 +32,17 @@ ORIGINAL_SCHEMA = [
         "id": "other",
         "label": "Other",
         "icon": "questionmark",
-        "children": [],
+        "children": [
+            {
+                "category": "multivalue",
+                "id": "test_multi",
+                "label": "test",
+                "children": None,
+                "default_value": None,
+                "min_occurrences": None,
+                "max_occurrences": None,
+            }
+        ],
     },
 ]
 OPTIONS = [
@@ -107,7 +117,7 @@ class TestTransformSchema:
             result = runner.invoke(
                 transform_schema.cli, [SCHEMA_NAME, "add", "basic_info", "id=test"]
             )
-        assert not result.exit_code
+        assert not result.exit_code, print_tb(result.exc_info[2])
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[0]["children"].append(
             {
@@ -121,6 +131,29 @@ class TestTransformSchema:
                 "width_chars": 10,
             }
         )
+        assert new_schema == json.loads(result.stdout)
+
+    def test_add_single_to_empty_multivalue(self):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open(SCHEMA_NAME, "w") as schema:
+                json.dump(ORIGINAL_SCHEMA, schema)
+
+            result = runner.invoke(
+                transform_schema.cli, [SCHEMA_NAME, "add", "test_multi", "id=test"]
+            )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        new_schema = deepcopy(ORIGINAL_SCHEMA)
+        new_schema[1]["children"][0]["children"] = {
+            "category": "datapoint",
+            "constraints": {"required": False},
+            "default_value": None,
+            "id": "test",
+            "label": "test",
+            "rir_field_names": [],
+            "type": "string",
+            "width_chars": 10,
+        }
         assert new_schema == json.loads(result.stdout)
 
     def test_wrap_in_multivalue(self):

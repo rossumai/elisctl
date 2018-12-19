@@ -123,11 +123,13 @@ def traverse_datapoints(
         if category != "datapoint":
             parent_categories_ = parent_categories[:] + [category]
             children = new_datapoint.pop("children", [])
-            if datapoint["category"] == "multivalue":
+            if category == "multivalue" and children:
                 [new_datapoint["children"]] = traverse_datapoints(
                     [children], transformation, parent_categories_, **kwargs
                 )
-            else:
+            elif category == "multivalue":
+                new_datapoint["children"] = None
+            elif category in ("tuple", "section"):
                 new_datapoint["children"] = traverse_datapoints(
                     children, transformation, parent_categories_, **kwargs
                 )
@@ -192,8 +194,12 @@ def add(
         new_datapoint = deepcopy(datapoint)
         new_datapoint["children"].append(datapoint_to_add)
         return new_datapoint
+    elif datapoint["category"] == "multivalue" and not datapoint.get("children"):
+        new_datapoint = deepcopy(datapoint)
+        new_datapoint["children"] = datapoint_to_add
+        return new_datapoint
     elif datapoint["category"] == "multivalue":
-        warnings.warn("Cannot add child to a multivalue.")
+        warnings.warn("Cannot add child to a filled multivalue.")
         return datapoint
     else:
         return datapoint
