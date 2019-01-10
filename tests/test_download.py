@@ -2,9 +2,9 @@ import json
 import re
 from traceback import print_tb
 
-from click.testing import CliRunner
-import requests_mock
+import pytest
 
+from tests.conftest import API_URL
 from tools import download
 
 DATA = """\
@@ -14,38 +14,27 @@ DATA = """\
 """
 USERNAME = "something"
 PASSWORD = "secret"
+CSV_URL = "mock://csv.example.com"
 
 
 class TestDownload:
-    def test_csv(self):
-        url = "mock://csv.example.com"
-
-        runner = CliRunner(
-            env={"ADMIN_API_URL": url, "ADMIN_API_LOGIN": USERNAME, "ADMIN_API_PASSWORD": PASSWORD}
-        )
-        with requests_mock.mock() as m:
-            m.get(re.compile(fr"{url}/byperiod/\d+/\d{{10}}"), text=DATA)
-            result = runner.invoke(download.cli, ["csv", "--step", "1"])
+    @pytest.mark.runner_setup(
+        env={"ADMIN_API_URL": CSV_URL, "ADMIN_API_LOGIN": USERNAME, "ADMIN_API_PASSWORD": PASSWORD}
+    )
+    def test_csv(self, requests_mock, cli_runner):
+        requests_mock.get(re.compile(fr"{CSV_URL}/byperiod/\d+/\d{{10}}"), text=DATA)
+        result = cli_runner.invoke(download.cli, ["csv", "--step", "1"])
         assert not result.exit_code, print_tb(result.exc_info[2])
-        assert 1 == len(m.request_history)
+        assert 1 == len(requests_mock.request_history)
         assert DATA == result.stdout.strip()
 
-    def test_schema(self):
-        url = "mock://api.elis.rossum.ai"
+    @pytest.mark.runner_setup(
+        env={"ADMIN_API_URL": API_URL, "ADMIN_API_LOGIN": USERNAME, "ADMIN_API_PASSWORD": PASSWORD}
+    )
+    def test_schema(self, mock_login_request, mock_get_schema, cli_runner):
         schema_id = "1"
         schema_content = []
 
-        runner = CliRunner(
-            env={"ADMIN_API_URL": url, "ADMIN_API_LOGIN": USERNAME, "ADMIN_API_PASSWORD": PASSWORD}
-        )
-        with requests_mock.mock() as m:
-            m.post(f"{url}/v1/auth/login", json={"key": "secretsecret"})
-            m.post(f"{url}/v1/auth/logout")
-            m.get(
-                f"{url}/v1/schemas/{schema_id}",
-                json={"content": schema_content},
-                request_headers={"Authorization": "Token secretsecret"},
-            )
-            result = runner.invoke(download.cli, ["schema", schema_id])
+        result = cli_runner.invoke(download.cli, ["schema", schema_id])
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert schema_content == json.loads(result.stdout)

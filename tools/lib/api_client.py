@@ -3,10 +3,11 @@ from __future__ import annotations
 import os
 import urllib.parse
 from contextlib import AbstractContextManager
-from typing import Dict, List, Tuple, Optional, Union
+from typing import Dict, List, Tuple, Optional
 
 import click
 import requests
+from requests import Response
 
 DEFAULT_ELIS_URL = "https://api.elis.rossum.ai"
 DEFAULT_ELIS_ADMIN = "support@rossum.ai"
@@ -89,31 +90,31 @@ class APIClient(AbstractContextManager):
 
         return self._token
 
-    def post(self, path: str, data: dict, expected_status_code: int = 201) -> Union[dict, str]:
+    def post(self, path: str, data: dict, expected_status_code: int = 201) -> Response:
         return self._request_url(
             "post", f"{self.url}/{path}", json=data, expected_status_code=expected_status_code
         )
 
-    def get(self, path: str, query: dict = None) -> Union[dict, str]:
+    def patch(self, path: str, data: dict) -> Response:
+        return self._request_url("patch", f"{self.url}/{path}", json=data)
+
+    def get(self, path: str, query: dict = None) -> Response:
         return self._request_url("get", f"{self.url}/{path}", query)
 
-    def get_url(self, url: str, query: dict = None) -> Union[dict, str]:
+    def get_url(self, url: str, query: dict = None) -> Response:
         return self._request_url("get", url, query)
 
-    def delete_url(self, url: str) -> Union[dict, str]:
+    def delete_url(self, url: str) -> Response:
         return self._request_url("delete", url, expected_status_code=204)
 
     def _request_url(
         self, method: str, url: str, query: dict = None, expected_status_code: int = 200, **kwargs
-    ) -> Union[dict, str]:
+    ) -> Response:
         url_with_query = url + "?" + urllib.parse.urlencode(query, doseq=True) if query else url
         response = requests.request(method, url_with_query, **self._authentication, **kwargs)
         if response.status_code != expected_status_code:
             raise click.ClickException(f"Invalid response [{url_with_query}]: {response.text}")
-        try:
-            return response.json()
-        except ValueError:
-            return response.text
+        return response
 
     def delete(self, to_delete: Dict[str, str], verbose: int = 0, item: str = "annotation") -> None:
         for id_, url in to_delete.items():
@@ -130,17 +131,19 @@ class APIClient(AbstractContextManager):
 
     def get_paginated(self, path: str, query: Dict[str, str]) -> Tuple[List[dict], int]:
         response = self.get(path, query)
-        assert isinstance(response, dict)
-        res = response["results"]
-        next_page = response["pagination"]["next"]
+        response_dict = response.json()
+
+        res = response_dict["results"]
+        next_page = response_dict["pagination"]["next"]
 
         while next_page:
             response = self.get_url(next_page)
-            assert isinstance(response, dict)
-            res.extend(response["results"])
-            next_page = response["pagination"]["next"]
+            response_dict = response.json()
 
-        return res, response["pagination"]["total"]
+            res.extend(response_dict["results"])
+            next_page = response_dict["pagination"]["next"]
+
+        return res, response_dict["pagination"]["total"]
 
     @property
     def _authentication(self) -> dict:
@@ -152,3 +155,17 @@ class APIClient(AbstractContextManager):
     def logout(self) -> None:
         if self._auth_using_token:
             self.post("auth/logout", {}, expected_status_code=200)
+
+
+def get_json(response: Response) -> dict:
+    try:
+        return response.json()
+    except ValueError as e:
+        raise click.ClickException(f"Invalid JSON [{response.url}]: {response.text}") from e
+
+
+def get_text(response: Response) -> str:
+    try:
+        return response.text
+    except ValueError as e:
+        raise click.ClickException(f"Invalid text [{response.url}]: {response.text}") from e

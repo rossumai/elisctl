@@ -16,65 +16,53 @@ from tools.lib import split_dict_params
 @click.argument("schema", type=click.File("rb"))
 @click.option("--indent", default=2, type=int)
 @click.option("--ensure-ascii", is_flag=True, type=bool)
-def cli(ctx: click.Context, schema: IO[str], indent: int, ensure_ascii: bool) -> None:
-    ctx.obj = {"SCHEMA": json.load(schema), "INDENT": indent, "ENSURE_ASCII": ensure_ascii}
+@click.option("--sort-keys", is_flag=True, type=bool)
+def cli(
+    ctx: click.Context, schema: IO[str], indent: int, ensure_ascii: bool, sort_keys: bool
+) -> None:
+    ctx.obj = {"SCHEMA": json.load(schema)}
 
 
 @cli.command(name="substitute-options")
 @click.pass_context
 @click.argument("options", type=click.File("rb"))
 @click.option("--id", "id_", type=str)
-def substitute_options_command(ctx: click.Context, options: IO[str], id_: str) -> None:
+def substitute_options_command(ctx: click.Context, options: IO[str], id_: str) -> List[dict]:
     options_dict = json.load(options)
-
-    new_schema = traverse_datapoints(
-        ctx.obj["SCHEMA"], substitute_options, id_=id_, options=options_dict
-    )
-    click.echo(
-        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
-    )
+    return traverse_datapoints(ctx.obj["SCHEMA"], substitute_options, id_=id_, options=options_dict)
 
 
 @cli.command(name="remove")
 @click.pass_context
 @click.argument("ids", nargs=-1, type=str)
-def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> None:
-    new_schema = traverse_datapoints(ctx.obj["SCHEMA"], remove, ids=ids)
-    click.echo(
-        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
-    )
+def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> List[dict]:
+    return traverse_datapoints(ctx.obj["SCHEMA"], remove, ids=ids)
 
 
 @cli.command(name="wrap-in-multivalue")
 @click.pass_context
 @click.argument("exclude_ids", nargs=-1, type=str)
-def wrap_in_multivalue_command(ctx: click.Context, exclude_ids: Tuple[str, ...]) -> None:
-    new_schema = traverse_datapoints(
-        ctx.obj["SCHEMA"], wrap_in_multivalue, exclude_ids=set(exclude_ids)
-    )
-    click.echo(
-        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
-    )
+def wrap_in_multivalue_command(ctx: click.Context, exclude_ids: Tuple[str, ...]) -> List[dict]:
+    return traverse_datapoints(ctx.obj["SCHEMA"], wrap_in_multivalue, exclude_ids=set(exclude_ids))
 
 
 @cli.command(name="add")
 @click.pass_context
 @click.argument("parent_id", type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
-def add_command(ctx: click.Context, parent_id: str, datapoint_parameters: Iterable[str]) -> None:
+def add_command(
+    ctx: click.Context, parent_id: str, datapoint_parameters: Iterable[str]
+) -> List[dict]:
     try:
         datapoint_parameters_dict = dict(split_dict_params(datapoint_parameters))
     except ValueError as e:
         raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
 
-    new_schema = traverse_datapoints(
+    return traverse_datapoints(
         ctx.obj["SCHEMA"],
         add,
         parent_id=parent_id,
         datapoint_to_add=_new_datapoint(datapoint_parameters_dict),
-    )
-    click.echo(
-        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
     )
 
 
@@ -82,17 +70,26 @@ def add_command(ctx: click.Context, parent_id: str, datapoint_parameters: Iterab
 @click.pass_context
 @click.argument("id_", metavar="id", type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
-def change_command(ctx: click.Context, id_: str, datapoint_parameters: Iterable[str]) -> None:
+@click.option(
+    "-c",
+    "--category",
+    type=click.Choice(["datapoint", "multivalue", "tuple", "section"]),
+    multiple=True,
+)
+def change_command(
+    ctx: click.Context, id_: str, datapoint_parameters: Iterable[str], category: Tuple[str]
+) -> List[dict]:
     try:
         datapoint_parameters_dict = dict(split_dict_params(datapoint_parameters))
     except ValueError as e:
         raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
 
-    new_schema = traverse_datapoints(
-        ctx.obj["SCHEMA"], change, id_=id_, to_change=datapoint_parameters_dict
-    )
-    click.echo(
-        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
+    return traverse_datapoints(
+        ctx.obj["SCHEMA"],
+        change,
+        id_=id_,
+        to_change=datapoint_parameters_dict,
+        filtered_categories=category,
     )
 
 
@@ -100,16 +97,23 @@ def change_command(ctx: click.Context, id_: str, datapoint_parameters: Iterable[
 @click.pass_context
 @click.argument("source_id", type=str)
 @click.argument("target_id", type=str)
-def move_command(ctx: click.Context, source_id: str, target_id: str) -> None:
+def move_command(ctx: click.Context, source_id: str, target_id: str) -> List[dict]:
     source_dp = get(ctx.obj["SCHEMA"], id_=source_id)
     new_schema = traverse_datapoints(ctx.obj["SCHEMA"], remove, ids=(source_id,))
-    new_schema = traverse_datapoints(
-        new_schema, add, parent_id=target_id, datapoint_to_add=source_dp
-    )
+    return traverse_datapoints(new_schema, add, parent_id=target_id, datapoint_to_add=source_dp)
 
-    click.echo(
-        json.dumps(new_schema, indent=ctx.obj["INDENT"], ensure_ascii=ctx.obj["ENSURE_ASCII"])
-    )
+
+@cli.resultcallback()
+@click.pass_context
+def process_result(
+    ctx: click.Context,
+    result: List[dict],
+    schema: IO[str],
+    indent: int,
+    ensure_ascii: bool,
+    sort_keys: bool,
+) -> None:
+    click.echo(json.dumps(result, indent=indent, ensure_ascii=ensure_ascii, sort_keys=sort_keys))
 
 
 def traverse_datapoints(
@@ -123,11 +127,13 @@ def traverse_datapoints(
         if category != "datapoint":
             parent_categories_ = parent_categories[:] + [category]
             children = new_datapoint.pop("children", [])
-            if datapoint["category"] == "multivalue":
+            if category == "multivalue" and children:
                 [new_datapoint["children"]] = traverse_datapoints(
                     [children], transformation, parent_categories_, **kwargs
                 )
-            else:
+            elif category == "multivalue":
+                new_datapoint["children"] = None
+            elif category in ("tuple", "section"):
                 new_datapoint["children"] = traverse_datapoints(
                     children, transformation, parent_categories_, **kwargs
                 )
@@ -192,15 +198,27 @@ def add(
         new_datapoint = deepcopy(datapoint)
         new_datapoint["children"].append(datapoint_to_add)
         return new_datapoint
+    elif datapoint["category"] == "multivalue" and not datapoint.get("children"):
+        new_datapoint = deepcopy(datapoint)
+        new_datapoint["children"] = datapoint_to_add
+        return new_datapoint
     elif datapoint["category"] == "multivalue":
-        warnings.warn("Cannot add child to a multivalue.")
+        warnings.warn("Cannot add child to a filled multivalue.")
         return datapoint
     else:
         return datapoint
 
 
-def change(datapoint: dict, parent_categories: List[str], id_: str, to_change: dict) -> dict:
-    if datapoint["id"] != id_:
+def change(
+    datapoint: dict,
+    parent_categories: List[str],
+    id_: str,
+    to_change: dict,
+    filtered_categories: Tuple[str],
+) -> dict:
+    is_of_id = id_ in (datapoint["id"], "ALL")
+    is_of_category = not filtered_categories or datapoint["category"] in filtered_categories
+    if not (is_of_id and is_of_category):
         return datapoint
     else:
         return {**datapoint, **to_change}
