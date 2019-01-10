@@ -21,7 +21,7 @@ FORMATS = [
 ]
 
 
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.group("download")
 @click.pass_context
 def cli(ctx: click.Context) -> None:
     pass

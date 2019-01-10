@@ -5,7 +5,7 @@ import click as click
 import pandas as pd
 
 
-@click.command()
+@click.command("csv_to_options")
 @click.argument("csv", type=click.File("rb"))
 @click.option("--delimiter", default=";", type=str)
 @click.option("--header", default=None, type=int)

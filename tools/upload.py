@@ -10,7 +10,7 @@ from typing.io import IO
 from tools.lib.api_client import APIClient, get_json
 
 
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.group("upload")
 @click.pass_context
 @click.argument("json_file", metavar="JSON", type=click.File("rb"))
 def cli(ctx: click.Context, json_file: IO[str]) -> None:

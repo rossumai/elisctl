@@ -11,7 +11,7 @@ import click as click
 from tools.lib import split_dict_params
 
 
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.group("transform_schema")
 @click.pass_context
 @click.argument("schema", type=click.File("rb"))
 @click.option("--indent", default=2, type=int)

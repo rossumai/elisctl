@@ -7,7 +7,7 @@ import click as click
 import pandas as pd
 
 
-@click.command(help="Converts an Excel sheet to a CSV. All indices are 0-based.")
+@click.command("xls_to_csv", help="Converts an Excel sheet to a CSV. All indices are 0-based.")
 @click.argument("xls", type=click.File("rb"))
 @click.option("--value", default=0, type=int, help="Index of column with values")
 @click.option("--label", default=1, type=int, help="Index of column with labels")
