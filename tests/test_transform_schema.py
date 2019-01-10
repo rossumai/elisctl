@@ -2,6 +2,8 @@ import json
 from copy import deepcopy
 from traceback import print_tb
 
+import pytest
+
 from tools import transform_schema
 
 SCHEMA_NAME = "schema.json"
@@ -50,10 +52,10 @@ OPTIONS = [
 ]
 
 
+@pytest.mark.usefixtures("_original_schema_file")
 class TestTransformSchema:
     def test_substitute_options(self, isolated_cli_runner):
-        with open(OPTIONS_NAME, "w") as options, open(SCHEMA_NAME, "w") as schema:
-            json.dump(ORIGINAL_SCHEMA, schema)
+        with open(OPTIONS_NAME, "w") as options:
             json.dump(OPTIONS, options)
 
         result = isolated_cli_runner.invoke(
@@ -66,9 +68,6 @@ class TestTransformSchema:
         assert new_schema == json.loads(result.stdout)
 
     def test_change(self, isolated_cli_runner):
-        with open(SCHEMA_NAME, "w") as schema:
-            json.dump(ORIGINAL_SCHEMA, schema)
-
         result = isolated_cli_runner.invoke(
             transform_schema.cli,
             [SCHEMA_NAME, "change", "vat_rate", f"options={json.dumps(OPTIONS)}"],
@@ -91,9 +90,6 @@ class TestTransformSchema:
         assert new_schema == json.loads(result.stdout)
 
     def test_move(self, isolated_cli_runner):
-        with open(SCHEMA_NAME, "w") as schema:
-            json.dump(ORIGINAL_SCHEMA, schema)
-
         result = isolated_cli_runner.invoke(
             transform_schema.cli, [SCHEMA_NAME, "move", "vat_rate", "other"]
         )
@@ -103,9 +99,6 @@ class TestTransformSchema:
         assert new_schema == json.loads(result.stdout)
 
     def test_add(self, isolated_cli_runner):
-        with open(SCHEMA_NAME, "w") as schema:
-            json.dump(ORIGINAL_SCHEMA, schema)
-
         result = isolated_cli_runner.invoke(
             transform_schema.cli, [SCHEMA_NAME, "add", "basic_info", "id=test"]
         )
@@ -126,9 +119,6 @@ class TestTransformSchema:
         assert new_schema == json.loads(result.stdout)
 
     def test_add_single_to_empty_multivalue(self, isolated_cli_runner):
-        with open(SCHEMA_NAME, "w") as schema:
-            json.dump(ORIGINAL_SCHEMA, schema)
-
         result = isolated_cli_runner.invoke(
             transform_schema.cli, [SCHEMA_NAME, "add", "test_multi", "id=test"]
         )
@@ -147,9 +137,6 @@ class TestTransformSchema:
         assert new_schema == json.loads(result.stdout)
 
     def test_wrap_in_multivalue(self, isolated_cli_runner):
-        with open(SCHEMA_NAME, "w") as schema:
-            json.dump(ORIGINAL_SCHEMA, schema)
-
         result = isolated_cli_runner.invoke(
             transform_schema.cli, [SCHEMA_NAME, "wrap-in-multivalue"]
         )
@@ -167,3 +154,10 @@ class TestTransformSchema:
             }
         )
         assert new_schema == json.loads(result.stdout)
+
+
+@pytest.fixture
+def _original_schema_file(isolated_cli_runner):
+    with open(SCHEMA_NAME, "w") as schema:
+        json.dump(ORIGINAL_SCHEMA, schema)
+    yield
