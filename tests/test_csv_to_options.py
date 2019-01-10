@@ -1,9 +1,6 @@
 import json
 
-from click.testing import CliRunner
-
 from tools import csv_to_options
-
 
 FILENAME = "some.csv"
 DATA = [
