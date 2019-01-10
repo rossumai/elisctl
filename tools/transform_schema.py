@@ -16,7 +16,10 @@ from tools.lib import split_dict_params
 @click.argument("schema", type=click.File("rb"))
 @click.option("--indent", default=2, type=int)
 @click.option("--ensure-ascii", is_flag=True, type=bool)
-def cli(ctx: click.Context, schema: IO[str], indent: int, ensure_ascii: bool) -> None:
+@click.option("--sort-keys", is_flag=True, type=bool)
+def cli(
+    ctx: click.Context, schema: IO[str], indent: int, ensure_ascii: bool, sort_keys: bool
+) -> None:
     ctx.obj = {"SCHEMA": json.load(schema)}
 
 
@@ -91,9 +94,14 @@ def move_command(ctx: click.Context, source_id: str, target_id: str) -> List[dic
 @cli.resultcallback()
 @click.pass_context
 def process_result(
-    ctx: click.Context, result: List[dict], schema: IO[str], indent: int, ensure_ascii: bool
+    ctx: click.Context,
+    result: List[dict],
+    schema: IO[str],
+    indent: int,
+    ensure_ascii: bool,
+    sort_keys: bool,
 ) -> None:
-    click.echo(json.dumps(result, indent=indent, ensure_ascii=ensure_ascii))
+    click.echo(json.dumps(result, indent=indent, ensure_ascii=ensure_ascii, sort_keys=sort_keys))
 
 
 def traverse_datapoints(
