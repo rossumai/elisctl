@@ -1,8 +1,6 @@
 import json
 from copy import deepcopy
-from traceback import format_tb, print_tb
-
-from click.testing import CliRunner
+from traceback import print_tb
 
 from tools import transform_schema
 
@@ -53,70 +51,64 @@ OPTIONS = [
 
 
 class TestTransformSchema:
-    def test_substitute_options(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open(OPTIONS_NAME, "w") as options, open(SCHEMA_NAME, "w") as schema:
-                json.dump(ORIGINAL_SCHEMA, schema)
-                json.dump(OPTIONS, options)
+    def test_substitute_options(self, isolated_cli_runner):
+        with open(OPTIONS_NAME, "w") as options, open(SCHEMA_NAME, "w") as schema:
+            json.dump(ORIGINAL_SCHEMA, schema)
+            json.dump(OPTIONS, options)
 
-            result = runner.invoke(
-                transform_schema.cli,
-                [SCHEMA_NAME, "substitute-options", "--id", "vat_rate", OPTIONS_NAME],
-            )
+        result = isolated_cli_runner.invoke(
+            transform_schema.cli,
+            [SCHEMA_NAME, "substitute-options", "--id", "vat_rate", OPTIONS_NAME],
+        )
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[0]["children"][0]["options"] = OPTIONS
         assert new_schema == json.loads(result.stdout)
 
-    def test_change(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open(SCHEMA_NAME, "w") as schema:
-                json.dump(ORIGINAL_SCHEMA, schema)
+    def test_change(self, isolated_cli_runner):
+        with open(SCHEMA_NAME, "w") as schema:
+            json.dump(ORIGINAL_SCHEMA, schema)
 
-            result = runner.invoke(
-                transform_schema.cli,
-                [SCHEMA_NAME, "change", "vat_rate", f"options={json.dumps(OPTIONS)}"],
-            )
+        result = isolated_cli_runner.invoke(
+            transform_schema.cli,
+            [SCHEMA_NAME, "change", "vat_rate", f"options={json.dumps(OPTIONS)}"],
+        )
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[0]["children"][0]["options"] = OPTIONS
         assert new_schema == json.loads(result.stdout)
 
-    def test_remove(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open(SCHEMA_NAME, "w") as schema:
-                json.dump(ORIGINAL_SCHEMA, schema)
+    def test_remove(self, isolated_cli_runner):
+        with open(SCHEMA_NAME, "w") as schema:
+            json.dump(ORIGINAL_SCHEMA, schema)
 
-            result = runner.invoke(transform_schema.cli, [SCHEMA_NAME, "remove", "vat_rate"])
+        result = isolated_cli_runner.invoke(
+            transform_schema.cli, [SCHEMA_NAME, "remove", "vat_rate"]
+        )
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[0]["children"] = []
         assert new_schema == json.loads(result.stdout)
 
-    def test_move(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open(SCHEMA_NAME, "w") as schema:
-                json.dump(ORIGINAL_SCHEMA, schema)
+    def test_move(self, isolated_cli_runner):
+        with open(SCHEMA_NAME, "w") as schema:
+            json.dump(ORIGINAL_SCHEMA, schema)
 
-            result = runner.invoke(transform_schema.cli, [SCHEMA_NAME, "move", "vat_rate", "other"])
+        result = isolated_cli_runner.invoke(
+            transform_schema.cli, [SCHEMA_NAME, "move", "vat_rate", "other"]
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[1]["children"].append(new_schema[0]["children"].pop())
         assert new_schema == json.loads(result.stdout)
 
-    def test_add(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open(SCHEMA_NAME, "w") as schema:
-                json.dump(ORIGINAL_SCHEMA, schema)
+    def test_add(self, isolated_cli_runner):
+        with open(SCHEMA_NAME, "w") as schema:
+            json.dump(ORIGINAL_SCHEMA, schema)
 
-            result = runner.invoke(
-                transform_schema.cli, [SCHEMA_NAME, "add", "basic_info", "id=test"]
-            )
+        result = isolated_cli_runner.invoke(
+            transform_schema.cli, [SCHEMA_NAME, "add", "basic_info", "id=test"]
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[0]["children"].append(
@@ -133,15 +125,13 @@ class TestTransformSchema:
         )
         assert new_schema == json.loads(result.stdout)
 
-    def test_add_single_to_empty_multivalue(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open(SCHEMA_NAME, "w") as schema:
-                json.dump(ORIGINAL_SCHEMA, schema)
+    def test_add_single_to_empty_multivalue(self, isolated_cli_runner):
+        with open(SCHEMA_NAME, "w") as schema:
+            json.dump(ORIGINAL_SCHEMA, schema)
 
-            result = runner.invoke(
-                transform_schema.cli, [SCHEMA_NAME, "add", "test_multi", "id=test"]
-            )
+        result = isolated_cli_runner.invoke(
+            transform_schema.cli, [SCHEMA_NAME, "add", "test_multi", "id=test"]
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[1]["children"][0]["children"] = {
@@ -156,13 +146,13 @@ class TestTransformSchema:
         }
         assert new_schema == json.loads(result.stdout)
 
-    def test_wrap_in_multivalue(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open(SCHEMA_NAME, "w") as schema:
-                json.dump(ORIGINAL_SCHEMA, schema)
+    def test_wrap_in_multivalue(self, isolated_cli_runner):
+        with open(SCHEMA_NAME, "w") as schema:
+            json.dump(ORIGINAL_SCHEMA, schema)
 
-            result = runner.invoke(transform_schema.cli, [SCHEMA_NAME, "wrap-in-multivalue"])
+        result = isolated_cli_runner.invoke(
+            transform_schema.cli, [SCHEMA_NAME, "wrap-in-multivalue"]
+        )
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         single_value = new_schema[0]["children"].pop()

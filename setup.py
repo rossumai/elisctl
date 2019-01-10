@@ -19,7 +19,7 @@ setup(
     install_requires=["pandas", "click", "xlrd", "requests", "jsondiff"],
     python_requires="~=3.7",
     setup_requires=["pytest-runner"],
-    tests_require=["pytest", "pytest-cov", "openpyxl", "requests_mock"],
+    tests_require=["pytest", "pytest-cov", "openpyxl", "requests_mock", "pytest-click"],
     zip_safe=False,
     entry_points={
         "console_scripts": [

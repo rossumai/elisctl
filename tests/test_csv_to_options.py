@@ -14,30 +14,28 @@ DATA = [
 
 
 class TestCSVToOptions:
-    def test_no_header(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open(FILENAME, "w") as f:
-                for line in DATA:
-                    f.write(f"{line['value']},{line['label'].split(' ')[1]}\n")
+    def test_no_header(self, isolated_cli_runner):
+        with open(FILENAME, "w") as f:
+            for line in DATA:
+                f.write(f"{line['value']},{line['label'].split(' ')[1]}\n")
 
-            result = runner.invoke(
-                csv_to_options.cli, [FILENAME, "--delimiter", ",", "--add-value"]
-            )
+        result = isolated_cli_runner.invoke(
+            csv_to_options.cli, [FILENAME, "--delimiter", ",", "--add-value"]
+        )
         assert not result.exit_code
 
         d = json.loads(result.stdout)
         assert DATA == d
 
-    def test_header(self):
-        runner = CliRunner()
-        with runner.isolated_filesystem():
-            with open(FILENAME, "w") as f:
-                f.write(f"value;label\n")
-                for line in DATA:
-                    f.write(f"{line['value']};{line['label'].split(' ')[1]}\n")
+    def test_header(self, isolated_cli_runner):
+        with open(FILENAME, "w") as f:
+            f.write(f"value;label\n")
+            for line in DATA:
+                f.write(f"{line['value']};{line['label'].split(' ')[1]}\n")
 
-            result = runner.invoke(csv_to_options.cli, [FILENAME, "--header", "0", "--add-value"])
+        result = isolated_cli_runner.invoke(
+            csv_to_options.cli, [FILENAME, "--header", "0", "--add-value"]
+        )
         assert not result.exit_code
 
         d = json.loads(result.stdout)
