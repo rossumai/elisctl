@@ -70,14 +70,26 @@ def add_command(
 @click.pass_context
 @click.argument("id_", metavar="id", type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
-def change_command(ctx: click.Context, id_: str, datapoint_parameters: Iterable[str]) -> List[dict]:
+@click.option(
+    "-c",
+    "--category",
+    type=click.Choice(["datapoint", "multivalue", "tuple", "section"]),
+    multiple=True,
+)
+def change_command(
+    ctx: click.Context, id_: str, datapoint_parameters: Iterable[str], category: Tuple[str]
+) -> List[dict]:
     try:
         datapoint_parameters_dict = dict(split_dict_params(datapoint_parameters))
     except ValueError as e:
         raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
 
     return traverse_datapoints(
-        ctx.obj["SCHEMA"], change, id_=id_, to_change=datapoint_parameters_dict
+        ctx.obj["SCHEMA"],
+        change,
+        id_=id_,
+        to_change=datapoint_parameters_dict,
+        filtered_categories=category,
     )
 
 
@@ -197,8 +209,16 @@ def add(
         return datapoint
 
 
-def change(datapoint: dict, parent_categories: List[str], id_: str, to_change: dict) -> dict:
-    if datapoint["id"] != id_:
+def change(
+    datapoint: dict,
+    parent_categories: List[str],
+    id_: str,
+    to_change: dict,
+    filtered_categories: Tuple[str],
+) -> dict:
+    is_of_id = id_ in (datapoint["id"], "ALL")
+    is_of_category = not filtered_categories or datapoint["category"] in filtered_categories
+    if not (is_of_id and is_of_category):
         return datapoint
     else:
         return {**datapoint, **to_change}

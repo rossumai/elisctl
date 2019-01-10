@@ -41,7 +41,16 @@ ORIGINAL_SCHEMA = [
                 "default_value": None,
                 "min_occurrences": None,
                 "max_occurrences": None,
-            }
+            },
+            {
+                "category": "datapoint",
+                "id": "desc",
+                "type": "string",
+                "label": "Description",
+                "width_chars": 10,
+                "rir_field_names": [],
+                "default_value": None,
+            },
         ],
     },
 ]
@@ -75,6 +84,17 @@ class TestTransformSchema:
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[0]["children"][0]["options"] = OPTIONS
+        assert new_schema == json.loads(result.stdout)
+
+    def test_change_all_datapoints(self, isolated_cli_runner):
+        result = isolated_cli_runner.invoke(
+            transform_schema.cli,
+            [SCHEMA_NAME, "change", "ALL", "-c", "datapoint", 'constraints={"required":true}'],
+        )
+        assert not result.exit_code
+        new_schema = deepcopy(ORIGINAL_SCHEMA)
+        new_schema[0]["children"][0]["constraints"] = {"required": True}
+        new_schema[1]["children"][1]["constraints"] = {"required": True}
         assert new_schema == json.loads(result.stdout)
 
     def test_remove(self, isolated_cli_runner):
@@ -138,7 +158,7 @@ class TestTransformSchema:
 
     def test_wrap_in_multivalue(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
-            transform_schema.cli, [SCHEMA_NAME, "wrap-in-multivalue"]
+            transform_schema.cli, [SCHEMA_NAME, "wrap-in-multivalue", "desc"]
         )
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
