@@ -138,6 +138,27 @@ class TestTransformSchema:
         )
         assert new_schema == json.loads(result.stdout)
 
+    def test_add_place_before(self, isolated_cli_runner):
+        result = isolated_cli_runner.invoke(
+            transform_schema.cli, [SCHEMA_NAME, "add", "other", "id=test", "--place-before", "desc"]
+        )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        new_schema = deepcopy(ORIGINAL_SCHEMA)
+        new_schema[1]["children"].insert(
+            1,
+            {
+                "category": "datapoint",
+                "constraints": {"required": False},
+                "default_value": None,
+                "id": "test",
+                "label": "test",
+                "rir_field_names": [],
+                "type": "string",
+                "width_chars": 10,
+            },
+        )
+        assert new_schema == json.loads(result.stdout)
+
     def test_add_single_to_empty_multivalue(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
             transform_schema.cli, [SCHEMA_NAME, "add", "test_multi", "id=test"]

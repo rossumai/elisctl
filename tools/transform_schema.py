@@ -50,8 +50,18 @@ def wrap_in_multivalue_command(ctx: click.Context, exclude_ids: Tuple[str, ...])
 @click.pass_context
 @click.argument("parent_id", type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
+@click.option(
+    "--place-before",
+    "-p",
+    type=str,
+    default=None,
+    help="Id of datapoint which will follow the added datapoint.",
+)
 def add_command(
-    ctx: click.Context, parent_id: str, datapoint_parameters: Iterable[str]
+    ctx: click.Context,
+    parent_id: str,
+    datapoint_parameters: Iterable[str],
+    place_before: Optional[str],
 ) -> List[dict]:
     try:
         datapoint_parameters_dict = dict(split_dict_params(datapoint_parameters))
@@ -63,6 +73,7 @@ def add_command(
         add,
         parent_id=parent_id,
         datapoint_to_add=_new_datapoint(datapoint_parameters_dict),
+        place_before=place_before,
     )
 
 
@@ -189,14 +200,23 @@ def wrap_in_multivalue(
 
 
 def add(
-    datapoint: dict, parent_categories: List[str], parent_id: str, datapoint_to_add: dict
+    datapoint: dict,
+    parent_categories: List[str],
+    parent_id: str,
+    datapoint_to_add: dict,
+    place_before: Optional[str] = None,
 ) -> dict:
     if datapoint["id"] != parent_id:
         return datapoint
 
     if datapoint["category"] in ("tuple", "section"):
         new_datapoint = deepcopy(datapoint)
-        new_datapoint["children"].append(datapoint_to_add)
+        if place_before is None:
+            new_datapoint["children"].append(datapoint_to_add)
+        else:
+            new_datapoint["children"].insert(
+                _find_index_of_id(place_before, new_datapoint["children"]), datapoint_to_add
+            )
         return new_datapoint
     elif datapoint["category"] == "multivalue" and not datapoint.get("children"):
         new_datapoint = deepcopy(datapoint)
@@ -207,6 +227,14 @@ def add(
         return datapoint
     else:
         return datapoint
+
+
+def _find_index_of_id(id_: str, children: List[dict]) -> int:
+    for i, child in enumerate(children):
+        if child["id"] == id_:
+            return i
+    else:
+        raise click.ClickException(f"Not found ID '{id_}' to place behind.")
 
 
 def change(
