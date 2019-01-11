@@ -4,7 +4,7 @@ from traceback import print_tb
 
 import pytest
 
-from tools import transform_schema
+from tools.schema import transform
 
 SCHEMA_NAME = "schema.json"
 OPTIONS_NAME = "options.json"
@@ -68,8 +68,7 @@ class TestTransformSchema:
             json.dump(OPTIONS, options)
 
         result = isolated_cli_runner.invoke(
-            transform_schema.cli,
-            [SCHEMA_NAME, "substitute-options", "--id", "vat_rate", OPTIONS_NAME],
+            transform.cli, [SCHEMA_NAME, "substitute-options", "vat_rate", OPTIONS_NAME]
         )
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
@@ -78,8 +77,7 @@ class TestTransformSchema:
 
     def test_change(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
-            transform_schema.cli,
-            [SCHEMA_NAME, "change", "vat_rate", f"options={json.dumps(OPTIONS)}"],
+            transform.cli, [SCHEMA_NAME, "change", "vat_rate", f"options={json.dumps(OPTIONS)}"]
         )
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
@@ -88,7 +86,7 @@ class TestTransformSchema:
 
     def test_change_all_datapoints(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
-            transform_schema.cli,
+            transform.cli,
             [SCHEMA_NAME, "change", "ALL", "-c", "datapoint", 'constraints={"required":true}'],
         )
         assert not result.exit_code
@@ -101,9 +99,7 @@ class TestTransformSchema:
         with open(SCHEMA_NAME, "w") as schema:
             json.dump(ORIGINAL_SCHEMA, schema)
 
-        result = isolated_cli_runner.invoke(
-            transform_schema.cli, [SCHEMA_NAME, "remove", "vat_rate"]
-        )
+        result = isolated_cli_runner.invoke(transform.cli, [SCHEMA_NAME, "remove", "vat_rate"])
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)
         new_schema[0]["children"] = []
@@ -111,7 +107,7 @@ class TestTransformSchema:
 
     def test_move(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
-            transform_schema.cli, [SCHEMA_NAME, "move", "vat_rate", "other"]
+            transform.cli, [SCHEMA_NAME, "move", "vat_rate", "other"]
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
         new_schema = deepcopy(ORIGINAL_SCHEMA)
@@ -120,7 +116,7 @@ class TestTransformSchema:
 
     def test_add(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
-            transform_schema.cli, [SCHEMA_NAME, "add", "basic_info", "id=test"]
+            transform.cli, [SCHEMA_NAME, "add", "basic_info", "id=test"]
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
         new_schema = deepcopy(ORIGINAL_SCHEMA)
@@ -140,7 +136,7 @@ class TestTransformSchema:
 
     def test_add_place_before(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
-            transform_schema.cli, [SCHEMA_NAME, "add", "other", "id=test", "--place-before", "desc"]
+            transform.cli, [SCHEMA_NAME, "add", "other", "id=test", "--place-before", "desc"]
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
         new_schema = deepcopy(ORIGINAL_SCHEMA)
@@ -161,7 +157,7 @@ class TestTransformSchema:
 
     def test_add_single_to_empty_multivalue(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
-            transform_schema.cli, [SCHEMA_NAME, "add", "test_multi", "id=test"]
+            transform.cli, [SCHEMA_NAME, "add", "test_multi", "id=test"]
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
         new_schema = deepcopy(ORIGINAL_SCHEMA)
@@ -179,7 +175,7 @@ class TestTransformSchema:
 
     def test_wrap_in_multivalue(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
-            transform_schema.cli, [SCHEMA_NAME, "wrap-in-multivalue", "desc"]
+            transform.cli, [SCHEMA_NAME, "wrap-in-multivalue", "desc"]
         )
         assert not result.exit_code
         new_schema = deepcopy(ORIGINAL_SCHEMA)

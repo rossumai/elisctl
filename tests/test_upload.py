@@ -8,7 +8,7 @@ import pytest
 from requests import Request
 
 from tests.conftest import API_URL, TOKEN
-from tools import upload
+from tools.schema.upload import upload_command
 
 DATA = """\
 1;abc
@@ -49,7 +49,7 @@ class TestUpload:
 
         with open(SCHEMA_NAME, "w") as schema:
             json.dump(schema_content, schema)
-        result = isolated_cli_runner.invoke(upload.cli, [SCHEMA_NAME, "schema", schema_id])
+        result = isolated_cli_runner.invoke(upload_command, [schema_id, SCHEMA_NAME])
         assert not result.exit_code, print_tb(result.exc_info[2])
 
     def test_schema_rewrite(self, mock_login_request, requests_mock, isolated_cli_runner):
@@ -63,9 +63,7 @@ class TestUpload:
         )
         with open(SCHEMA_NAME, "w") as schema:
             json.dump(schema_content, schema)
-        result = isolated_cli_runner.invoke(
-            upload.cli, [SCHEMA_NAME, "schema", schema_id, "--rewrite"]
-        )
+        result = isolated_cli_runner.invoke(upload_command, [schema_id, SCHEMA_NAME, "--rewrite"])
         assert not result.exit_code, print_tb(result.exc_info[2])
 
 

@@ -2,7 +2,7 @@ from io import StringIO
 
 import pandas as pd
 
-from tools import xls_to_csv
+from tools.tools import xls_to_csv
 
 FILENAME = "some.xls"
 DATA = """\
