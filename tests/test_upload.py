@@ -5,9 +5,8 @@ from traceback import print_tb
 from typing import List
 
 import pytest
-from requests import Request
 
-from tests.conftest import API_URL, TOKEN
+from tests.conftest import API_URL, TOKEN, match_uploaded_json
 from tools.schema.upload import upload_command
 
 DATA = """\
@@ -37,14 +36,14 @@ class TestUpload:
         requests_mock.post(
             schemas_url,
             json={"url": new_schema_url, "queues": [], **new_schema},
-            additional_matcher=partial(_match_uploaded_json, new_schema),
+            additional_matcher=partial(match_uploaded_json, new_schema),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=201,
         )
         requests_mock.patch(
             re.compile(fr"{API_URL}/v1/queues/\d"),
             request_headers={"Authorization": f"Token {TOKEN}"},
-            additional_matcher=partial(_match_uploaded_json, {"schema": new_schema_url}),
+            additional_matcher=partial(match_uploaded_json, {"schema": new_schema_url}),
         )
 
         with open(SCHEMA_NAME, "w") as schema:
@@ -58,14 +57,10 @@ class TestUpload:
 
         requests_mock.patch(
             schema_url,
-            additional_matcher=partial(_match_uploaded_json, {"content": schema_content}),
+            additional_matcher=partial(match_uploaded_json, {"content": schema_content}),
             request_headers={"Authorization": f"Token {TOKEN}"},
         )
         with open(SCHEMA_NAME, "w") as schema:
             json.dump(schema_content, schema)
         result = isolated_cli_runner.invoke(upload_command, [schema_id, SCHEMA_NAME, "--rewrite"])
         assert not result.exit_code, print_tb(result.exc_info[2])
-
-
-def _match_uploaded_json(uploaded_json: dict, request: Request) -> bool:
-    return request.json() == uploaded_json
