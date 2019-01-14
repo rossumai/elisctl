@@ -23,7 +23,7 @@ schema_id = "1"
 
 
 @pytest.mark.runner_setup(
-    env={"ADMIN_API_URL": API_URL, "ADMIN_API_LOGIN": USERNAME, "ADMIN_API_PASSWORD": PASSWORD}
+    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
 )
 class TestUpload:
     def test_schema_create(
