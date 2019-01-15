@@ -13,7 +13,8 @@ HELP = """\
 Update schema in ELIS.
 
 WARNING: creation of schema must be carried out with a user from within the organization.
-The reason is that the schema is automatically attached to the organization of the user, who is creating it.
+The reason is that the schema is automatically attached to the organization of the user,
+who is creating it.
 """
 
 

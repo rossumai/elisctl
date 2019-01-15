@@ -123,7 +123,7 @@ class APIClient(AbstractContextManager):
             except click.ClickException as exc:
                 click.echo(f'Deleting {item} {id_} caused "{exc}".')
             except Exception as exc:
-                click.echo(f'Deleting {item} {id_} caused an unexpected excpetion: "{exc}".')
+                click.echo(f'Deleting {item} {id_} caused an unexpected exception: "{exc}".')
                 raise click.ClickException(str(exc))
             else:
                 if verbose > 1:

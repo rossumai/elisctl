@@ -46,7 +46,7 @@ def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> List[dict]:
 @cli.command(
     name="wrap-in-multivalue",
     short_help="Put all datapoints into a multivalue.",
-    help="Put all datapoints into a multivalue (unless they are altready in a multivalue).",
+    help="Put all datapoints into a multivalue (unless they are already in a multivalue).",
 )
 @click.pass_context
 @click.argument("exclude_ids", nargs=-1, type=str)
