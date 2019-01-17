@@ -4,8 +4,10 @@ from typing import Optional
 import click as click
 import pandas as pd
 
+HELP = "Create options list from csv. Usable for filling options key of enum datapoint in schema."
 
-@click.command()
+
+@click.command("csv_to_options", help=HELP)
 @click.argument("csv", type=click.File("rb"))
 @click.option("--delimiter", default=";", type=str)
 @click.option("--header", default=None, type=int)
@@ -26,7 +28,3 @@ def cli(
         null_df = pd.DataFrame([[empty_value, "-" * 3]], columns=["value", "label"])
         df = pd.concat([null_df, df])
     click.echo(df.to_json(orient="records"))
-
-
-if __name__ == "__main__":
-    cli()

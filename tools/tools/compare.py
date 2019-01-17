@@ -13,7 +13,7 @@ from tools.lib import split_dict_params
 DIFF_RE = re.compile(r"^[+-^]")
 
 
-@click.command()
+@click.command("compare", help="Compare 2 json files.")
 @click.argument("json1", type=click.File("rb"))
 @click.argument("json2", type=click.File("rb"))
 @click.option("--method", "-m", type=click.Choice(["difflib", "jsondiff"]), default="jsondiff")
@@ -48,7 +48,3 @@ def _json_diff(d1: dict, d2: dict, **kwargs) -> str:
     dumper = JsonDumper(indent=2)
     kwargs = {"syntax": "symmetric", **kwargs}
     return json_diff(d1, d2, **kwargs, dumper=dumper, dump=True)
-
-
-if __name__ == "__main__":
-    cli()

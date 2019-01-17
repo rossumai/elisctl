@@ -9,29 +9,24 @@ from typing.io import IO
 
 from tools.lib.api_client import APIClient, get_json
 
+HELP = """\
+Update schema in ELIS.
 
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
-@click.pass_context
-@click.argument("json_file", metavar="JSON", type=click.File("rb"))
-def cli(ctx: click.Context, json_file: IO[str]) -> None:
-    ctx.obj = {"JSON": json.load(json_file)}
-
-
-WARNING = """
 WARNING: creation of schema must be carried out with a user from within the organization.
-The reason is that the schema is automatically attached to the organization of the user, who is creating it.
+The reason is that the schema is automatically attached to the organization of the user,
+who is creating it.
 """
 
 
-@cli.command(name="schema", help=WARNING)
-@click.pass_context
+@click.command(name="update", help=HELP)
 @click.argument("id_", metavar="ID", type=str)
+@click.argument("json_file", metavar="JSON", type=click.File("rb"))
 @click.option("--rewrite", is_flag=True, type=bool)
 @click.option("--name", default=None, type=str)
-def schema(ctx: click.Context, id_: str, rewrite: bool, name: Optional[str]):
+def upload_command(id_: str, json_file: IO[bytes], rewrite: bool, name: Optional[str]):
     func = _rewrite_schema if rewrite else _create_schema
     with APIClient() as api_client:
-        func(id_, ctx.obj["JSON"], api_client, name)
+        func(id_, json.load(json_file), api_client, name)
 
 
 def _rewrite_schema(
@@ -66,6 +61,3 @@ def _create_schema(
 
 SchemaContent = List[dict]
 Schema = Dict[str, Union[str, SchemaContent]]
-
-if __name__ == "__main__":
-    cli()

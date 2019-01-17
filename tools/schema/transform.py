@@ -11,42 +11,58 @@ import click as click
 from tools.lib import split_dict_params
 
 
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.group("transform", help="Transform schema content.")
 @click.pass_context
 @click.argument("schema", type=click.File("rb"))
-@click.option("--indent", default=2, type=int)
-@click.option("--ensure-ascii", is_flag=True, type=bool)
-@click.option("--sort-keys", is_flag=True, type=bool)
+@click.option(
+    "--indent", default=2, type=int, show_default=True, help="Indentation of resulting JSON."
+)
+@click.option(
+    "--ensure-ascii", is_flag=True, type=bool, help="Escape non-ASCII characters in resulting JSON."
+)
+@click.option("--sort-keys", is_flag=True, type=bool, help="Order keys in resulting JSON.")
 def cli(
     ctx: click.Context, schema: IO[str], indent: int, ensure_ascii: bool, sort_keys: bool
 ) -> None:
     ctx.obj = {"SCHEMA": json.load(schema)}
 
 
-@cli.command(name="substitute-options")
+@cli.command(name="substitute-options", help="Substitute options in existing enum datapoint.")
 @click.pass_context
-@click.argument("options", type=click.File("rb"))
-@click.option("--id", "id_", type=str)
-def substitute_options_command(ctx: click.Context, options: IO[str], id_: str) -> List[dict]:
-    options_dict = json.load(options)
+@click.argument("id_", metavar="ID", type=str)
+@click.argument("new_options", type=click.File("rb"))
+def substitute_options_command(ctx: click.Context, new_options: IO[str], id_: str) -> List[dict]:
+    options_dict = json.load(new_options)
     return traverse_datapoints(ctx.obj["SCHEMA"], substitute_options, id_=id_, options=options_dict)
 
 
-@cli.command(name="remove")
+@cli.command(name="remove", help="Remove datapoints.")
 @click.pass_context
 @click.argument("ids", nargs=-1, type=str)
 def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> List[dict]:
     return traverse_datapoints(ctx.obj["SCHEMA"], remove, ids=ids)
 
 
-@cli.command(name="wrap-in-multivalue")
+@cli.command(
+    name="wrap-in-multivalue",
+    short_help="Put all datapoints into a multivalue.",
+    help="Put all datapoints into a multivalue (unless they are already in a multivalue).",
+)
 @click.pass_context
 @click.argument("exclude_ids", nargs=-1, type=str)
 def wrap_in_multivalue_command(ctx: click.Context, exclude_ids: Tuple[str, ...]) -> List[dict]:
     return traverse_datapoints(ctx.obj["SCHEMA"], wrap_in_multivalue, exclude_ids=set(exclude_ids))
 
 
-@cli.command(name="add")
+@cli.command(
+    name="add",
+    short_help="Create new datapoint.",
+    help="""
+Create new datapoint.
+
+DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a json.
+""",
+)
 @click.pass_context
 @click.argument("parent_id", type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
@@ -77,15 +93,26 @@ def add_command(
     )
 
 
-@cli.command(name="change")
+@cli.command(
+    name="change",
+    short_help="Change existing datapoint.",
+    help="""
+Change existing datapoint.
+
+ID can be set to ALL, then all datapoints are changed.
+DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a JSON.
+""",
+)
 @click.pass_context
-@click.argument("id_", metavar="id", type=str)
+@click.argument("id_", metavar="ID", type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
 @click.option(
     "-c",
     "--category",
     type=click.Choice(["datapoint", "multivalue", "tuple", "section"]),
     multiple=True,
+    help="Change only datapoints of specified categories. Useful with <id> set to ALL. "
+    "Multiple categories can be set.",
 )
 def change_command(
     ctx: click.Context, id_: str, datapoint_parameters: Iterable[str], category: Tuple[str]
@@ -104,7 +131,7 @@ def change_command(
     )
 
 
-@cli.command(name="move")
+@cli.command(name="move", help="Move datapoint to new parent datapoint.")
 @click.pass_context
 @click.argument("source_id", type=str)
 @click.argument("target_id", type=str)
@@ -317,7 +344,3 @@ def _new_singlevalue(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa:
 
 DataPointDictItem = Union[str, int, dict, None, list]
 DataPointDict = Dict[str, DataPointDictItem]
-
-
-if __name__ == "__main__":
-    cli()

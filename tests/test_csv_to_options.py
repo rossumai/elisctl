@@ -1,6 +1,6 @@
 import json
 
-from tools import csv_to_options
+from tools.tools import csv_to_options
 
 FILENAME = "some.csv"
 DATA = [

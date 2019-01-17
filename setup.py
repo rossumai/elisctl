@@ -21,14 +21,5 @@ setup(
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "pytest-cov", "openpyxl", "requests_mock", "pytest-click"],
     zip_safe=False,
-    entry_points={
-        "console_scripts": [
-            "csv_to_options = tools.csv_to_options:cli",
-            "xls_to_csv = tools.xls_to_csv:cli",
-            "transform_schema = tools.transform_schema:cli",
-            "download = tools.download:cli",
-            "upload = tools.upload:cli",
-            "compare = tools.compare:cli",
-        ]
-    },
+    entry_points={"console_scripts": ["elisctl = tools:entry_point"]},
 )
