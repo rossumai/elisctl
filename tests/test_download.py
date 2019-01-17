@@ -20,7 +20,7 @@ CSV_URL = "mock://csv.example.com"
 
 class TestDownload:
     @pytest.mark.runner_setup(
-        env={"ADMIN_API_URL": CSV_URL, "ADMIN_API_LOGIN": USERNAME, "ADMIN_API_PASSWORD": PASSWORD}
+        env={"ELIS_URL": CSV_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
     )
     def test_csv(self, requests_mock, cli_runner):
         requests_mock.get(re.compile(fr"{CSV_URL}/byperiod/\d+/\d{{10}}"), text=DATA)
@@ -30,7 +30,7 @@ class TestDownload:
         assert DATA == result.stdout.strip()
 
     @pytest.mark.runner_setup(
-        env={"ADMIN_API_URL": API_URL, "ADMIN_API_LOGIN": USERNAME, "ADMIN_API_PASSWORD": PASSWORD}
+        env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
     )
     def test_schema(self, mock_login_request, mock_get_schema, cli_runner):
         schema_id = "1"

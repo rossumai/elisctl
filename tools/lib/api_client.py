@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import urllib.parse
 from contextlib import AbstractContextManager
 from typing import Dict, List, Tuple, Optional
@@ -9,8 +8,7 @@ import click
 import requests
 from requests import Response
 
-DEFAULT_ELIS_URL = "https://api.elis.rossum.ai"
-DEFAULT_ELIS_ADMIN = "support@rossum.ai"
+from tools.configure import get_credential
 
 
 class APIClient(AbstractContextManager):
@@ -42,42 +40,24 @@ class APIClient(AbstractContextManager):
     ) -> APIClient:  # noqa: F821
         return cls(url, user, password, False, False)
 
-    def _get_api_credentials(self) -> None:
-        self._url: str = (
-            self._url
-            or os.getenv("ADMIN_API_URL")
-            or click.prompt(f"API URL", default=DEFAULT_ELIS_URL, type=str)
-        ).strip("/ ")
-        self._user: str = (
-            self._user
-            or os.getenv("ADMIN_API_LOGIN")
-            or click.prompt(f"Superadmin login", default=DEFAULT_ELIS_ADMIN, type=str)
-        ).strip()
-        self._password: str = (
-            self._password
-            or os.getenv("ADMIN_API_PASSWORD")
-            or click.prompt(f"Superadmin password", hide_input=True, type=str)
-        ).strip()
-
     @property
     def user(self) -> str:
         if self._user is None:
-            self._get_api_credentials()
-            assert self._user is not None
+            self._user = get_credential("username")
         return self._user
 
     @property
     def password(self) -> str:
         if self._password is None:
-            self._get_api_credentials()
-            assert self._password is not None
+            self._password = get_credential("password")
         return self._password
 
     @property
     def url(self) -> str:
         if self._url is None:
-            self._get_api_credentials()
-        return f'{self._url}{"/v1" if self._use_api_version else ""}'
+            _url = get_credential("url").rstrip("/")
+            self._url = f'{_url}{"/v1" if self._use_api_version else ""}'
+        return self._url
 
     @property
     def token(self) -> str:
