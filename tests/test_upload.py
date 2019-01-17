@@ -24,10 +24,10 @@ schema_id = "1"
 @pytest.mark.runner_setup(
     env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
 )
+@pytest.mark.usefixtures("mock_login_request")
 class TestUpload:
-    def test_schema_create(
-        self, mock_login_request, mock_get_schema, requests_mock, isolated_cli_runner
-    ):
+    @pytest.mark.usefixtures("mock_get_schema")
+    def test_schema_create(self, requests_mock, isolated_cli_runner):
         new_schema = {"content": schema_content, "name": "test"}
         new_schema_id = "2"
         schemas_url = f"{API_URL}/v1/schemas"
@@ -51,7 +51,7 @@ class TestUpload:
         result = isolated_cli_runner.invoke(upload_command, [schema_id, SCHEMA_NAME])
         assert not result.exit_code, print_tb(result.exc_info[2])
 
-    def test_schema_rewrite(self, mock_login_request, requests_mock, isolated_cli_runner):
+    def test_schema_rewrite(self, requests_mock, isolated_cli_runner):
         schemas_url = f"{API_URL}/v1/schemas"
         schema_url = f"{schemas_url}/{schema_id}"
 

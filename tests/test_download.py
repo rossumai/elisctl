@@ -32,7 +32,8 @@ class TestDownload:
     @pytest.mark.runner_setup(
         env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
     )
-    def test_schema(self, mock_login_request, mock_get_schema, cli_runner):
+    @pytest.mark.usefixtures("mock_login_request", "mock_get_schema")
+    def test_schema(self, cli_runner):
         schema_id = "1"
         schema_content = []
 

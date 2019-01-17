@@ -18,7 +18,8 @@ class TestUser:
     @pytest.mark.runner_setup(
         env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
     )
-    def test_create(self, mock_login_request, requests_mock, cli_runner):
+    @pytest.mark.usefixtures("mock_login_request")
+    def test_create(self, requests_mock, cli_runner):
         queues_url = f"{API_URL}/v1/queues"
         workspaces_url = f"{API_URL}/v1/workspaces"
         groups_url = f"{API_URL}/v1/groups"
