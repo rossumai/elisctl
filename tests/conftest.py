@@ -1,5 +1,6 @@
 import pytest
 from _pytest.fixtures import FixtureRequest
+from requests import Request
 
 API_URL = "mock://api.elis.rossum.ai"
 TOKEN = "secretsecret"
@@ -27,3 +28,7 @@ def mock_get_schema(request: FixtureRequest, requests_mock):
         request_headers={"Authorization": f"Token {TOKEN}"},
     )
     yield requests_mock
+
+
+def match_uploaded_json(uploaded_json: dict, request: Request) -> bool:
+    return request.json() == uploaded_json
