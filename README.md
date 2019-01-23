@@ -14,3 +14,6 @@ elisctl schema transform default_schema.json substitute-options centre <( \
  | elisctl schema transform - remove contract \
  > era_schema.json
 ```
+
+# License
+MIT
