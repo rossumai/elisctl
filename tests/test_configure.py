@@ -5,7 +5,7 @@ from traceback import print_tb
 
 import pytest
 
-from tools import configure
+from elisctl import configure
 
 
 class TestConfigure:

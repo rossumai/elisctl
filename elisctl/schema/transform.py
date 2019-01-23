@@ -8,7 +8,7 @@ from typing import List, Callable, Optional, IO, Tuple, Iterable, Dict, Union, S
 
 import click as click
 
-from tools.lib import split_dict_params
+from elisctl.lib import split_dict_params
 
 
 @click.group("transform", help="Transform schema content.")

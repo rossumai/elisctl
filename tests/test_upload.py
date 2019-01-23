@@ -7,7 +7,7 @@ from typing import List
 import pytest
 
 from tests.conftest import API_URL, TOKEN, match_uploaded_json
-from tools.schema.upload import upload_command
+from elisctl.schema.upload import upload_command
 
 DATA = """\
 1;abc

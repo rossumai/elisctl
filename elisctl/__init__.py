@@ -1,6 +1,6 @@
 import click
 
-from tools import tools, schema, csv, configure, user
+from elisctl import tools, schema, csv, configure, user
 
 
 @click.group("elisctl", context_settings={"help_option_names": ["-h", "--help"]})

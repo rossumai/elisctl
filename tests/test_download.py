@@ -5,8 +5,8 @@ from traceback import print_tb
 import pytest
 
 from tests.conftest import API_URL
-from tools.schema import download_command as download_schema
-from tools.csv import download_command as download_csv
+from elisctl.schema import download_command as download_schema
+from elisctl.csv import download_command as download_csv
 
 DATA = """\
 1;abc

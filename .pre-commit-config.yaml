@@ -5,7 +5,7 @@ repos:
       - id: black
         language_version: python3.7
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.0.0
+    rev: v2.1.0
     hooks:
       - id: flake8
         exclude: misc
@@ -19,6 +19,6 @@ repos:
     hooks:
       - id: bandit
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.650
+    rev: v0.660
     hooks:
       - id: mypy

@@ -4,7 +4,7 @@ from traceback import print_tb
 
 import pytest
 
-from tools.schema import transform
+from elisctl.schema import transform
 
 SCHEMA_NAME = "schema.json"
 OPTIONS_NAME = "options.json"
