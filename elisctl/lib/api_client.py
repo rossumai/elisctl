@@ -8,7 +8,7 @@ import click
 import requests
 from requests import Response
 
-from tools.configure import get_credential
+from elisctl.configure import get_credential
 
 
 class APIClient(AbstractContextManager):

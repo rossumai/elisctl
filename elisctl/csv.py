@@ -6,7 +6,7 @@ import click as click
 import pandas as pd
 from math import ceil
 
-from tools.lib.api_client import APIClient, get_text
+from elisctl.lib.api_client import APIClient, get_text
 
 now = datetime.datetime.utcnow()
 FORMATS = [

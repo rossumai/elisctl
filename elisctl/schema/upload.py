@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Union
 import click as click
 from typing.io import IO
 
-from tools.lib.api_client import APIClient, get_json
+from elisctl.lib.api_client import APIClient, get_json
 
 HELP = """\
 Update schema in ELIS.
@@ -20,10 +20,10 @@ who is creating it.
 
 @click.command(name="update", help=HELP)
 @click.argument("id_", metavar="ID", type=str)
-@click.argument("json_file", metavar="JSON", type=click.File("rb"))
+@click.argument("json_file", metavar="JSON", type=click.File("r"))
 @click.option("--rewrite", is_flag=True, type=bool)
 @click.option("--name", default=None, type=str)
-def upload_command(id_: str, json_file: IO[bytes], rewrite: bool, name: Optional[str]):
+def upload_command(id_: str, json_file: IO[str], rewrite: bool, name: Optional[str]):
     func = _rewrite_schema if rewrite else _create_schema
     with APIClient() as api_client:
         func(id_, json.load(json_file), api_client, name)

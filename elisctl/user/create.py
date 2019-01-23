@@ -2,7 +2,7 @@ from typing import List
 
 import click
 
-from tools.lib.api_client import APIClient, get_json
+from elisctl.lib.api_client import APIClient, get_json
 
 
 @click.command(name="create", short_help="Create user.")

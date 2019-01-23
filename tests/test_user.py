@@ -7,7 +7,7 @@ from requests import Request
 from requests_mock.response import _Context
 
 from tests.conftest import API_URL, TOKEN, match_uploaded_json
-from tools.user.create import create_command
+from elisctl.user.create import create_command
 
 
 class TestUser:

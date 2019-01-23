@@ -1,6 +1,6 @@
 import click
 
-from tools.user import create
+from elisctl.user import create
 
 
 @click.group("user")

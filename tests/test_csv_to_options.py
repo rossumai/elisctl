@@ -1,6 +1,6 @@
 import json
 
-from tools.tools import csv_to_options
+from elisctl.tools import csv_to_options
 
 FILENAME = "some.csv"
 DATA = [
