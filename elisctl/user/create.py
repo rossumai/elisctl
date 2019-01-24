@@ -34,7 +34,7 @@ def create_command(username: str, password: str, queues: List[str], group: str) 
         if len(organizations) > 1:
             raise click.ClickException(f"User can be in only 1 organization.")
         elif not organizations:
-            raise click.ClickException(f"User must be in at least 1 organization.")
+            return
         else:
             organization_url = organizations.pop()
 
