@@ -17,7 +17,17 @@ from elisctl.lib.api_client import APIClient, get_json
     help="Permission group.",
     show_default=True,
 )
-def create_command(username: str, password: str, queues: List[str], group: str) -> None:
+@click.option(
+    "-l",
+    "--locale",
+    default="en",
+    type=click.Choice(["en", "cs"]),
+    help="UI locale",
+    show_default=True,
+)
+def create_command(
+    username: str, password: str, queues: List[str], group: str, locale: str
+) -> None:
     """
     Create user with USERNAME and PASSWORD and add him to QUEUES specified by ids.
     """
@@ -49,5 +59,6 @@ def create_command(username: str, password: str, queues: List[str], group: str) 
                 "password": password,
                 "groups": groups,
                 "queues": queue_urls,
+                "ui_settings": {"locale": locale},
             },
         )
