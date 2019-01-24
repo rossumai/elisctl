@@ -34,9 +34,19 @@ def cli():
 
 def get_credential(attr: str) -> str:
     res = os.getenv(f"ELIS_{attr.upper()}")
-    if res is None:
-        config = configparser.ConfigParser()
-        config.read(CONFIGURATION_PATH)
-        res = config["default"].get(attr)
+    if res is not None:
+        return res
+
+    config = configparser.ConfigParser()
+    config.read(CONFIGURATION_PATH)
+    try:
+        config_dict = config["default"]
+    except KeyError as e:
+        raise click.ClickException(
+            f"Provide API credential {attr}. "
+            f"Either by using `elisctl configure`, or environment variable ELIS_{attr.upper()}."
+        ) from e
+    else:
+        res = config_dict.get(attr)
     assert res is not None
     return res.strip()
