@@ -4,6 +4,7 @@ from textwrap import dedent
 from traceback import print_tb
 
 import pytest
+from click import ClickException
 
 from elisctl import configure
 
@@ -49,6 +50,16 @@ class TestConfigure:
 
             result = configure.get_credential("test")
         assert "test" == result
+
+    @pytest.mark.usefixtures("configuration_path")
+    def test_no_credentials(self):
+        with pytest.raises(ClickException) as e:
+            configure.get_credential("test")
+
+        assert e.value.message == (
+            "Provide API credential test. "
+            "Either by using `elisctl configure`, or environment variable ELIS_TEST."
+        )
 
 
 @pytest.fixture
