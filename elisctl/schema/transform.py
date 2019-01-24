@@ -11,9 +11,9 @@ import click as click
 from elisctl.lib import split_dict_params
 
 
-@click.group("transform", help="Transform schema content.")
+@click.group("transform", help="Transform schema file content.")
 @click.pass_context
-@click.argument("schema", type=click.File("rb"))
+@click.argument("schema_file", type=click.File("rb"))
 @click.option(
     "--indent", default=2, type=int, show_default=True, help="Indentation of resulting JSON."
 )
@@ -22,9 +22,9 @@ from elisctl.lib import split_dict_params
 )
 @click.option("--sort-keys", is_flag=True, type=bool, help="Order keys in resulting JSON.")
 def cli(
-    ctx: click.Context, schema: IO[str], indent: int, ensure_ascii: bool, sort_keys: bool
+    ctx: click.Context, schema_file: IO[str], indent: int, ensure_ascii: bool, sort_keys: bool
 ) -> None:
-    ctx.obj = {"SCHEMA": json.load(schema)}
+    ctx.obj = {"SCHEMA": json.load(schema_file)}
 
 
 @cli.command(name="substitute-options", help="Substitute options in existing enum datapoint.")
@@ -146,7 +146,7 @@ def move_command(ctx: click.Context, source_id: str, target_id: str) -> List[dic
 def process_result(
     ctx: click.Context,
     result: List[dict],
-    schema: IO[str],
+    schema_file: IO[str],
     indent: int,
     ensure_ascii: bool,
     sort_keys: bool,
