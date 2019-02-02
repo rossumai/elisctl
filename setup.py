@@ -16,7 +16,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     packages=find_packages(exclude=("tests*",)),
-    install_requires=["pandas", "click", "xlrd", "requests", "jsondiff"],
+    install_requires=["pandas", "click", "click-shell", "xlrd", "requests", "jsondiff"],
     python_requires="~=3.7",
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "pytest-cov", "openpyxl", "requests_mock", "pytest-click"],
