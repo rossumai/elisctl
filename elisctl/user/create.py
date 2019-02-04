@@ -10,7 +10,14 @@ from elisctl.lib.api_client import APIClient, get_json
 @click.command(name="create", short_help="Create user.")
 @click.argument("username")
 @click.option("-p", "--password", type=str, required=False, help="Generated, if not specified.")
-@click.argument("queues", nargs=-1, type=int)
+@click.option(
+    "-q",
+    "--queue-id",
+    type=int,
+    multiple=True,
+    help="Queue IDs, which the user will be associated with.",
+)
+@click.option("-o", "--organization-id", type=int, help="Organization ID.", hidden=True)
 @click.option(
     "-g",
     "--group",
@@ -28,7 +35,12 @@ from elisctl.lib.api_client import APIClient, get_json
     show_default=True,
 )
 def create_command(
-    username: str, password: Optional[str], queues: List[str], group: str, locale: str
+    username: str,
+    password: Optional[str],
+    queues: List[str],
+    organization_id: Optional[int],
+    group: str,
+    locale: str,
 ) -> None:
     """
     Create user with USERNAME and add him to QUEUES specified by ids.
@@ -36,21 +48,19 @@ def create_command(
     password = password or _generate_password()
     with APIClient() as api:
         _check_user_does_not_exists(api, username)
+        organization_dict = _get_organization(api, organization_id)
 
+        workspace_urls = {
+            w["url"]
+            for w in get_json(api.get("workspaces", {"organization": organization_dict["id"]}))[
+                "results"
+            ]
+        }
         queue_urls = []
-        organizations = set()
         for queue in queues:
             queue_dict = get_json(api.get(f"queues/{queue}"))
-            queue_urls.append(queue_dict["url"])
-            workspace_dict = get_json(api.get_url(queue_dict["workspace"]))
-            organizations.add(workspace_dict["organization"])
-
-        if len(organizations) > 1:
-            raise click.ClickException(f"User can be in only 1 organization.")
-        elif not organizations:
-            raise click.ClickException(f"User must be in at least 1 organization.")
-        else:
-            organization_url = organizations.pop()
+            if queue_dict["workspace"] in workspace_urls:
+                queue_urls.append(queue_dict["url"])
 
         groups = [g["url"] for g in get_json(api.get("groups", {"name": group}))["results"]]
 
@@ -59,7 +69,7 @@ def create_command(
             {
                 "username": username,
                 "email": username,
-                "organization": organization_url,
+                "organization": organization_dict["url"],
                 "password": password,
                 "groups": groups,
                 "queues": queue_urls,
@@ -78,3 +88,13 @@ def _check_user_does_not_exists(api: APIClient, username: str) -> None:
 def _generate_password():
     alphabet = string.ascii_letters + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(10))
+
+
+def _get_organization(api: APIClient, organization_id: Optional[int] = None) -> dict:
+    if organization_id is None:
+        user_url = get_json(api.get("auth/user"))["url"]
+        organziation_url = get_json(api.get_url(user_url))["organization"]
+        res = api.get_url(organziation_url)
+    else:
+        res = api.get(f"organizations/{organization_id}")
+    return get_json(res)
