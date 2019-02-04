@@ -82,7 +82,7 @@ class TestUser:
         result = cli_runner.invoke(create_command, [NEW_USERNAME, "-o", organization_id, *QUEUES])
         assert not result.exit_code, print_tb(result.exc_info[2])
 
-    @pytest.mark.usefixtures("mock_user_urls")
+    @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
     def test_weak_password(self, requests_mock, cli_runner):
         error_json = {
             "password": [
@@ -90,13 +90,17 @@ class TestUser:
                 "This password is too common.",
             ]
         }
+        weak_password = "secret"
         requests_mock.post(
             USERS_URL,
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=400,
+            additional_matcher=partial(
+                match_uploaded_json, SuperDictOf({"password": weak_password})
+            ),
             json=error_json,
         )
-        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-p", "secret", *QUEUES])
+        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-p", weak_password, *QUEUES])
         assert result.exit_code == 1, print_tb(result.exc_info[2])
         assert result.output == f"Error: Invalid response [{USERS_URL}]: {json.dumps(error_json)}\n"
 
