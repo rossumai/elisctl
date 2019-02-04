@@ -48,3 +48,11 @@ def change_command(
             data["ui_settings"] = {**ui_settings, "locale": locale}
 
         api_client.patch(f"users/{id_}", data)
+
+
+@cli.command(name="delete", help="Delete a user.")
+@click.argument("id_", metavar="ID", type=str)
+@click.confirmation_option()
+def delete_command(id_: str) -> None:
+    with APIClient() as api_client:
+        api_client.patch(f"users/{id_}", {"is_active": False})
