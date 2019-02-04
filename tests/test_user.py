@@ -2,6 +2,7 @@ import re
 from functools import partial
 from traceback import print_tb
 from unittest import mock
+import json
 
 import pytest
 from requests import Request
@@ -56,6 +57,24 @@ class TestUser:
         result = cli_runner.invoke(create_command, [NEW_USERNAME, *self.QUEUES])
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert f"{new_user_id}, {generated_password}\n" == result.output
+
+    @pytest.mark.usefixtures("mock_user_urls")
+    def test_weak_password(self, requests_mock, cli_runner):
+        error_json = {
+            "password": [
+                "This password is too short. It must contain at least 8 characters.",
+                "This password is too common.",
+            ]
+        }
+        requests_mock.post(
+            USERS_URL,
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=400,
+            json=error_json,
+        )
+        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-p", "secret", *self.QUEUES])
+        assert result.exit_code == 1, print_tb(result.exc_info[2])
+        assert result.output == f"Error: Invalid response [{USERS_URL}]: {json.dumps(error_json)}\n"
 
     def test_user_exists(self, requests_mock, cli_runner):
         requests_mock.get(
