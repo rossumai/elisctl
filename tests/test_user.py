@@ -55,6 +55,7 @@ class TestUser:
                     "password": self.PASSWORD,
                     "groups": [f"{groups_url}/1"],
                     "queues": [f"{queues_url}/{q_id}" for q_id in self.QUEUES],
+                    "ui_settings": {"locale": "en"},
                 },
             ),
             request_headers={"Authorization": f"Token {TOKEN}"},
