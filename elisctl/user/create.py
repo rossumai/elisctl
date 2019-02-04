@@ -1,4 +1,6 @@
-from typing import List
+import secrets
+import string
+from typing import List, Optional
 
 import click
 
@@ -7,7 +9,7 @@ from elisctl.lib.api_client import APIClient, get_json
 
 @click.command(name="create", short_help="Create user.")
 @click.argument("username")
-@click.argument("password")
+@click.option("-p", "--password", type=str, required=False, help="Generated, if not specified.")
 @click.argument("queues", nargs=-1, type=int)
 @click.option(
     "-g",
@@ -26,11 +28,12 @@ from elisctl.lib.api_client import APIClient, get_json
     show_default=True,
 )
 def create_command(
-    username: str, password: str, queues: List[str], group: str, locale: str
+    username: str, password: Optional[str], queues: List[str], group: str, locale: str
 ) -> None:
     """
-    Create user with USERNAME and PASSWORD and add him to QUEUES specified by ids.
+    Create user with USERNAME and add him to QUEUES specified by ids.
     """
+    password = password or _generate_password()
     with APIClient() as api:
         _check_user_does_not_exists(api, username)
 
@@ -51,7 +54,7 @@ def create_command(
 
         groups = [g["url"] for g in get_json(api.get("groups", {"name": group}))["results"]]
 
-        api.post(
+        response = api.post(
             "users",
             {
                 "username": username,
@@ -63,9 +66,15 @@ def create_command(
                 "ui_settings": {"locale": locale},
             },
         )
+        click.echo(f"{get_json(response)['id']}, {password}")
 
 
 def _check_user_does_not_exists(api: APIClient, username: str) -> None:
     total_users = get_json(api.get(f"users", {"username": username}))["pagination"]["total"]
     if total_users:
         raise click.ClickException(f"User with username {username} already exists.")
+
+
+def _generate_password():
+    alphabet = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(10))
