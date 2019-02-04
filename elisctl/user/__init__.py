@@ -1,6 +1,7 @@
 from typing import Tuple, Optional, Dict, Any
 
 import click
+from tabulate import tabulate
 
 from elisctl.lib.api_client import APIClient, get_json
 from elisctl.user import create
@@ -14,6 +15,28 @@ def cli() -> None:
 
 
 cli.add_command(create.create_command)
+
+
+@cli.command(name="list", help="List all users.")
+def list_command():
+    with APIClient() as api_client:
+        users_list, _ = api_client.get_paginated("users", {"is_active": True})
+        groups_list, _ = api_client.get_paginated("groups")
+        queues_list, _ = api_client.get_paginated("queues")
+    groups = {group["url"]: group["name"] for group in groups_list}
+    queues = {queue["url"]: queue["id"] for queue in queues_list}
+
+    table = [
+        [
+            user["id"],
+            user["username"],
+            ", ".join(str(groups[g]) for g in user["groups"]),
+            ", ".join(str(queues[q]) for q in user["queues"]),
+        ]
+        for user in users_list
+    ]
+
+    click.echo(tabulate(table, headers=["id", "username", "groups", "queues"]))
 
 
 @cli.command(name="change", help="Change a user.")

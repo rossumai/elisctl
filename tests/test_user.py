@@ -1,15 +1,15 @@
+import json
 import re
 from functools import partial
-from itertools import chain
 from traceback import print_tb
 from unittest import mock
-import json
 
 import pytest
+from itertools import chain
 from requests import Request
 from requests_mock.response import _Context
 
-from elisctl.user import change_command, delete_command
+from elisctl.user import list_command, change_command, delete_command
 from elisctl.user.create import create_command
 from tests import SuperDictOf
 from tests.conftest import API_URL, TOKEN, match_uploaded_json
@@ -33,7 +33,7 @@ WORKSPACES = QUEUES = ["1", "2"]
     env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
 )
 @pytest.mark.usefixtures("mock_login_request")
-class TestUser:
+class TestCreate:
     @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
     @mock.patch("elisctl.user.create._generate_password")
     def test_create(self, mock_password, requests_mock, cli_runner):
@@ -132,6 +132,60 @@ class TestUser:
         result = cli_runner.invoke(create_command, [NEW_USERNAME])
         assert result.exit_code == 1
         assert result.output == f"Error: User with username {NEW_USERNAME} already exists.\n"
+
+
+@pytest.mark.runner_setup(
+    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
+)
+@pytest.mark.usefixtures("mock_login_request")
+class TestList:
+    def test_success(self, requests_mock, cli_runner):
+        user_id = 1
+        username = "test@example.com"
+        group_name = "test"
+        queue_id = 1
+
+        queue_url = f"{QUEUES_URL}/{queue_id}"
+        group_url = f"{GROUPS_URL}/1"
+
+        requests_mock.get(
+            USERS_URL + f"?is_active=True",
+            complete_qs=True,
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [
+                    {
+                        "id": user_id,
+                        "groups": [group_url],
+                        "queues": [queue_url],
+                        "username": username,
+                    }
+                ],
+            },
+        )
+        requests_mock.get(
+            QUEUES_URL,
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"id": queue_id, "url": queue_url}],
+            },
+        )
+        requests_mock.get(
+            GROUPS_URL,
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"name": group_name, "url": group_url}],
+            },
+        )
+
+        result = cli_runner.invoke(list_command)
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        expected_table = f"""\
+  id  username          groups      queues
+----  ----------------  --------  --------
+   {user_id}  {username}  {group_name}             {queue_id}
+"""
+        assert result.output == expected_table
 
 
 @pytest.mark.runner_setup(

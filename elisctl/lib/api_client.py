@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import urllib.parse
 from contextlib import AbstractContextManager
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 
 import click
 import requests
@@ -109,7 +109,7 @@ class APIClient(AbstractContextManager):
                 if verbose > 1:
                     click.echo(f"Deleted {item} {id_}.")
 
-    def get_paginated(self, path: str, query: Dict[str, str]) -> Tuple[List[dict], int]:
+    def get_paginated(self, path: str, query: Dict[str, Any] = None) -> Tuple[List[dict], int]:
         response = self.get(path, query)
         response_dict = response.json()
 
