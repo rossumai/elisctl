@@ -1,6 +1,6 @@
 import secrets
 import string
-from typing import List, Optional
+from typing import Optional, Tuple
 
 import click
 
@@ -37,7 +37,7 @@ from elisctl.lib.api_client import APIClient, get_json
 def create_command(
     username: str,
     password: Optional[str],
-    queues: List[str],
+    queue_id: Tuple[int],
     organization_id: Optional[int],
     group: str,
     locale: str,
@@ -57,7 +57,7 @@ def create_command(
             ]
         }
         queue_urls = []
-        for queue in queues:
+        for queue in queue_id:
             queue_dict = get_json(api.get(f"queues/{queue}"))
             if queue_dict["workspace"] in workspace_urls:
                 queue_urls.append(queue_dict["url"])
