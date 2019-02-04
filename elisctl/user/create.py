@@ -32,6 +32,7 @@ def create_command(
     Create user with USERNAME and PASSWORD and add him to QUEUES specified by ids.
     """
     with APIClient() as api:
+        _check_user_does_not_exists(api, username)
 
         queue_urls = []
         organizations = set()
@@ -62,3 +63,9 @@ def create_command(
                 "ui_settings": {"locale": locale},
             },
         )
+
+
+def _check_user_does_not_exists(api: APIClient, username: str) -> None:
+    total_users = get_json(api.get(f"users", {"username": username}))["pagination"]["total"]
+    if total_users:
+        raise click.ClickException(f"User with username {username} already exists.")
