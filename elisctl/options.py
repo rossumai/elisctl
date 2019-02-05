@@ -7,3 +7,5 @@ organization_option = click.option(
     help="Organization ID (only useful for superadmin).",
     hidden=True,
 )
+
+name_option = click.option("-n", "--name", type=str)

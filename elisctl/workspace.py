@@ -1,10 +1,11 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import click
 from tabulate import tabulate
 
+from elisctl.arguments import id_argument
 from elisctl.lib.api_client import ELISClient, get_json
-from elisctl.options import organization_option
+from elisctl.options import organization_option, name_option
 
 
 @click.group("workspace")
@@ -38,7 +39,7 @@ def list_command():
 
 
 @cli.command(name="delete", help="Delete a workspace.")
-@click.argument("id_", metavar="ID", type=int)
+@id_argument
 @click.confirmation_option()
 def delete_command(id_: int) -> None:
     with ELISClient() as elis:
@@ -54,3 +55,18 @@ def delete_command(id_: int) -> None:
             documents.update({d["id"]: d["url"] for d in res})
 
         elis.delete({workspace["id"]: workspace["url"], **documents})
+
+
+@cli.command(name="change", help="Change a workspace.")
+@id_argument
+@name_option
+def change_command(id_: str, name: Optional[str]) -> None:
+    if not any([name]):
+        return
+
+    data: Dict[str, Any] = {}
+    if name is not None:
+        data["name"] = name
+
+    with ELISClient() as elis:
+        elis.patch(f"workspaces/{id_}", data)

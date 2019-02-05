@@ -5,7 +5,7 @@ from traceback import print_tb
 import pytest
 from more_itertools import ilen
 
-from elisctl.workspace import create_command, list_command, delete_command
+from elisctl.workspace import create_command, list_command, delete_command, change_command
 from tests.conftest import API_URL, TOKEN, match_uploaded_json
 
 USERNAME = "test_user@rossum.ai"
@@ -130,3 +130,23 @@ class TestDelete:
             ilen(r for r in requests_mock.request_history if r.method == "DELETE")
             == n_documents + 1
         )
+
+
+@pytest.mark.runner_setup(
+    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
+)
+@pytest.mark.usefixtures("mock_login_request")
+class TestChange:
+    def test_success(self, requests_mock, cli_runner):
+        name = "TestName"
+        workspace_id = "1"
+
+        requests_mock.patch(
+            f"{WORKSPACES_URL}/{workspace_id}",
+            additional_matcher=partial(match_uploaded_json, {"name": name}),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=200,
+        )
+        result = cli_runner.invoke(change_command, [workspace_id, "-n", name])
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert not result.output
