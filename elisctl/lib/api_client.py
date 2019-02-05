@@ -107,19 +107,19 @@ class APIClient(AbstractContextManager):
                     click.echo(f"Deleted {item} {id_}.")
 
     def get_paginated(
-        self, path: str, query: Optional[Dict[str, str]] = None
+        self, path: str, query: Optional[Dict[str, Any]] = None, *, key: str = "results"
     ) -> Tuple[List[Dict[str, Any]], int]:
         response = self.get(path, query)
         response_dict = response.json()
 
-        res = response_dict["results"]
+        res = response_dict[key]
         next_page = response_dict["pagination"]["next"]
 
         while next_page:
             response = self.get_url(next_page)
             response_dict = response.json()
 
-            res.extend(response_dict["results"])
+            res.extend(response_dict[key])
             next_page = response_dict["pagination"]["next"]
 
         return res, response_dict["pagination"]["total"]
@@ -172,6 +172,21 @@ class ELISClient(APIClient):
         workspaces, _ = self.get_paginated("workspaces")
         self._sideload(workspaces, sideloads)
         return workspaces
+
+    def get_workspace(self, id_: int, sideloads: Optional[Iterable[str]] = None) -> dict:
+        workspace = get_json(self.get(f"workspaces/{id_}"))
+        self._sideload([workspace], sideloads)
+        return workspace
+
+    def get_queues(
+        self, sideloads: Optional[Iterable[str]] = None, workspace: Optional[int] = None
+    ) -> List[dict]:
+        query = {}
+        if workspace:
+            query["workspace"] = workspace
+        queues, _ = self.get_paginated("queues", query=query)
+        self._sideload(queues, sideloads)
+        return queues
 
 
 def get_json(response: Response) -> dict:

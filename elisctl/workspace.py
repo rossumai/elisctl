@@ -35,3 +35,22 @@ def list_command():
     ]
 
     click.echo(tabulate(table, headers=["id", "name", "queues"]))
+
+
+@cli.command(name="delete", help="Delete a workspace.")
+@click.argument("id_", metavar="ID", type=int)
+@click.confirmation_option()
+def delete_command(id_: int) -> None:
+    with ELISClient() as elis:
+        workspace = elis.get_workspace(id_)
+        queues = elis.get_queues(workspace=workspace["id"])
+        documents = {}
+        for queue in queues:
+            res, _ = elis.get_paginated(
+                "annotations",
+                {"page_size": 50, "queue": queue["id"], "sideload": "documents"},
+                key="documents",
+            )
+            documents.update({d["id"]: d["url"] for d in res})
+
+        elis.delete({workspace["id"]: workspace["url"], **documents})
