@@ -5,35 +5,16 @@ from typing import Optional, Tuple
 import click
 
 from elisctl.lib.api_client import APIClient, get_json
+from elisctl.user.options import group_option, locale_option, queue_option, password_option
 
 
 @click.command(name="create", short_help="Create user.")
 @click.argument("username")
-@click.option("-p", "--password", type=str, required=False, help="Generated, if not specified.")
-@click.option(
-    "-q",
-    "--queue-id",
-    type=int,
-    multiple=True,
-    help="Queue IDs, which the user will be associated with.",
-)
+@password_option
+@queue_option
 @click.option("-o", "--organization-id", type=int, help="Organization ID.", hidden=True)
-@click.option(
-    "-g",
-    "--group",
-    default="annotator",
-    type=click.Choice(["annotator", "admin", "viewer"]),
-    help="Permission group.",
-    show_default=True,
-)
-@click.option(
-    "-l",
-    "--locale",
-    default="en",
-    type=click.Choice(["en", "cs"]),
-    help="UI locale",
-    show_default=True,
-)
+@group_option
+@locale_option
 def create_command(
     username: str,
     password: Optional[str],
