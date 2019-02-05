@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 import click
 
 from elisctl.lib.api_client import APIClient, get_json
+from elisctl.user.helpers import get_groups
 from elisctl.user.options import group_option, locale_option, queue_option, password_option
 
 
@@ -43,8 +44,6 @@ def create_command(
             if queue_dict["workspace"] in workspace_urls:
                 queue_urls.append(queue_dict["url"])
 
-        groups = [g["url"] for g in get_json(api.get("groups", {"name": group}))["results"]]
-
         response = api.post(
             "users",
             {
@@ -52,7 +51,7 @@ def create_command(
                 "email": username,
                 "organization": organization_dict["url"],
                 "password": password,
-                "groups": groups,
+                "groups": get_groups(api, group),
                 "queues": queue_urls,
                 "ui_settings": {"locale": locale},
             },
