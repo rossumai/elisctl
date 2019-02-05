@@ -1,6 +1,6 @@
 from click_shell import shell
 
-from elisctl import tools, schema, csv, configure, user
+from elisctl import tools, schema, csv, configure, user, workspace
 
 
 @shell(
@@ -16,4 +16,5 @@ entry_point.add_command(tools.cli)
 entry_point.add_command(csv.cli)
 entry_point.add_command(schema.cli)
 entry_point.add_command(user.cli)
+entry_point.add_command(workspace.cli)
 entry_point.add_command(configure.cli)

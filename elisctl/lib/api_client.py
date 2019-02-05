@@ -28,9 +28,6 @@ class APIClient(AbstractContextManager):
 
         self._token: Optional[str] = None
 
-    def __enter__(self) -> APIClient:  # noqa: F821
-        return self
-
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.logout()
 
@@ -135,6 +132,17 @@ class APIClient(AbstractContextManager):
     def logout(self) -> None:
         if self._auth_using_token:
             self.post("auth/logout", {}, expected_status_code=200)
+
+
+class ELISClient(APIClient):
+    def get_organization(self, organization_id: Optional[int] = None) -> dict:
+        if organization_id is None:
+            user_url = get_json(self.get("auth/user"))["url"]
+            organization_url = get_json(self.get_url(user_url))["organization"]
+            res = self.get_url(organization_url)
+        else:
+            res = self.get(f"organizations/{organization_id}")
+        return get_json(res)
 
 
 def get_json(response: Response) -> dict:
