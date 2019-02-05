@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import urllib.parse
 from contextlib import AbstractContextManager
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Iterable, Any
 
 import click
 import requests
@@ -106,7 +106,9 @@ class APIClient(AbstractContextManager):
                 if verbose > 1:
                     click.echo(f"Deleted {item} {id_}.")
 
-    def get_paginated(self, path: str, query: Dict[str, str]) -> Tuple[List[dict], int]:
+    def get_paginated(
+        self, path: str, query: Optional[Dict[str, str]] = None
+    ) -> Tuple[List[Dict[str, Any]], int]:
         response = self.get(path, query)
         response_dict = response.json()
 
@@ -121,6 +123,28 @@ class APIClient(AbstractContextManager):
             next_page = response_dict["pagination"]["next"]
 
         return res, response_dict["pagination"]["total"]
+
+    def _sideload(
+        self, objects: List[dict], sideloads: Optional[Iterable[str]] = None
+    ) -> List[dict]:
+        for sideload in sideloads or []:
+            sideloaded, _ = self.get_paginated(sideload)
+            sideloaded_dicts = {
+                sideloaded_dict["url"]: sideloaded_dict for sideloaded_dict in sideloaded
+            }
+            key = sideload.rstrip("es")
+
+            def inject_sideloaded(obj: dict) -> dict:
+                try:
+                    url = obj[key]
+                except KeyError:
+                    obj[sideload] = [sideloaded_dicts[url] for url in obj[sideload]]
+                else:
+                    obj[key] = sideloaded_dicts[url]
+                return obj
+
+            objects = [inject_sideloaded(o) for o in objects]
+        return objects
 
     @property
     def _authentication(self) -> dict:
@@ -143,6 +167,11 @@ class ELISClient(APIClient):
         else:
             res = self.get(f"organizations/{organization_id}")
         return get_json(res)
+
+    def get_workspaces(self, sideloads: Optional[Iterable[str]] = None) -> List[dict]:
+        workspaces, _ = self.get_paginated("workspaces")
+        self._sideload(workspaces, sideloads)
+        return workspaces
 
 
 def get_json(response: Response) -> dict:
