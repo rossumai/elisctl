@@ -149,7 +149,7 @@ class TestList:
         group_url = f"{GROUPS_URL}/1"
 
         requests_mock.get(
-            USERS_URL + f"?is_active=True",
+            USERS_URL + f"?is_active=true",
             complete_qs=True,
             json={
                 "pagination": {"total": 1, "next": None},
