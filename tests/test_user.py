@@ -9,6 +9,7 @@ import pytest
 from requests import Request
 from requests_mock.response import _Context
 
+from elisctl.user import change_command
 from tests import SuperDictOf
 from tests.conftest import API_URL, TOKEN, match_uploaded_json
 from elisctl.user.create import create_command
@@ -133,6 +134,39 @@ class TestUser:
         assert result.output == f"Error: User with username {NEW_USERNAME} already exists.\n"
 
 
+@pytest.mark.runner_setup(
+    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
+)
+@pytest.mark.usefixtures("mock_login_request", "mock_user_urls")
+class TestChange:
+    def test_success(self, requests_mock, cli_runner):
+        queue_id = "1"
+        locale = "cs"
+        data = {
+            "queues": [f"{QUEUES_URL}/{queue_id}"],
+            "groups": [f"{GROUPS_URL}/2"],
+            "ui_settings": {"locale": locale},
+            "password": "new_password",
+        }
+        user_id = "1"
+
+        requests_mock.get(f"{USERS_URL}/{user_id}", json={"ui_settings": {}})
+        requests_mock.patch(
+            f"{USERS_URL}/{user_id}", additional_matcher=partial(match_uploaded_json, data)
+        )
+
+        result = cli_runner.invoke(
+            change_command,
+            [user_id, "-q", queue_id, "-g", "admin", "-l", locale, "-p", data["password"]],
+        )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert not result.output
+
+    def test_noop(self, requests_mock, cli_runner):
+        cli_runner.invoke(change_command, ["1"])
+        assert not requests_mock.called
+
+
 @pytest.fixture
 def mock_user_urls(requests_mock):
     def _get_queue_json_callback(request: Request, context: _Context) -> dict:
@@ -155,6 +189,14 @@ def mock_user_urls(requests_mock):
         f"{GROUPS_URL}?name=annotator",
         json={"results": [{"url": f"{GROUPS_URL}/1"}]},
         request_headers={"Authorization": f"Token {TOKEN}"},
+        complete_qs=True,
+    )
+
+    requests_mock.get(
+        f"{GROUPS_URL}?name=admin",
+        json={"results": [{"url": f"{GROUPS_URL}/2"}]},
+        request_headers={"Authorization": f"Token {TOKEN}"},
+        complete_qs=True,
     )
 
     requests_mock.get(
