@@ -53,3 +53,15 @@ elisctl schema transform default_schema.json substitute-options centre <( \
 
 # License
 MIT
+
+# Contributing
+
+* Submit a pull request from forked version of this repo. 
+And select any of the maintainers as a reviewer.
+* Use [`pre-commit`](https://pre-commit.com/#install) to avoid linting issues.
+* When releasing, run in `master` branch:
+    ```bash
+    bumpversion minor
+    git push
+    git push --tags
+    ``` 
