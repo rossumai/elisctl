@@ -2,6 +2,10 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![codecov](https://codecov.io/gh/rossumai/elisctl/branch/master/graph/badge.svg)](https://codecov.io/gh/rossumai/elisctl)
 
+**elisctl** is a set of tools that wrap
+the [Elis Document Management API](https://api.elis.rossum.ai/docs)
+to provide an easy way to configure, integrate and customize Elis - either
+interactively or programmaticaly.
 
 # How to use
 
@@ -9,6 +13,33 @@ Install the package:
 ```shell
 pip install -e .
 ```
+
+Individual Elis operation are triggered by passing specific *commands* to `elisctl`.
+Commands are organized by object type in a tree-like structure and thus are composed
+of multiple words (e.g. `user create` or `schema transform`).
+
+The **elisctl** tool can be either used in a **command line interface** mode
+by executing each command through `elisctl` individually by passing it as an argument,
+or in an **interactive shell** mode of executing `elisctl` without parameters
+and then typing the commands into the shown prompt.
+
+So either get the list of commands and execute them immediately such as:
+```shell
+elisctl --help
+elisctl configure
+```
+or run the interactive shell by simply running
+```shell
+elisctl
+```
+
+# Schema Transformations
+
+Some of the most common advanced operations are related to setting up
+the sidebar-describing schema JSON according to business requirements
+and enumerations.
+`elisctl schema transform` and `elisctl tools` are designed to help
+with these operations.
 
 Run something like:
 ```shell
