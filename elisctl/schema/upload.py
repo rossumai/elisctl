@@ -30,10 +30,7 @@ def upload_command(id_: str, json_file: IO[str], rewrite: bool, name: Optional[s
 
 
 def _rewrite_schema(
-    id_: str,
-    schema_content: SchemaContent,  # noqa: F821
-    api_client: APIClient,
-    name: Optional[str],
+    id_: str, schema_content: SchemaContent, api_client: APIClient, name: Optional[str]
 ) -> None:
     data: Schema = {"content": schema_content}
     if name is not None:
@@ -42,10 +39,7 @@ def _rewrite_schema(
 
 
 def _create_schema(
-    id_: str,
-    schema_content: SchemaContent,  # noqa: F821
-    api_client: APIClient,
-    name: Optional[str],
+    id_: str, schema_content: SchemaContent, api_client: APIClient, name: Optional[str]
 ) -> None:
     original_schema = get_json(api_client.get(f"schemas/{id_}"))
     new_schema = get_json(

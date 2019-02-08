@@ -296,7 +296,7 @@ def get(datapoints: List[dict], id_: str) -> Optional[dict]:
     return res
 
 
-def _new_datapoint(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa: F821
+def _new_datapoint(datapoint_to_add: DataPointDict) -> DataPointDict:
     try:
         id_ = datapoint_to_add.pop("id")
     except KeyError as e:
@@ -323,7 +323,7 @@ def _new_datapoint(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa: F
     return {**default, **datapoint_to_add, "category": category}
 
 
-def _new_singlevalue(datapoint_to_add: DataPointDict) -> DataPointDict:  # noqa: F821
+def _new_singlevalue(datapoint_to_add: DataPointDict) -> DataPointDict:
     type_ = datapoint_to_add.pop("type", "string")
     default: DataPointDict = {
         "width_chars": 10,
