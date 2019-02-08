@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 import difflib
 import json
+import platform
 import pprint
+
+import click
 import re
 from typing import Iterable, IO
 
-import click
-from jsondiff import diff as json_diff, JsonDumper
+DIFF_TYPES = ["jsondiff", "difflib"]
 
-from elisctl.lib import split_dict_params
+if platform.system() == "Windows":
+    DIFF_TYPES.remove("jsondiff")
+else:
+    from jsondiff import diff as json_diff, JsonDumper
+
+from elisctl.lib import split_dict_params  # noqa: E402
 
 DIFF_RE = re.compile(r"^[+-^]")
 
@@ -16,7 +23,7 @@ DIFF_RE = re.compile(r"^[+-^]")
 @click.command("compare", help="Compare 2 json files.")
 @click.argument("json1", type=click.File("rb"))
 @click.argument("json2", type=click.File("rb"))
-@click.option("--method", "-m", type=click.Choice(["difflib", "jsondiff"]), default="jsondiff")
+@click.option("--method", "-m", type=click.Choice(DIFF_TYPES), default=DIFF_TYPES[0])
 @click.option("--option", "-o", "options", multiple=True, type=str)
 def cli(json1: IO[str], json2: IO[str], method: str, options: Iterable[str]) -> None:
     try:
