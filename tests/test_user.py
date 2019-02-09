@@ -9,10 +9,10 @@ import pytest
 from requests import Request
 from requests_mock.response import _Context
 
-from elisctl.user import change_command
+from elisctl.user import change_command, delete_command
+from elisctl.user.create import create_command
 from tests import SuperDictOf
 from tests.conftest import API_URL, TOKEN, match_uploaded_json
-from elisctl.user.create import create_command
 
 USERNAME = "test_user@rossum.ai"
 PASSWORD = "secret"
@@ -165,6 +165,23 @@ class TestChange:
     def test_noop(self, requests_mock, cli_runner):
         cli_runner.invoke(change_command, ["1"])
         assert not requests_mock.called
+
+
+@pytest.mark.runner_setup(
+    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
+)
+@pytest.mark.usefixtures("mock_login_request")
+class TestDelete:
+    def test_success(self, requests_mock, cli_runner):
+        user_id = "1"
+        requests_mock.patch(
+            f"{USERS_URL}/{user_id}",
+            additional_matcher=partial(match_uploaded_json, {"is_active": False}),
+        )
+
+        result = cli_runner.invoke(delete_command, [user_id, "--yes"])
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert not result.output
 
 
 @pytest.fixture
