@@ -9,21 +9,16 @@ from typing.io import IO
 
 from elisctl.lib.api_client import APIClient, get_json
 
-HELP = """\
-Update schema in ELIS.
 
-WARNING: creation of schema must be carried out with a user from within the organization.
-The reason is that the schema is automatically attached to the organization of the user,
-who is creating it.
-"""
-
-
-@click.command(name="update", help=HELP)
+@click.command(name="update")
 @click.argument("id_", metavar="ID", type=str)
 @click.argument("json_file", metavar="JSON", type=click.File("r"))
 @click.option("--rewrite", is_flag=True, type=bool)
 @click.option("--name", default=None, type=str)
 def upload_command(id_: str, json_file: IO[str], rewrite: bool, name: Optional[str]):
+    """
+    Update schema in ELIS.
+    """
     func = _rewrite_schema if rewrite else _create_schema
     with APIClient() as api_client:
         func(id_, json.load(json_file), api_client, name)
