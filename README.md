@@ -7,12 +7,24 @@ the [Elis Document Management API](https://api.elis.rossum.ai/docs)
 to provide an easy way to configure, integrate and customize Elis - either
 interactively or programmaticaly.
 
-# How to use
+# Installation
 
-Install the package:
-```shell
+## Windows
+
+Download an installation file from
+[GitHub releases](https://github.com/rossumai/elisctl/releases).
+Install it. And run it either from start menu or from command prompt.
+
+
+## UNIX based systems
+
+Clone this repository.
+And from directory, where the repo is cloned, install the package:
+```bash
 pip install -e .
 ```
+
+# How to use
 
 Individual Elis operation are triggered by passing specific *commands* to `elisctl`.
 Commands are organized by object type in a tree-like structure and thus are composed
@@ -53,3 +65,15 @@ elisctl schema transform default_schema.json substitute-options centre <( \
 
 # License
 MIT
+
+# Contributing
+
+* Submit a pull request from forked version of this repo. 
+And select any of the maintainers as a reviewer.
+* Use [`pre-commit`](https://pre-commit.com/#install) to avoid linting issues.
+* When releasing, run in `master` branch:
+    ```bash
+    bumpversion minor
+    git push
+    git push --tags
+    ``` 
