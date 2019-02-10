@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import AbstractContextManager
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Optional, Iterable, Any
 
 import click
 import requests
@@ -26,9 +26,6 @@ class APIClient(AbstractContextManager):
         self._auth_using_token = auth_using_token
 
         self._token: Optional[str] = None
-
-    def __enter__(self) -> APIClient:  # noqa: F821
-        return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.logout()
@@ -109,21 +106,45 @@ class APIClient(AbstractContextManager):
                 if verbose > 1:
                     click.echo(f"Deleted {item} {id_}.")
 
-    def get_paginated(self, path: str, query: Dict[str, Any] = None) -> Tuple[List[dict], int]:
+    def get_paginated(
+        self, path: str, query: Optional[Dict[str, Any]] = None, *, key: str = "results"
+    ) -> Tuple[List[Dict[str, Any]], int]:
         response = self.get(path, query)
         response_dict = response.json()
 
-        res = response_dict["results"]
+        res = response_dict[key]
         next_page = response_dict["pagination"]["next"]
 
         while next_page:
             response = self.get_url(next_page)
             response_dict = response.json()
 
-            res.extend(response_dict["results"])
+            res.extend(response_dict[key])
             next_page = response_dict["pagination"]["next"]
 
         return res, response_dict["pagination"]["total"]
+
+    def _sideload(
+        self, objects: List[dict], sideloads: Optional[Iterable[str]] = None
+    ) -> List[dict]:
+        for sideload in sideloads or []:
+            sideloaded, _ = self.get_paginated(sideload)
+            sideloaded_dicts = {
+                sideloaded_dict["url"]: sideloaded_dict for sideloaded_dict in sideloaded
+            }
+            key = sideload.rstrip("es")
+
+            def inject_sideloaded(obj: dict) -> dict:
+                try:
+                    url = obj[key]
+                except KeyError:
+                    obj[sideload] = [sideloaded_dicts[url] for url in obj[sideload]]
+                else:
+                    obj[key] = sideloaded_dicts[url]
+                return obj
+
+            objects = [inject_sideloaded(o) for o in objects]
+        return objects
 
     @property
     def _authentication(self) -> dict:
@@ -135,6 +156,37 @@ class APIClient(AbstractContextManager):
     def logout(self) -> None:
         if self._auth_using_token:
             self.post("auth/logout", {}, expected_status_code=200)
+
+
+class ELISClient(APIClient):
+    def get_organization(self, organization_id: Optional[int] = None) -> dict:
+        if organization_id is None:
+            user_url = get_json(self.get("auth/user"))["url"]
+            organization_url = get_json(self.get_url(user_url))["organization"]
+            res = self.get_url(organization_url)
+        else:
+            res = self.get(f"organizations/{organization_id}")
+        return get_json(res)
+
+    def get_workspaces(self, sideloads: Optional[Iterable[str]] = None) -> List[dict]:
+        workspaces, _ = self.get_paginated("workspaces")
+        self._sideload(workspaces, sideloads)
+        return workspaces
+
+    def get_workspace(self, id_: int, sideloads: Optional[Iterable[str]] = None) -> dict:
+        workspace = get_json(self.get(f"workspaces/{id_}"))
+        self._sideload([workspace], sideloads)
+        return workspace
+
+    def get_queues(
+        self, sideloads: Optional[Iterable[str]] = None, workspace: Optional[int] = None
+    ) -> List[dict]:
+        query = {}
+        if workspace:
+            query["workspace"] = workspace
+        queues, _ = self.get_paginated("queues", query=query)
+        self._sideload(queues, sideloads)
+        return queues
 
 
 def get_json(response: Response) -> dict:
