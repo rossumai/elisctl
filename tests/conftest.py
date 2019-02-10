@@ -2,7 +2,7 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 from requests import Request
 
-API_URL = "mock://api.elis.rossum.ai"
+API_URL = "httpmock://api.elis.rossum.ai"
 TOKEN = "secretsecret"
 
 

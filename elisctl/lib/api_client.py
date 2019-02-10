@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import urllib.parse
 from contextlib import AbstractContextManager
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 
 import click
 import requests
@@ -90,10 +89,11 @@ class APIClient(AbstractContextManager):
     def _request_url(
         self, method: str, url: str, query: dict = None, expected_status_code: int = 200, **kwargs
     ) -> Response:
-        url_with_query = url + "?" + urllib.parse.urlencode(query, doseq=True) if query else url
-        response = requests.request(method, url_with_query, **self._authentication, **kwargs)
+        response = requests.request(
+            method, url, params=_encode_booleans(query), **self._authentication, **kwargs
+        )
         if response.status_code != expected_status_code:
-            raise click.ClickException(f"Invalid response [{url_with_query}]: {response.text}")
+            raise click.ClickException(f"Invalid response [{response.url}]: {response.text}")
         return response
 
     def delete(self, to_delete: Dict[str, str], verbose: int = 0, item: str = "annotation") -> None:
@@ -109,7 +109,7 @@ class APIClient(AbstractContextManager):
                 if verbose > 1:
                     click.echo(f"Deleted {item} {id_}.")
 
-    def get_paginated(self, path: str, query: Dict[str, str]) -> Tuple[List[dict], int]:
+    def get_paginated(self, path: str, query: Dict[str, Any] = None) -> Tuple[List[dict], int]:
         response = self.get(path, query)
         response_dict = response.json()
 
@@ -149,3 +149,20 @@ def get_text(response: Response) -> str:
         return response.text
     except ValueError as e:
         raise click.ClickException(f"Invalid text [{response.url}]: {response.text}") from e
+
+
+def _encode_booleans(query: Optional[dict]) -> Optional[dict]:
+    if query is None:
+        return query
+
+    def bool_to_str(b: Any) -> Any:
+        if isinstance(b, bool):
+            return str(b).lower()
+        return b
+
+    res = {}
+    for k, vs in query.items():
+        if isinstance(vs, str) or not hasattr(vs, "__iter__"):
+            vs = [vs]
+        res[k] = (bool_to_str(v) for v in vs)
+    return res
