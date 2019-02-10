@@ -186,6 +186,9 @@ class ELISClient(APIClient):
         self._sideload(queues, sideloads)
         return queues
 
+    def create_schema(self, name: str, content: List[dict]) -> dict:
+        return get_json(self.post("schemas", data={"name": name, "content": content}))
+
 
 def get_json(response: Response) -> dict:
     try:
