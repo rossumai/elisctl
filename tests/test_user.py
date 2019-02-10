@@ -12,20 +12,24 @@ from requests_mock.response import _Context
 from elisctl.user import list_command, change_command, delete_command
 from elisctl.user.create import create_command
 from tests import SuperDictOf
-from tests.conftest import API_URL, TOKEN, match_uploaded_json
+from tests.conftest import (
+    API_URL,
+    TOKEN,
+    match_uploaded_json,
+    ORGANIZATIONS_URL,
+    WORKSPACES_URL,
+    QUEUES_URL,
+    GROUPS_URL,
+    USERS_URL,
+)
 
 USERNAME = "test_user@rossum.ai"
 PASSWORD = "secret"
 
 NEW_USERNAME = "test_username@example.com"
 
-QUEUES_URL = f"{API_URL}/v1/queues"
-WORKSPACES_URL = f"{API_URL}/v1/workspaces"
-GROUPS_URL = f"{API_URL}/v1/groups"
 ORGANIZATION_ID = "1"
-ORGANIZATIONS_URL = f"{API_URL}/v1/organizations"
 ORGANIZATION_URL = f"{ORGANIZATIONS_URL}/{ORGANIZATION_ID}"
-USERS_URL = f"{API_URL}/v1/users"
 WORKSPACES = QUEUES = ["1", "2"]
 
 

@@ -6,16 +6,21 @@ import pytest
 from more_itertools import ilen
 
 from elisctl.workspace import create_command, list_command, delete_command, change_command
-from tests.conftest import API_URL, TOKEN, match_uploaded_json
+from tests.conftest import (
+    API_URL,
+    TOKEN,
+    match_uploaded_json,
+    ORGANIZATIONS_URL,
+    WORKSPACES_URL,
+    DOCUMENTS_URL,
+    QUEUES_URL,
+    ANNOTATIONS_URL,
+)
 
 USERNAME = "test_user@rossum.ai"
 PASSWORD = "secret"
-ORGANIZATIONS_URL = f"{API_URL}/v1/organizations"
 ORGANIZATION_ID = "1"
 ORGANIZATION_URL = f"{ORGANIZATIONS_URL}/{ORGANIZATION_ID}"
-WORKSPACES_URL = f"{API_URL}/v1/workspaces"
-DOCUMENTS_URL = f"{API_URL}/v1/documents"
-QUEUES_URL = f"{API_URL}/v1/queues"
 
 
 @pytest.mark.runner_setup(
@@ -103,7 +108,7 @@ class TestDelete:
         )
 
         requests_mock.get(
-            f"{API_URL}/v1/annotations?queue={queue_id}&page_size=50&sideload=documents",
+            f"{ANNOTATIONS_URL}?queue={queue_id}&page_size=50&sideload=documents",
             complete_qs=True,
             request_headers={"Authorization": f"Token {TOKEN}"},
             json={
