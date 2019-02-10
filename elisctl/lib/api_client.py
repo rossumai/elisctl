@@ -198,6 +198,24 @@ class ELISClient(APIClient):
     def create_schema(self, name: str, content: List[dict]) -> dict:
         return get_json(self.post("schemas", data={"name": name, "content": content}))
 
+    def create_queue(self, name: str, workspace_url: str, schema_url: str) -> dict:
+        return get_json(
+            self.post("queues", {"name": name, "workspace": workspace_url, "schema": schema_url})
+        )
+
+    def create_inbox(self, name: str, email_prefix: str, bounce_email: str, queue_url: str) -> dict:
+        return get_json(
+            self.post(
+                "inboxes",
+                data={
+                    "name": name,
+                    "email_prefix": email_prefix,
+                    "bounce_email_to": bounce_email,
+                    "queues": [queue_url],
+                },
+            )
+        )
+
 
 def get_json(response: Response) -> dict:
     try:
