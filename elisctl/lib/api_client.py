@@ -171,8 +171,17 @@ class ELISClient(APIClient):
         self._sideload(workspaces, sideloads)
         return workspaces
 
-    def get_workspace(self, id_: int, sideloads: Optional[Iterable[str]] = None) -> dict:
-        workspace = get_json(self.get(f"workspaces/{id_}"))
+    def get_workspace(
+        self, id_: Optional[int] = None, sideloads: Optional[Iterable[str]] = None
+    ) -> dict:
+        if id_ is None:
+            try:
+                [workspace] = self.get_workspaces()
+            except ValueError as e:
+                raise click.ClickException("Workspace ID must be specified.") from e
+        else:
+            workspace = get_json(self.get(f"workspaces/{id_}"))
+
         self._sideload([workspace], sideloads)
         return workspace
 
