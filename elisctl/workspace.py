@@ -39,9 +39,12 @@ def list_command():
     click.echo(tabulate(table, headers=["id", "name", "queues"]))
 
 
-@cli.command(name="delete", help="Delete a workspace.")
+# @cli.command(name="delete", help="Delete a workspace.")
+@click.command(name="delete", help="Delete a workspace.")
 @id_argument
-@click.confirmation_option()
+@click.confirmation_option(
+    prompt="This will delete ALL QUEUES and DOCUMENTS in the workspace. Do you want to continue?"
+)
 def delete_command(id_: int) -> None:
     with ELISClient() as elis:
         workspace = elis.get_workspace(id_)
