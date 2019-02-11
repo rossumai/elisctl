@@ -32,7 +32,11 @@ def list_command():
         workspaces = elis.get_workspaces((QUEUES,))
 
     table = [
-        [workspace["id"], workspace["name"], ", ".join(str(q["id"]) for q in workspace["queues"])]
+        [
+            workspace["id"],
+            workspace["name"],
+            ", ".join(str(q.get("id", "")) for q in workspace["queues"]),
+        ]
         for workspace in workspaces
     ]
 

@@ -23,8 +23,8 @@ def list_command():
         users_list, _ = api_client.get_paginated("users", {"is_active": True})
         groups_list, _ = api_client.get_paginated("groups")
         queues_list, _ = api_client.get_paginated("queues")
-    groups = {group["url"]: group["name"] for group in groups_list}
-    queues = {queue["url"]: queue["id"] for queue in queues_list}
+    groups = {group["url"]: group.get("name", "") for group in groups_list}
+    queues = {queue["url"]: queue.get("id", "") for queue in queues_list}
 
     table = [
         [
