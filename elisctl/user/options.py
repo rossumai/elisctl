@@ -31,13 +31,13 @@ def locale_option(command: Optional[Callable] = None, **kwargs):
     return decorator(command)
 
 
-queue_option = click.option(
-    "-q",
-    "--queue-id",
-    type=int,
-    multiple=True,
-    help="Queue IDs, which the user will be associated with.",
-)
+def queue_option(command: Optional[Callable] = None, **kwargs):
+    default_kwargs = {"type": int, "multiple": True, "help": "Queue IDs accessible by the user."}
+    kwargs = {**default_kwargs, **kwargs}
+    decorator = click.option("-q", "--queue-id", **kwargs)
+    if command is None:
+        return decorator
+    return decorator(command)
 
 
 def password_option(command: Optional[Callable] = None, **kwargs):

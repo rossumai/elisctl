@@ -12,7 +12,7 @@ from elisctl.user.options import group_option, locale_option, queue_option, pass
 @click.command(name="create", short_help="Create user.")
 @click.argument("username")
 @password_option
-@queue_option
+@queue_option(required=True)
 @click.option("-o", "--organization-id", type=int, help="Organization ID.", hidden=True)
 @group_option
 @locale_option
@@ -31,18 +31,7 @@ def create_command(
     with APIClient() as api:
         _check_user_does_not_exists(api, username)
         organization_dict = _get_organization(api, organization_id)
-
-        workspace_urls = {
-            w["url"]
-            for w in get_json(api.get("workspaces", {"organization": organization_dict["id"]}))[
-                "results"
-            ]
-        }
-        queue_urls = []
-        for queue in queue_id:
-            queue_dict = get_json(api.get(f"queues/{queue}"))
-            if queue_dict["workspace"] in workspace_urls:
-                queue_urls.append(queue_dict["url"])
+        queue_urls = [get_json(api.get(f"queues/{queue}"))["url"] for queue in queue_id]
 
         response = api.post(
             "users",

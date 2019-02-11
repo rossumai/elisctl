@@ -54,7 +54,7 @@ class TestCreate:
                     "organization": ORGANIZATION_URL,
                     "password": generated_password,
                     "groups": [f"{GROUPS_URL}/1"],
-                    "queues": [],
+                    "queues": [f"{QUEUES_URL}/{q_id}" for q_id in QUEUES],
                     "ui_settings": {"locale": "en"},
                 },
             ),
@@ -62,26 +62,23 @@ class TestCreate:
             status_code=201,
             json={"id": new_user_id},
         )
-        result = cli_runner.invoke(create_command, [NEW_USERNAME])
-        assert not result.exit_code, print_tb(result.exc_info[2])
-        assert f"{new_user_id}, {generated_password}\n" == result.output
-
-    @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
-    def test_queues_specified(self, requests_mock, cli_runner):
-        requests_mock.post(
-            USERS_URL,
-            additional_matcher=partial(
-                match_uploaded_json,
-                SuperDictOf({"queues": [f"{QUEUES_URL}/{q_id}" for q_id in QUEUES]}),
-            ),
-            request_headers={"Authorization": f"Token {TOKEN}"},
-            status_code=201,
-            json={"id": 1},
-        )
         result = cli_runner.invoke(
             create_command, [NEW_USERNAME] + list(chain.from_iterable(("-q", q) for q in QUEUES))
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
+        assert f"{new_user_id}, {generated_password}\n" == result.output
+
+    @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
+    def test_queues_unspecified(self, requests_mock, cli_runner):
+        requests_mock.post(
+            USERS_URL,
+            additional_matcher=partial(match_uploaded_json),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=201,
+            json={"id": 1},
+        )
+        result = cli_runner.invoke(create_command, [NEW_USERNAME])
+        assert result.exit_code
 
     @pytest.mark.usefixtures("mock_user_urls")
     def test_create_in_organization(self, requests_mock, cli_runner):
@@ -99,10 +96,20 @@ class TestCreate:
             status_code=201,
             json={"id": 1},
             additional_matcher=partial(
-                match_uploaded_json, SuperDictOf({"organization": organization_url})
+                match_uploaded_json,
+                SuperDictOf(
+                    {
+                        "organization": organization_url,
+                        "queues": [f"{QUEUES_URL}/{q_id}" for q_id in QUEUES],
+                    }
+                ),
             ),
         )
-        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-o", organization_id])
+        result = cli_runner.invoke(
+            create_command,
+            [NEW_USERNAME, "-o", organization_id]
+            + list(chain.from_iterable(("-q", q) for q in QUEUES)),
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
 
     @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
@@ -119,11 +126,21 @@ class TestCreate:
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=400,
             additional_matcher=partial(
-                match_uploaded_json, SuperDictOf({"password": weak_password})
+                match_uploaded_json,
+                SuperDictOf(
+                    {
+                        "password": weak_password,
+                        "queues": [f"{QUEUES_URL}/{q_id}" for q_id in QUEUES],
+                    }
+                ),
             ),
             json=error_json,
         )
-        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-p", weak_password])
+        result = cli_runner.invoke(
+            create_command,
+            [NEW_USERNAME, "-p", weak_password]
+            + list(chain.from_iterable(("-q", q) for q in QUEUES)),
+        )
         assert result.exit_code == 1, print_tb(result.exc_info[2])
         assert result.output == f"Error: Invalid response [{USERS_URL}]: {json.dumps(error_json)}\n"
 
@@ -133,7 +150,9 @@ class TestCreate:
             complete_qs=True,
             json={"pagination": {"total": 1}},
         )
-        result = cli_runner.invoke(create_command, [NEW_USERNAME])
+        result = cli_runner.invoke(
+            create_command, [NEW_USERNAME] + list(chain.from_iterable(("-q", q) for q in QUEUES))
+        )
         assert result.exit_code == 1
         assert result.output == f"Error: User with username {NEW_USERNAME} already exists.\n"
 
