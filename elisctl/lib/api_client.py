@@ -132,7 +132,9 @@ class APIClient(AbstractContextManager):
             sideloaded_dicts = {
                 sideloaded_dict["url"]: sideloaded_dict for sideloaded_dict in sideloaded
             }
-            key = sideload.rstrip("es")
+            # The key may be singular even if the list is plural (e.g.
+            # sideload=['workspaces'] should fill in the 'workspace' key too).
+            key = sideload.rstrip("s")
 
             def inject_sideloaded(obj: dict) -> dict:
                 try:
@@ -196,6 +198,20 @@ class ELISClient(APIClient):
         queues, _ = self.get_paginated("queues", query=query)
         self._sideload(queues, sideloads)
         return queues
+
+    def get_queue(
+        self, id_: Optional[int] = None, sideloads: Optional[Iterable[str]] = None
+    ) -> dict:
+        if id_ is None:
+            try:
+                [queue] = self.get_queues()
+            except ValueError as e:
+                raise click.ClickException("Queue ID must be specified.") from e
+        else:
+            queue = get_json(self.get(f"queues/{id_}"))
+
+        self._sideload([queue], sideloads)
+        return queue
 
     def create_schema(self, name: str, content: List[dict]) -> dict:
         return get_json(self.post("schemas", data={"name": name, "content": content}))
