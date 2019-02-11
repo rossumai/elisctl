@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Union
 import click as click
 from typing.io import IO
 
-from elisctl.lib.api_client import APIClient, get_json
+from elisctl.lib.api_client import get_json, ELISClient
 
 
 @click.command(name="update")
@@ -20,32 +20,29 @@ def upload_command(id_: str, json_file: IO[str], rewrite: bool, name: Optional[s
     Update schema in ELIS.
     """
     func = _rewrite_schema if rewrite else _create_schema
-    with APIClient() as api_client:
-        func(id_, json.load(json_file), api_client, name)
+    with ELISClient() as elis:
+        func(id_, json.load(json_file), elis, name)
 
 
 def _rewrite_schema(
-    id_: str, schema_content: SchemaContent, api_client: APIClient, name: Optional[str]
+    id_: str, schema_content: SchemaContent, elis: ELISClient, name: Optional[str]
 ) -> None:
     data: Schema = {"content": schema_content}
     if name is not None:
         data["name"] = name
-    api_client.patch(f"schemas/{id_}", data=data)
+    elis.patch(f"schemas/{id_}", data=data)
 
 
 def _create_schema(
-    id_: str, schema_content: SchemaContent, api_client: APIClient, name: Optional[str]
+    id_: str, schema_content: SchemaContent, elis: ELISClient, name: Optional[str]
 ) -> None:
-    original_schema = get_json(api_client.get(f"schemas/{id_}"))
-    new_schema = get_json(
-        api_client.post(
-            "schemas", data={"name": name or original_schema["name"], "content": schema_content}
-        )
-    )
+    original_schema = get_json(elis.get(f"schemas/{id_}"))
+    new_schema = elis.create_schema(name or original_schema["name"], schema_content)
+
     for queue_url in original_schema["queues"]:
-        if queue_url.startswith(api_client.url):
-            queue_url = queue_url[len(api_client.url) + 1 :]
-        api_client.patch(queue_url, data={"schema": new_schema["url"]})
+        if queue_url.startswith(elis.url):
+            queue_url = queue_url[len(elis.url) + 1 :]
+        elis.patch(queue_url, data={"schema": new_schema["url"]})
 
 
 SchemaContent = List[dict]

@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import secrets
+import string
 from contextlib import AbstractContextManager
-from typing import Dict, List, Tuple, Optional, Iterable, Any
 
 import click
 import requests
 from requests import Response
+from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
 
 from elisctl.configure import get_credential
+from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS
 
 
 class APIClient(AbstractContextManager):
@@ -64,15 +67,17 @@ class APIClient(AbstractContextManager):
 
         return self._token
 
-    def post(self, path: str, data: dict, expected_status_code: int = 201) -> Response:
+    def post(
+        self, path: Union[str, APIObject], data: dict, expected_status_code: int = 201
+    ) -> Response:
         return self._request_url(
             "post", f"{self.url}/{path}", json=data, expected_status_code=expected_status_code
         )
 
-    def patch(self, path: str, data: dict) -> Response:
+    def patch(self, path: Union[str, APIObject], data: dict) -> Response:
         return self._request_url("patch", f"{self.url}/{path}", json=data)
 
-    def get(self, path: str, query: dict = None) -> Response:
+    def get(self, path: Union[str, APIObject], query: dict = None) -> Response:
         return self._request_url("get", f"{self.url}/{path}", query)
 
     def get_url(self, url: str, query: dict = None) -> Response:
@@ -105,7 +110,11 @@ class APIClient(AbstractContextManager):
                     click.echo(f"Deleted {item} {id_}.")
 
     def get_paginated(
-        self, path: str, query: Optional[Dict[str, Any]] = None, *, key: str = "results"
+        self,
+        path: Union[str, APIObject],
+        query: Optional[Dict[str, Any]] = None,
+        *,
+        key: str = "results",
     ) -> Tuple[List[Dict[str, Any]], int]:
         response = self.get(path, query)
         response_dict = response.json()
@@ -123,22 +132,21 @@ class APIClient(AbstractContextManager):
         return res, response_dict["pagination"]["total"]
 
     def _sideload(
-        self, objects: List[dict], sideloads: Optional[Iterable[str]] = None
+        self, objects: List[dict], sideloads: Optional[Iterable[APIObject]] = None
     ) -> List[dict]:
         for sideload in sideloads or []:
             sideloaded, _ = self.get_paginated(sideload)
             sideloaded_dicts = {
                 sideloaded_dict["url"]: sideloaded_dict for sideloaded_dict in sideloaded
             }
-            key = sideload.rstrip("es")
 
             def inject_sideloaded(obj: dict) -> dict:
                 try:
-                    url = obj[key]
+                    url = obj[sideload.singular]
                 except KeyError:
-                    obj[sideload] = [sideloaded_dicts[url] for url in obj[sideload]]
+                    obj[sideload.plural] = [sideloaded_dicts[url] for url in obj[sideload.plural]]
                 else:
-                    obj[key] = sideloaded_dicts[url]
+                    obj[sideload.singular] = sideloaded_dicts[url]
                 return obj
 
             objects = [inject_sideloaded(o) for o in objects]
@@ -160,31 +168,93 @@ class ELISClient(APIClient):
     def get_organization(self, organization_id: Optional[int] = None) -> dict:
         if organization_id is None:
             user_url = get_json(self.get("auth/user"))["url"]
-            organization_url = get_json(self.get_url(user_url))["organization"]
+            organization_url = get_json(self.get_url(user_url))[ORGANIZATIONS.singular]
             res = self.get_url(organization_url)
         else:
-            res = self.get(f"organizations/{organization_id}")
+            res = self.get(f"{ORGANIZATIONS}/{organization_id}")
         return get_json(res)
 
-    def get_workspaces(self, sideloads: Optional[Iterable[str]] = None) -> List[dict]:
-        workspaces, _ = self.get_paginated("workspaces")
-        self._sideload(workspaces, sideloads)
-        return workspaces
+    def get_workspaces(self, sideloads: Optional[Iterable[APIObject]] = None) -> List[dict]:
+        workspaces_list, _ = self.get_paginated(WORKSPACES)
+        self._sideload(workspaces_list, sideloads)
+        return workspaces_list
 
-    def get_workspace(self, id_: int, sideloads: Optional[Iterable[str]] = None) -> dict:
-        workspace = get_json(self.get(f"workspaces/{id_}"))
+    def get_workspace(
+        self, id_: Optional[int] = None, sideloads: Optional[Iterable[APIObject]] = None
+    ) -> dict:
+        if id_ is None:
+            try:
+                [workspace] = self.get_workspaces()
+            except ValueError as e:
+                raise click.ClickException("Workspace ID must be specified.") from e
+        else:
+            workspace = get_json(self.get(f"{WORKSPACES}/{id_}"))
+
         self._sideload([workspace], sideloads)
         return workspace
 
     def get_queues(
-        self, sideloads: Optional[Iterable[str]] = None, workspace: Optional[int] = None
+        self, sideloads: Optional[Iterable[APIObject]] = None, workspace: Optional[int] = None
     ) -> List[dict]:
         query = {}
         if workspace:
-            query["workspace"] = workspace
-        queues, _ = self.get_paginated("queues", query=query)
-        self._sideload(queues, sideloads)
-        return queues
+            query[WORKSPACES.singular] = workspace
+        queues_list, _ = self.get_paginated(QUEUES, query=query)
+        self._sideload(queues_list, sideloads)
+        return queues_list
+
+    def get_queue(
+        self, id_: Optional[int] = None, sideloads: Optional[Iterable[APIObject]] = None
+    ) -> dict:
+        if id_ is None:
+            try:
+                [queue] = self.get_queues()
+            except ValueError as e:
+                raise click.ClickException("Queue ID must be specified.") from e
+        else:
+            queue = get_json(self.get(f"{QUEUES}/{id_}"))
+
+        self._sideload([queue], sideloads)
+        return queue
+
+    def create_schema(self, name: str, content: List[dict]) -> dict:
+        return get_json(self.post(SCHEMAS, data={"name": name, "content": content}))
+
+    def create_queue(
+        self,
+        name: str,
+        workspace_url: str,
+        schema_url: str,
+        connector_url: Optional[str] = None,
+        locale: Optional[str] = None,
+    ) -> dict:
+        data = {
+            "name": name,
+            "workspace": workspace_url,
+            "schema": schema_url,
+            # XXX: The API should provide reasonable defaults:
+            "rir_url": "https://all.rir.rossum.ai",
+        }
+        if connector_url is not None:
+            data[CONNECTORS.singular] = connector_url
+        if locale is not None:
+            data["locale"] = locale
+        return get_json(self.post("queues", data))
+
+    def create_inbox(self, name: str, email_prefix: str, bounce_email: str, queue_url: str) -> dict:
+        alphabet = string.ascii_lowercase + string.digits
+        email_suffix = "".join(secrets.choice(alphabet) for _ in range(6))
+        return get_json(
+            self.post(
+                "inboxes",
+                data={
+                    "name": name,
+                    "email": email_prefix + "-" + email_suffix + "@elis.rossum.ai",
+                    "bounce_email_to": bounce_email,
+                    "queues": [queue_url],
+                },
+            )
+        )
 
 
 def get_json(response: Response) -> dict:
