@@ -1,5 +1,5 @@
 import json
-from typing import Optional, IO
+from typing import Optional, IO, Dict, Any
 
 import click
 from tabulate import tabulate
@@ -30,22 +30,22 @@ def cli() -> None:
 
 @cli.command(name="create", help="Create queue.")
 @click.argument("name")
+@schema_content_file_option(required=True)
 @email_prefix_option
 @bounce_email_option
-@schema_content_file_option
 @workspace_id_option
 @connector_id_option
 @locale_option
 def create_command(
     name: str,
+    schema_content_file: IO[bytes],
     email_prefix: Optional[str],
     bounce_email: Optional[str],
-    schema_content_file: Optional[IO[bytes]],
     workspace_id: Optional[int],
     connector_id: Optional[int],
     locale: Optional[str],
 ) -> None:
-    schema_content = json.load(schema_content_file) if schema_content_file is not None else []
+    schema_content = json.load(schema_content_file)
     with ELISClient() as elis:
         workspace_url = elis.get_workspace(workspace_id)["url"]
         connector_url = (

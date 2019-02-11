@@ -18,6 +18,7 @@ PASSWORD = "secret"
 WORKSPACE_ID = "1"
 WORKSPACE_URL = f"{WORKSPACES_URL}/{WORKSPACE_ID}"
 SCHEMA_URL = f"{SCHEMAS_URL}/1"
+SCHEMA_FILE_NAME = "schema.json"
 
 
 @pytest.mark.runner_setup(
@@ -25,7 +26,7 @@ SCHEMA_URL = f"{SCHEMAS_URL}/1"
 )
 @pytest.mark.usefixtures("mock_login_request")
 class TestCreate:
-    def test_success(self, requests_mock, cli_runner):
+    def test_success(self, requests_mock, isolated_cli_runner):
         name = "TestName"
         new_id = "2"
         requests_mock.get(
@@ -58,7 +59,13 @@ class TestCreate:
             status_code=201,
             json={"id": new_id},
         )
-        result = cli_runner.invoke(create_command, [name])
+
+        with open(SCHEMA_FILE_NAME, "w") as schema:
+            print("[]", file=schema)
+
+        result = isolated_cli_runner.invoke(
+            create_command, ["--schema-content-file", SCHEMA_FILE_NAME, name]
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert f"{new_id}, no email-prefix specified\n" == result.output
 
