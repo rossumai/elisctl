@@ -200,10 +200,26 @@ class ELISClient(APIClient):
     def create_schema(self, name: str, content: List[dict]) -> dict:
         return get_json(self.post("schemas", data={"name": name, "content": content}))
 
-    def create_queue(self, name: str, workspace_url: str, schema_url: str) -> dict:
-        return get_json(
-            self.post("queues", {"name": name, "workspace": workspace_url, "schema": schema_url})
-        )
+    def create_queue(
+        self,
+        name: str,
+        workspace_url: str,
+        schema_url: str,
+        connector_url: Optional[str] = None,
+        locale: Optional[str] = None,
+    ) -> dict:
+        data = {
+            "name": name,
+            "workspace": workspace_url,
+            "schema": schema_url,
+            # XXX: The API should provide reasonable defaults:
+            "rir_url": "https://all.rir.rossum.ai",
+        }
+        if connector_url is not None:
+            data["connector"] = connector_url
+        if locale is not None:
+            data["locale"] = locale
+        return get_json(self.post("queues", data))
 
     def create_inbox(self, name: str, email_prefix: str, bounce_email: str, queue_url: str) -> dict:
         alphabet = string.ascii_lowercase + string.digits

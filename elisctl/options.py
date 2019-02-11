@@ -18,6 +18,9 @@ schema_content_file_option = click.option(
     type=click.File("rb"),
     help="If not specified, queue will have empty schema.",
 )
+connector_id_option = click.option(
+    "--connector-id", type=str, help="If not specified, queue will not call back a connector."
+)
 
 
 def workspace_id_option(command: Optional[Callable] = None, **kwargs):

@@ -47,7 +47,12 @@ class TestCreate:
             QUEUES_URL,
             additional_matcher=partial(
                 match_uploaded_json,
-                {"name": name, "workspace": WORKSPACE_URL, "schema": SCHEMA_URL},
+                {
+                    "name": name,
+                    "workspace": WORKSPACE_URL,
+                    "schema": SCHEMA_URL,
+                    "rir_url": "https://all.rir.rossum.ai",
+                },
             ),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=201,
