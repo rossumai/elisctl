@@ -91,7 +91,8 @@ def list_command() -> None:
     click.echo(tabulate(table, headers=["id", "name", "workspace", "inbox", "schema", "users"]))
 
 
-@cli.command(name="delete", help="Delete a queue.")
+# @cli.command(name="delete", help="Delete a queue.")
+@click.command(name="delete", help="Delete a queue.")
 @id_argument
 @click.confirmation_option(
     prompt="This will delete ALL DOCUMENTS in the queue. Do you want to continue?"
