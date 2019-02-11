@@ -1,4 +1,5 @@
 import json
+from typing import IO, Optional
 
 import click
 
@@ -21,9 +22,16 @@ cli.add_command(upload.upload_command)
 @click.argument("id_", metavar="ID", type=str)
 @click.option("--indent", default=2, type=int)
 @click.option("--ensure-ascii", is_flag=True, type=bool)
-def download_command(ctx: click.Context, id_: str, indent: int, ensure_ascii: bool):
+@click.option("-O", "--output-file", type=click.File("w"))
+def download_command(
+    ctx: click.Context, id_: str, indent: int, ensure_ascii: bool, output_file: Optional[IO[str]]
+):
     with APIClient() as api_client:
         schema_dict = get_json(api_client.get(f"schemas/{id_}"))
-    click.echo(
-        json.dumps(schema_dict["content"], indent=indent, ensure_ascii=ensure_ascii, sort_keys=True)
+    schema_json = json.dumps(
+        schema_dict["content"], indent=indent, ensure_ascii=ensure_ascii, sort_keys=True
     )
+    if output_file:
+        print(schema_json, file=output_file)
+    else:
+        click.echo(schema_json)
