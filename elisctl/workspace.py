@@ -40,13 +40,21 @@ def list_command():
 
 @cli.command(name="delete", help="Delete a workspace.")
 @id_argument
-@click.confirmation_option(
-    prompt="This will delete ALL QUEUES AND DOCUMENTS in the workspace. Do you want to continue?"
-)
+@click.confirmation_option()
 def delete_command(id_: int) -> None:
     with ELISClient() as elis:
         workspace = elis.get_workspace(id_)
-        elis.delete({workspace["id"]: workspace["url"]})
+        queues = elis.get_queues(workspace=workspace["id"])
+        documents = {}
+        for queue in queues:
+            res, _ = elis.get_paginated(
+                "annotations",
+                {"page_size": 50, "queue": queue["id"], "sideload": "documents"},
+                key="documents",
+            )
+            documents.update({d["id"]: d["url"] for d in res})
+
+        elis.delete({workspace["id"]: workspace["url"], **documents})
 
 
 @cli.command(name="change", help="Change a workspace.")
