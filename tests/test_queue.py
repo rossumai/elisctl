@@ -11,6 +11,8 @@ from tests.conftest import (
     WORKSPACES_URL,
     SCHEMAS_URL,
     QUEUES_URL,
+    INBOXES_URL,
+    USERS_URL,
 )
 
 USERNAME = "test_user@rossum.ai"
@@ -79,6 +81,12 @@ class TestList:
         queue_id = 1
         name = "TestQueue"
         workspace_id = 2
+        inbox = "test@example.com"
+        inbox_url = f"{INBOXES_URL}/2"
+        schema_id = 3
+        schema_url = f"{SCHEMAS_URL}/{schema_id}"
+        user_ids = ["4", "5"]
+        user_urls = [f"{USERS_URL}/{id_}" for id_ in user_ids]
 
         queue_url = f"{QUEUES_URL}/{queue_id}"
         workspace_url = f"{WORKSPACES_URL}/{queue_id}"
@@ -88,7 +96,15 @@ class TestList:
             json={
                 "pagination": {"total": 1, "next": None},
                 "results": [
-                    {"id": queue_id, "url": queue_url, "workspace": workspace_url, "name": name}
+                    {
+                        "id": queue_id,
+                        "url": queue_url,
+                        "workspace": workspace_url,
+                        "name": name,
+                        "inbox": inbox_url,
+                        "schema": schema_url,
+                        "users": user_urls,
+                    }
                 ],
             },
         )
@@ -99,13 +115,34 @@ class TestList:
                 "results": [{"id": workspace_id, "url": workspace_url}],
             },
         )
+        requests_mock.get(
+            INBOXES_URL,
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"email": inbox, "url": inbox_url}],
+            },
+        )
+        requests_mock.get(
+            SCHEMAS_URL,
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"id": schema_id, "url": schema_url}],
+            },
+        )
+        requests_mock.get(
+            USERS_URL,
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"id": id_, "url": url} for id_, url in zip(user_ids, user_urls)],
+            },
+        )
 
         result = cli_runner.invoke(list_command)
         assert not result.exit_code, print_tb(result.exc_info[2])
         expected_table = f"""\
-  id  name         workspace
-----  ---------  -----------
-   {queue_id}  {name}            {workspace_id}
+  id  name         workspace  inbox               schema  users
+----  ---------  -----------  ----------------  --------  -------
+   {queue_id}  {name}            {workspace_id}  {inbox}         {schema_id}  {', '.join(user_ids)}
 """
         assert result.output == expected_table
 
