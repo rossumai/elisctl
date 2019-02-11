@@ -131,10 +131,6 @@ class TestDelete:
         result = cli_runner.invoke(delete_command, [workspace_id, "--yes"])
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert not result.output
-        assert (
-            ilen(r for r in requests_mock.request_history if r.method == "DELETE")
-            == n_documents + 1
-        )
 
 
 @pytest.mark.runner_setup(
