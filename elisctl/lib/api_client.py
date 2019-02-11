@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from contextlib import AbstractContextManager
+import secrets
+import string
 from typing import Dict, List, Tuple, Optional, Iterable, Any
 
 import click
@@ -204,12 +206,14 @@ class ELISClient(APIClient):
         )
 
     def create_inbox(self, name: str, email_prefix: str, bounce_email: str, queue_url: str) -> dict:
+        alphabet = string.ascii_lowercase + string.digits
+        email_suffix = "".join(secrets.choice(alphabet) for _ in range(6))
         return get_json(
             self.post(
                 "inboxes",
                 data={
                     "name": name,
-                    "email_prefix": email_prefix,
+                    "email": email_prefix + "-" + email_suffix + "@elis.rossum.ai",
                     "bounce_email_to": bounce_email,
                     "queues": [queue_url],
                 },
