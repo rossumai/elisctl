@@ -4,6 +4,7 @@ import click
 from tabulate import tabulate
 
 from elisctl.arguments import id_argument
+from elisctl.lib import QUEUES
 from elisctl.lib.api_client import ELISClient, get_json
 from elisctl.options import organization_option, name_option
 
@@ -28,7 +29,7 @@ def create_command(name: str, organization_id: Optional[int]) -> None:
 @cli.command(name="list", help="List all workspaces.")
 def list_command():
     with ELISClient() as elis:
-        workspaces = elis.get_workspaces(("queues",))
+        workspaces = elis.get_workspaces((QUEUES,))
 
     table = [
         [workspace["id"], workspace["name"], ", ".join(str(q["id"]) for q in workspace["queues"])]

@@ -5,6 +5,7 @@ import click
 from tabulate import tabulate
 
 from elisctl.arguments import id_argument
+from elisctl.lib import WORKSPACES
 from elisctl.lib.api_client import ELISClient, get_json
 from elisctl.options import (
     bounce_email_option,
@@ -71,7 +72,7 @@ def create_command(
 @workspace_id_option
 def list_command(workspace_id: Optional[int]) -> None:
     with ELISClient() as elis:
-        queues = elis.get_queues(("workspaces",))
+        queues = elis.get_queues((WORKSPACES,))
 
     table = [[queue["id"], queue["name"], str(queue["workspace"]["id"])] for queue in queues]
 
