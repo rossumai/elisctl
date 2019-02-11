@@ -80,10 +80,10 @@ def list_command() -> None:
         [
             queue["id"],
             queue["name"],
-            str(queue["workspace"]["id"]),
-            str(queue["inbox"]["email"]),
-            str(queue["schema"]["id"]),
-            ", ".join(str(q["id"]) for q in queue["users"]),
+            str(queue["workspace"].get("id", "")),
+            queue["inbox"].get("email", ""),
+            str(queue["schema"].get("id", "")),
+            ", ".join(str(q.get("id", "")) for q in queue["users"]),
         ]
         for queue in queues
     ]
