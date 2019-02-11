@@ -1,30 +1,34 @@
+# elisctl
+
+[![PyPI - version](https://img.shields.io/pypi/v/elisctl.svg)](https://pypi.python.org/pypi/elisctl)
 [![Build Status](https://travis-ci.com/rossumai/elisctl.svg?branch=master)](https://travis-ci.com/rossumai/elisctl)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![codecov](https://codecov.io/gh/rossumai/elisctl/branch/master/graph/badge.svg)](https://codecov.io/gh/rossumai/elisctl)
+![PyPI - supported python versions](https://img.shields.io/pypi/pyversions/elisctl.svg)
+![MIT licence](https://img.shields.io/pypi/l/elisctl.svg)
 
 **elisctl** is a set of tools that wrap
 the [Elis Document Management API](https://api.elis.rossum.ai/docs)
 to provide an easy way to configure, integrate and customize Elis - either
 interactively or programmaticaly.
 
-# Installation
+## Installation
 
-## Windows
+### Windows
 
 Download an installation file from
 [GitHub releases](https://github.com/rossumai/elisctl/releases).
 Install it. And run it either from start menu or from command prompt.
 
 
-## UNIX based systems
+### UNIX based systems
 
-Clone this repository.
-And from directory, where the repo is cloned, install the package:
+Install the package from PyPI:
 ```bash
-pip install -e .
+pip install elisctl
 ```
 
-# How to use
+## How to use
 
 Individual Elis operation are triggered by passing specific *commands* to `elisctl`.
 Commands are organized by object type in a tree-like structure and thus are composed
@@ -45,7 +49,7 @@ or run the interactive shell by simply running
 elisctl
 ```
 
-# Schema Transformations
+## Schema Transformations
 
 Some of the most common advanced operations are related to setting up
 the sidebar-describing schema JSON according to business requirements
@@ -63,14 +67,14 @@ elisctl schema transform default_schema.json substitute-options centre <( \
  > era_schema.json
 ```
 
-# License
+## License
 MIT
 
-# Contributing
+## Contributing
 
 * Submit a pull request from forked version of this repo. 
 And select any of the maintainers as a reviewer.
-* Use [`pre-commit`](https://pre-commit.com/#install) to avoid linting issues.
+* Use [`pre-commit`](https://pre-commit.com/#install) to avoid linting issues.
 * When releasing, run in `master` branch:
     ```bash
     bumpversion minor

@@ -46,17 +46,16 @@ jobs:
         on:
           tags: true
 
-#    - stage: deploy
-#      script: skip
-#      deploy:
-#        provider: pypi
-#        user: ...
-#        password:
-#          secure: ...
-#        on:
-#          tags: true
-#        edge:
-#          branch: twine-user-install
+    - stage: deploy
+      script: skip
+      python: 3.7
+      deploy:
+        provider: pypi
+        user: rossum
+        password: ${PYPI_DEPLOY_PASSWORD}
+        on:
+          tags: true
+
 
 install:
   - pip install tox-travis setuptools --upgrade
