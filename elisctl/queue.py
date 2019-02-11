@@ -47,6 +47,9 @@ def create_command(
     locale: Optional[str],
 ) -> None:
     schema_content = json.load(schema_content_file)
+    if email_prefix is not None and bounce_email is None:
+        raise click.ClickException("Inbox cannot be created without specified bounce email.")
+
     with ELISClient() as elis:
         workspace_url = elis.get_workspace(workspace_id)["url"]
         connector_url = (

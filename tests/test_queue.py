@@ -1,3 +1,5 @@
+from unittest import mock
+
 from functools import partial
 from traceback import print_tb
 
@@ -28,9 +30,12 @@ SCHEMA_FILE_NAME = "schema.json"
 )
 @pytest.mark.usefixtures("mock_login_request")
 class TestCreate:
-    def test_success(self, requests_mock, isolated_cli_runner):
-        name = "TestName"
-        new_id = "2"
+    name = "TestName"
+    new_id = "2"
+    new_queue_url = f"{QUEUES_URL}/{new_id}"
+
+    @pytest.fixture
+    def crate_queue_urls(self, requests_mock):
         requests_mock.get(
             WORKSPACES_URL,
             json={"pagination": {"next": None, "total": 1}, "results": [{"url": WORKSPACE_URL}]},
@@ -40,7 +45,7 @@ class TestCreate:
         requests_mock.post(
             SCHEMAS_URL,
             additional_matcher=partial(
-                match_uploaded_json, {"name": f"{name} schema", "content": []}
+                match_uploaded_json, {"name": f"{self.name} schema", "content": []}
             ),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=201,
@@ -51,7 +56,7 @@ class TestCreate:
             additional_matcher=partial(
                 match_uploaded_json,
                 {
-                    "name": name,
+                    "name": self.name,
                     "workspace": WORKSPACE_URL,
                     "schema": SCHEMA_URL,
                     "rir_url": "https://all.rir.rossum.ai",
@@ -59,17 +64,74 @@ class TestCreate:
             ),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=201,
-            json={"id": new_id},
+            json={"id": self.new_id, "url": self.new_queue_url},
         )
 
+    @pytest.fixture
+    def crate_queue_schema(self, isolated_cli_runner):
         with open(SCHEMA_FILE_NAME, "w") as schema:
             print("[]", file=schema)
 
+    @pytest.mark.usefixtures("crate_queue_urls", "crate_queue_schema")
+    def test_success(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
-            create_command, ["--schema-content-file", SCHEMA_FILE_NAME, name]
+            create_command, ["--schema-content-file", SCHEMA_FILE_NAME, self.name]
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
-        assert f"{new_id}, no email-prefix specified\n" == result.output
+        assert f"{self.new_id}, no email-prefix specified\n" == result.output
+
+    @pytest.mark.usefixtures("crate_queue_urls", "crate_queue_schema")
+    def test_create_inbox(self, requests_mock, isolated_cli_runner):
+        email_prefix = "123456"
+        bounce_mail = "test@example.com"
+        email = f"{email_prefix}-aaaaaa@elis.rossum.ai"
+
+        requests_mock.get(
+            INBOXES_URL,
+            json={"pagination": {"next": None, "total": 0}, "results": []},
+            request_headers={"Authorization": f"Token {TOKEN}"},
+        )
+
+        requests_mock.post(
+            INBOXES_URL,
+            additional_matcher=partial(
+                match_uploaded_json,
+                {
+                    "name": f"{self.name} inbox",
+                    "queues": [self.new_queue_url],
+                    "email": email,
+                    "bounce_email_to": bounce_mail,
+                },
+            ),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=201,
+            json={"email": email},
+        )
+
+        with mock.patch("secrets.choice", return_value="a"):
+            result = isolated_cli_runner.invoke(
+                create_command,
+                [
+                    "--schema-content-file",
+                    SCHEMA_FILE_NAME,
+                    "--email-prefix",
+                    email_prefix,
+                    "--bounce-email",
+                    bounce_mail,
+                    self.name,
+                ],
+            )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert f"{self.new_id}, {email}\n" == result.output
+
+    @pytest.mark.usefixtures("crate_queue_schema")
+    def test_cannot_create_inbox(self, isolated_cli_runner):
+        result = isolated_cli_runner.invoke(
+            create_command,
+            ["--schema-content-file", SCHEMA_FILE_NAME, "--email-prefix", "1234567", self.name],
+        )
+        assert result.exit_code == 1, print_tb(result.exc_info[2])
+        assert "Error: Inbox cannot be created without specified bounce email.\n" == result.output
 
 
 @pytest.mark.runner_setup(

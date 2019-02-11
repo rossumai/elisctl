@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from contextlib import AbstractContextManager
 import secrets
 import string
-from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
+from contextlib import AbstractContextManager
 
 import click
 import requests
 from requests import Response
+from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
 
 from elisctl.configure import get_credential
 from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS
