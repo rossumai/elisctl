@@ -115,7 +115,7 @@ def change_command(
     connector_id: Optional[int],
     locale: Optional[str],
 ) -> None:
-    if not any([name]):
+    if not any([name, schema_content_file, connector_id, locale]):
         return
 
     data: Dict[str, Any] = {}
