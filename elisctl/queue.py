@@ -115,20 +115,27 @@ def change_command(
     connector_id: Optional[int],
     locale: Optional[str],
 ) -> None:
-    if not any([name]):
+    if not any([name, schema_content_file, connector_id, locale]):
         return
 
     data: Dict[str, Any] = {}
-    if name is not None:
-        data["name"] = name
-    if locale is not None:
-        data["locale"] = locale
-    schema_content = json.load(schema_content_file) if schema_content_file is not None else []
 
     with ELISClient() as elis:
+        if name is not None:
+            data["name"] = name
+        else:
+            # We might need the queue name for the schema name later.
+            name = elis.get_queue(id_)["name"]
+
+        if locale is not None:
+            data["locale"] = locale
+
         if connector_id is not None:
             data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
-        if schema_content:
+
+        if schema_content_file is not None:
+            schema_content = json.load(schema_content_file)
             schema_dict = elis.create_schema(f"{name} schema", schema_content)
             data["schema"] = schema_dict["url"]
+
         elis.patch(f"queues/{id_}", data)

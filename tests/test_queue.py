@@ -25,17 +25,9 @@ SCHEMA_URL = f"{SCHEMAS_URL}/1"
 SCHEMA_FILE_NAME = "schema.json"
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
-class TestCreate:
-    name = "TestName"
-    new_id = "2"
-    new_queue_url = f"{QUEUES_URL}/{new_id}"
-
+class QueueFixtures:
     @pytest.fixture
-    def crate_queue_urls(self, requests_mock):
+    def create_queue_urls(self, requests_mock):
         requests_mock.get(
             WORKSPACES_URL,
             json={"pagination": {"next": None, "total": 1}, "results": [{"url": WORKSPACE_URL}]},
@@ -51,36 +43,48 @@ class TestCreate:
             status_code=201,
             json={"url": SCHEMA_URL},
         )
+
+        self.queue_url = f"{QUEUES_URL}/{self.queue_id}"
+        QUEUE_CONTENT = {
+            "name": self.name,
+            "workspace": WORKSPACE_URL,
+            "schema": SCHEMA_URL,
+            "rir_url": "https://all.rir.rossum.ai",
+        }
         requests_mock.post(
             QUEUES_URL,
-            additional_matcher=partial(
-                match_uploaded_json,
-                {
-                    "name": self.name,
-                    "workspace": WORKSPACE_URL,
-                    "schema": SCHEMA_URL,
-                    "rir_url": "https://all.rir.rossum.ai",
-                },
-            ),
+            additional_matcher=partial(match_uploaded_json, QUEUE_CONTENT),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=201,
-            json={"id": self.new_id, "url": self.new_queue_url},
+            json={"id": self.queue_id, "url": self.queue_url},
+        )
+        requests_mock.get(
+            self.queue_url, json=QUEUE_CONTENT, request_headers={"Authorization": f"Token {TOKEN}"}
         )
 
     @pytest.fixture
-    def crate_queue_schema(self, isolated_cli_runner):
+    def create_queue_schema(self, isolated_cli_runner):
         with open(SCHEMA_FILE_NAME, "w") as schema:
             print("[]", file=schema)
 
-    @pytest.mark.usefixtures("crate_queue_urls", "crate_queue_schema")
+
+@pytest.mark.runner_setup(
+    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
+)
+@pytest.mark.usefixtures("mock_login_request")
+class TestCreate(QueueFixtures):
+    name = "TestName"
+    queue_id = "2"
+
+    @pytest.mark.usefixtures("create_queue_urls", "create_queue_schema")
     def test_success(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
             create_command, ["--schema-content-file", SCHEMA_FILE_NAME, self.name]
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
-        assert f"{self.new_id}, no email-prefix specified\n" == result.output
+        assert f"{self.queue_id}, no email-prefix specified\n" == result.output
 
-    @pytest.mark.usefixtures("crate_queue_urls", "crate_queue_schema")
+    @pytest.mark.usefixtures("create_queue_urls", "create_queue_schema")
     def test_create_inbox(self, requests_mock, isolated_cli_runner):
         email_prefix = "123456"
         bounce_mail = "test@example.com"
@@ -98,7 +102,7 @@ class TestCreate:
                 match_uploaded_json,
                 {
                     "name": f"{self.name} inbox",
-                    "queues": [self.new_queue_url],
+                    "queues": [self.queue_url],
                     "email": email,
                     "bounce_email_to": bounce_mail,
                 },
@@ -122,9 +126,9 @@ class TestCreate:
                 ],
             )
         assert not result.exit_code, print_tb(result.exc_info[2])
-        assert f"{self.new_id}, {email}\n" == result.output
+        assert f"{self.queue_id}, {email}\n" == result.output
 
-    @pytest.mark.usefixtures("crate_queue_schema")
+    @pytest.mark.usefixtures("create_queue_schema")
     def test_cannot_create_inbox(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
             create_command,
@@ -237,17 +241,31 @@ class TestDelete:
     env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
 )
 @pytest.mark.usefixtures("mock_login_request")
-class TestChange:
-    def test_success(self, requests_mock, cli_runner):
-        name = "TestName"
-        queue_id = "1"
+class TestChange(QueueFixtures):
+    name = "TestName"
+    queue_id = "1"
 
+    def test_success(self, requests_mock, cli_runner):
         requests_mock.patch(
-            f"{QUEUES_URL}/{queue_id}",
-            additional_matcher=partial(match_uploaded_json, {"name": name}),
+            f"{QUEUES_URL}/{self.queue_id}",
+            additional_matcher=partial(match_uploaded_json, {"name": self.name}),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=200,
         )
-        result = cli_runner.invoke(change_command, [queue_id, "-n", name])
+        result = cli_runner.invoke(change_command, [self.queue_id, "-n", self.name])
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert not result.output
+
+    @pytest.mark.usefixtures("create_queue_urls", "create_queue_schema")
+    def test_schema(self, requests_mock, cli_runner):
+        requests_mock.patch(
+            f"{QUEUES_URL}/{self.queue_id}",
+            additional_matcher=partial(match_uploaded_json, {"schema": SCHEMA_URL}),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=200,
+        )
+        result = cli_runner.invoke(
+            change_command, [self.queue_id, "--schema-content-file", SCHEMA_FILE_NAME]
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert not result.output
