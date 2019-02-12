@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
 import difflib
 import json
-import platform
 import pprint
 
 import click
 import re
+from jsondiff import diff as json_diff, JsonDumper
 from typing import Iterable, IO
 
+from elisctl.lib import split_dict_params
+
 DIFF_TYPES = ["jsondiff", "difflib"]
-
-if platform.system() == "Windows":
-    DIFF_TYPES.remove("jsondiff")
-else:
-    from jsondiff import diff as json_diff, JsonDumper
-
-from elisctl.lib import split_dict_params  # noqa: E402
-
 DIFF_RE = re.compile(r"^[+-^]")
 
 
