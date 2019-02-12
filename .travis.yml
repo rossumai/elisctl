@@ -36,7 +36,7 @@ jobs:
       install:
         - sudo apt-get update
         - sudo apt-get -y install nsis
-        - pip install pynsist
+        - pip install pynsist tabulate jsondiff
       script: pynsist installer.cfg
       deploy:
         provider: releases
