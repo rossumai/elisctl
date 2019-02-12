@@ -21,7 +21,7 @@ connector_id_option = click.option(
 def schema_content_file_option(command: Optional[Callable] = None, **kwargs):
     default_kwargs = {"type": click.File("rb"), "help": "Schema JSON file."}
     kwargs = {**default_kwargs, **kwargs}
-    decorator = click.option("--schema-content-file", **kwargs)
+    decorator = click.option("-s", "--schema-content-file", **kwargs)
     if command is None:
         return decorator
     return decorator(command)
