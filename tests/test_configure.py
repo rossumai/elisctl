@@ -14,7 +14,7 @@ class TestConfigure:
         expected_credentials = {
             "url": "mock://some.example.com",
             "username": "some_username",
-            "password": "secret",
+            "password": "secret%",
         }
         result = isolated_cli_runner.invoke(
             configure.cli,
@@ -28,7 +28,7 @@ class TestConfigure:
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
 
-        config = configparser.ConfigParser()
+        config = configparser.RawConfigParser()
         config.read(configuration_path)
 
         assert expected_credentials == config["default"]
@@ -43,13 +43,13 @@ class TestConfigure:
         with isolated_cli_runner.isolation():
             configuration_path.parent.mkdir()
 
-            config = configparser.ConfigParser()
-            config["default"] = {"test": "test"}
+            config = configparser.RawConfigParser()
+            config["default"] = {"test": "test%"}
             with configuration_path.open("w") as f:
                 config.write(f)
 
             result = configure.get_credential("test")
-        assert "test" == result
+        assert "test%" == result
 
     @pytest.mark.usefixtures("configuration_path")
     def test_no_credentials(self):
