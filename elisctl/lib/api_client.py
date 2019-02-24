@@ -9,8 +9,11 @@ import requests
 from requests import Response
 from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
 
+from elisctl import __version__
 from elisctl.configure import get_credential
 from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS
+
+HEADERS = {"User-Agent": f"elisctl/{__version__}"}
 
 
 class APIClient(AbstractContextManager):
@@ -60,7 +63,9 @@ class APIClient(AbstractContextManager):
     def token(self) -> str:
         if self._token is None:
             response = requests.post(
-                f"{self.url}/auth/login", json={"username": self.user, "password": self.password}
+                f"{self.url}/auth/login",
+                json={"username": self.user, "password": self.password},
+                headers=HEADERS,
             )
             assert response.ok
             self._token = response.json()["key"]
@@ -89,8 +94,11 @@ class APIClient(AbstractContextManager):
     def _request_url(
         self, method: str, url: str, query: dict = None, expected_status_code: int = 200, **kwargs
     ) -> Response:
+        auth = self._authentication
+        headers = {**HEADERS, **auth.pop("headers", {}), **kwargs.pop("headers", {})}
+
         response = requests.request(
-            method, url, params=_encode_booleans(query), **self._authentication, **kwargs
+            method, url, params=_encode_booleans(query), headers=headers, **auth, **kwargs
         )
         if response.status_code != expected_status_code:
             raise click.ClickException(f"Invalid response [{response.url}]: {response.text}")
