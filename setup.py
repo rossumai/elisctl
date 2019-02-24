@@ -33,5 +33,5 @@ setup(
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "pytest-cov", "openpyxl", "requests_mock", "pytest-click"],
     zip_safe=False,
-    entry_points={"console_scripts": ["elisctl = elisctl:entry_point"]},
+    entry_points={"console_scripts": ["elisctl = elisctl.main:entry_point"]},
 )
