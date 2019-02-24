@@ -1,7 +1,7 @@
 import click
 from click_shell import shell
 
-from elisctl import tools, schema, csv, configure, user, workspace, queue
+from elisctl import tools, schema, csv, configure, user, workspace, queue, __version__
 
 
 @shell(
@@ -9,7 +9,7 @@ from elisctl import tools, schema, csv, configure, user, workspace, queue
     intro="Welcome to the elisctl interactive mode. Start with `help` and `configure`.",
     context_settings={"help_option_names": ["-h", "--help"]},
 )
-@click.version_option()
+@click.version_option(__version__)
 def entry_point() -> None:
     pass
 
