@@ -31,7 +31,4 @@ def download_command(
     schema_json = json.dumps(
         schema_dict["content"], indent=indent, ensure_ascii=ensure_ascii, sort_keys=True
     )
-    if output_file:
-        print(schema_json, file=output_file)
-    else:
-        click.echo(schema_json)
+    click.echo(schema_json, file=output_file)

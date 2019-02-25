@@ -1,5 +1,6 @@
 import json
 from copy import deepcopy
+from pathlib import Path
 from traceback import print_tb
 
 import pytest
@@ -212,7 +213,16 @@ schema_id = "1"
 )
 @pytest.mark.usefixtures("mock_login_request", "mock_get_schema")
 class TestDownload:
+    output_file = Path("test.json")
+
     def test_stdout(self, cli_runner):
         result = cli_runner.invoke(download_command, [schema_id])
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert [] == json.loads(result.stdout)
+
+    def test_output_file(self, isolated_cli_runner):
+        result = isolated_cli_runner.invoke(
+            download_command, [schema_id, "-O", str(self.output_file)]
+        )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert [] == json.loads(self.output_file.read_text())
