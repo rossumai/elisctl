@@ -22,7 +22,7 @@ cli.add_command(upload.upload_command)
 @click.argument("id_", metavar="ID", type=str)
 @click.option("--indent", default=2, type=int)
 @click.option("--ensure-ascii", is_flag=True, type=bool)
-@click.option("-O", "--output-file", type=click.File("w"))
+@click.option("-O", "--output-file", type=click.File("w", encoding="utf-8"))
 def download_command(
     ctx: click.Context, id_: str, indent: int, ensure_ascii: bool, output_file: Optional[IO[str]]
 ):
