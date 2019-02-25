@@ -3,9 +3,8 @@ import json
 import click
 import pytest
 
-from elisctl import __version__
 from elisctl.lib.api_client import APIClient
-from tests.conftest import TOKEN, LOGIN_URL, API_URL
+from tests.conftest import API_URL, REQUEST_HEADERS, TOKEN, LOGIN_URL
 
 
 @pytest.mark.runner_setup(
@@ -34,9 +33,7 @@ class TestAPIClient:
 
     @pytest.mark.usefixtures("mock_login_request")
     def test_user_agent_header(self, requests_mock, isolated_cli_runner):
-        requests_mock.get(
-            API_URL + "/v1/", request_headers={"User-Agent": f"elisctl/{__version__}"}
-        )
+        requests_mock.get(API_URL + "/v1/", request_headers=REQUEST_HEADERS)
         with isolated_cli_runner.isolation():
             self.api_client.get("")
         assert requests_mock.called
