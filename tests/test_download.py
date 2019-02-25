@@ -1,11 +1,8 @@
-import json
-import re
 from traceback import print_tb
 
 import pytest
+import re
 
-from tests.conftest import API_URL
-from elisctl.schema import download_command as download_schema
 from elisctl.csv import download_command as download_csv
 
 DATA = """\
@@ -28,15 +25,3 @@ class TestDownload:
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert 1 == len(requests_mock.request_history)
         assert DATA == result.stdout.strip()
-
-    @pytest.mark.runner_setup(
-        env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-    )
-    @pytest.mark.usefixtures("mock_login_request", "mock_get_schema")
-    def test_schema(self, cli_runner):
-        schema_id = "1"
-        schema_content = []
-
-        result = cli_runner.invoke(download_schema, [schema_id])
-        assert not result.exit_code, print_tb(result.exc_info[2])
-        assert schema_content == json.loads(result.stdout)
