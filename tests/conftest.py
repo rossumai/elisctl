@@ -4,6 +4,8 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 from requests import Request
 
+from elisctl import __version__
+
 API_URL = "httpmock://api.elis.rossum.ai"
 TOKEN = "secretsecret"
 
@@ -16,12 +18,17 @@ INBOXES_URL = f"{API_URL}/v1/inboxes"
 SCHEMAS_URL = f"{API_URL}/v1/schemas"
 USERS_URL = f"{API_URL}/v1/users"
 GROUPS_URL = f"{API_URL}/v1/groups"
+LOGIN_URL = f"{API_URL}/v1/auth/login"
 
 
 @pytest.fixture
 def mock_login_request(requests_mock):
-    requests_mock.post(f"{API_URL}/v1/auth/login", json={"key": TOKEN})
-    requests_mock.post(f"{API_URL}/v1/auth/logout")
+    requests_mock.post(
+        LOGIN_URL, json={"key": TOKEN}, request_headers={"User-Agent": f"elisctl/{__version__}"}
+    )
+    requests_mock.post(
+        f"{API_URL}/v1/auth/logout", request_headers={"User-Agent": f"elisctl/{__version__}"}
+    )
     yield requests_mock
 
 
