@@ -206,6 +206,7 @@ USERNAME = "test_user@rossum.ai"
 PASSWORD = "secret"
 
 schema_id = "1"
+schema_content = [{"label": "Příliš žluťoučký kůň úpěl ďábelské ódy."}]
 
 
 @pytest.mark.runner_setup(
@@ -218,11 +219,11 @@ class TestDownload:
     def test_stdout(self, cli_runner):
         result = cli_runner.invoke(download_command, [schema_id])
         assert not result.exit_code, print_tb(result.exc_info[2])
-        assert [] == json.loads(result.stdout)
+        assert schema_content == json.loads(result.stdout)
 
     def test_output_file(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
             download_command, [schema_id, "-O", str(self.output_file)]
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
-        assert [] == json.loads(self.output_file.read_text())
+        assert schema_content == json.loads(self.output_file.read_text())
