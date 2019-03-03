@@ -31,7 +31,7 @@ class APIClient(AbstractContextManager):
         self._use_api_version = use_api_version
         self._auth_using_token = auth_using_token
 
-        self._token: Optional[str] = None
+        self.token: Optional[str] = None
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.logout()
@@ -59,18 +59,19 @@ class APIClient(AbstractContextManager):
             self._url = f'{_url}{"/v1" if self._use_api_version else ""}'
         return self._url
 
-    @property
-    def token(self) -> str:
-        if self._token is None:
-            response = requests.post(
-                f"{self.url}/auth/login",
-                json={"username": self.user, "password": self.password},
-                headers=HEADERS,
-            )
-            assert response.ok
-            self._token = response.json()["key"]
+    def get_token(self) -> str:
+        # self.post cannot be used as it is dependent on self.get_token().
+        response = requests.post(
+            f"{self.url}/auth/login",
+            json={"username": self.user, "password": self.password},
+            headers=HEADERS,
+        )
+        if response.status_code == 401:
+            raise click.ClickException(f"Login failed with the provided credentials.")
+        elif not response.ok:
+            raise click.ClickException(f"Invalid response [{response.url}]: {response.text}")
 
-        return self._token
+        return response.json()["key"]
 
     def post(
         self, path: Union[str, APIObject], data: dict, expected_status_code: int = 201
@@ -165,6 +166,8 @@ class APIClient(AbstractContextManager):
     @property
     def _authentication(self) -> dict:
         if self._auth_using_token:
+            if self.token is None:
+                self.token = self.get_token()
             return {"headers": {"Authorization": "Token " + self.token}}
         else:
             return {"auth": (self.user, self.password)}
