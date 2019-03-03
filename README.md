@@ -81,3 +81,11 @@ And select any of the maintainers as a reviewer.
     git push
     git push --tags
     ``` 
+ 
+## Changelog
+
+### 2019-03-03 v1.1.0
+
+* Added support for python 3.6
+* Added `User-Agent` header (`elisctl/{version} ({platform})`) for every request to ELIS API
+* Improved error when login fails with the provided credentials
