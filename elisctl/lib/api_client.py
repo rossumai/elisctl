@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import secrets
 import string
 from contextlib import AbstractContextManager
@@ -37,7 +35,7 @@ class APIClient(AbstractContextManager):
         self.logout()
 
     @classmethod
-    def csv(cls, url: str = None, user: str = None, password: str = None) -> APIClient:
+    def csv(cls, url: str = None, user: str = None, password: str = None) -> "APIClient":
         return cls(url, user, password, False, False)
 
     @property

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 from setuptools import setup, find_packages
 
 
@@ -25,11 +25,21 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
     packages=find_packages(exclude=("tests*",)),
-    install_requires=["pandas", "click", "click-shell", "xlrd", "requests", "jsondiff", "tabulate"],
-    python_requires="~=3.7",
+    install_requires=[
+        "pandas",
+        "click",
+        "click-shell",
+        "xlrd",
+        "requests",
+        "jsondiff",
+        "tabulate",
+        'dataclasses;python_version<"3.7"',
+    ],
+    python_requires=">=3.6",
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "pytest-cov", "openpyxl", "requests_mock", "pytest-click"],
     zip_safe=False,

@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-
 import json
 import warnings
 from copy import deepcopy
@@ -9,6 +7,9 @@ from typing import List, Callable, Optional, IO, Tuple, Iterable, Dict, Union, S
 import click as click
 
 from elisctl.lib import split_dict_params
+
+DataPointDictItem = Union[str, int, dict, None, list]
+DataPointDict = Dict[str, DataPointDictItem]
 
 
 @click.group("transform", help="Transform schema file content.")
@@ -340,7 +341,3 @@ def _new_singlevalue(datapoint_to_add: DataPointDict) -> DataPointDict:
         raise click.BadArgumentUsage("Unknown type.")
 
     return {**default, "type": type_}
-
-
-DataPointDictItem = Union[str, int, dict, None, list]
-DataPointDict = Dict[str, DataPointDictItem]
