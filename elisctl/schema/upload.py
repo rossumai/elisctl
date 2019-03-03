@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-
 import json
 from typing import List, Optional, Dict, Union
 
@@ -8,6 +6,10 @@ import click as click
 from typing.io import IO
 
 from elisctl.lib.api_client import get_json, ELISClient
+
+
+SchemaContent = List[dict]
+Schema = Dict[str, Union[str, SchemaContent]]
 
 
 @click.command(name="update")
@@ -43,7 +45,3 @@ def _create_schema(
         if queue_url.startswith(elis.url):
             queue_url = queue_url[len(elis.url) + 1 :]
         elis.patch(queue_url, data={"schema": new_schema["url"]})
-
-
-SchemaContent = List[dict]
-Schema = Dict[str, Union[str, SchemaContent]]
