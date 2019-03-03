@@ -179,8 +179,13 @@ class APIClient(AbstractContextManager):
 class ELISClient(APIClient):
     def get_organization(self, organization_id: Optional[int] = None) -> dict:
         if organization_id is None:
-            user_url = get_json(self.get("auth/user"))["url"]
-            organization_url = get_json(self.get_url(user_url))[ORGANIZATIONS.singular]
+            user_details = get_json(self.get("auth/user"))
+            try:
+                organization_url = user_details[ORGANIZATIONS.singular]
+            except KeyError:
+                organization_url = get_json(self.get_url(user_details["url"]))[
+                    ORGANIZATIONS.singular
+                ]
             res = self.get_url(organization_url)
         else:
             res = self.get(f"{ORGANIZATIONS}/{organization_id}")

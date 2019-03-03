@@ -62,8 +62,9 @@ def mock_organization_urls(request: FixtureRequest, requests_mock):
         request_headers={"Authorization": f"Token {TOKEN}"},
     )
 
-    requests_mock.get(f"{API_URL}/v1/auth/user", json={"url": user_url})
-    requests_mock.get(user_url, json={"organization": organization_url})
+    requests_mock.get(
+        f"{API_URL}/v1/auth/user", json={"url": user_url, "organization": organization_url}
+    )
 
     requests_mock.get(
         re.compile(fr"{WORKSPACES_URL}/\d$"),
