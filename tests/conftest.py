@@ -1,4 +1,5 @@
 import re
+from platform import platform
 
 import pytest
 from _pytest.fixtures import FixtureRequest
@@ -20,15 +21,13 @@ USERS_URL = f"{API_URL}/v1/users"
 GROUPS_URL = f"{API_URL}/v1/groups"
 LOGIN_URL = f"{API_URL}/v1/auth/login"
 
+REQUEST_HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
+
 
 @pytest.fixture
 def mock_login_request(requests_mock):
-    requests_mock.post(
-        LOGIN_URL, json={"key": TOKEN}, request_headers={"User-Agent": f"elisctl/{__version__}"}
-    )
-    requests_mock.post(
-        f"{API_URL}/v1/auth/logout", request_headers={"User-Agent": f"elisctl/{__version__}"}
-    )
+    requests_mock.post(LOGIN_URL, json={"key": TOKEN}, request_headers=REQUEST_HEADERS)
+    requests_mock.post(f"{API_URL}/v1/auth/logout", request_headers=REQUEST_HEADERS)
     yield requests_mock
 
 

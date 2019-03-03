@@ -1,5 +1,6 @@
 import secrets
 import string
+from platform import platform
 from contextlib import AbstractContextManager
 
 import click
@@ -11,7 +12,7 @@ from elisctl import __version__
 from elisctl.configure import get_credential
 from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS
 
-HEADERS = {"User-Agent": f"elisctl/{__version__}"}
+HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
 
 
 class APIClient(AbstractContextManager):
