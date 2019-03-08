@@ -84,6 +84,10 @@ And select any of the maintainers as a reviewer.
  
 ## Changelog
 
+### 2019-03-08 v1.1.1
+
+* Fixed bug with UnicodeDecodeError in `elisctl schema get ID -O file.json` on Windows
+
 ### 2019-03-03 v1.1.0
 
 * Added support for python 3.6
