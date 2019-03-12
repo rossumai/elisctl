@@ -109,7 +109,7 @@ def delete_command(id_: int) -> None:
 @connector_id_option
 @locale_option
 def change_command(
-    id_: str,
+    id_: int,
     name: Optional[str],
     schema_content_file: Optional[IO[bytes]],
     connector_id: Optional[int],
@@ -120,20 +120,18 @@ def change_command(
 
     data: Dict[str, Any] = {}
 
+    if name is not None:
+        data["name"] = name
+
+    if locale is not None:
+        data["locale"] = locale
+
     with ELISClient() as elis:
-        if name is not None:
-            data["name"] = name
-        else:
-            # We might need the queue name for the schema name later.
-            name = elis.get_queue(id_)["name"]
-
-        if locale is not None:
-            data["locale"] = locale
-
         if connector_id is not None:
             data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
 
         if schema_content_file is not None:
+            name = name or elis.get_queue(id_)["name"]
             schema_content = json.load(schema_content_file)
             schema_dict = elis.create_schema(f"{name} schema", schema_content)
             data["schema"] = schema_dict["url"]

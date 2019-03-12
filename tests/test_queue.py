@@ -1,3 +1,4 @@
+from typing import Optional
 from unittest import mock
 
 from functools import partial
@@ -26,6 +27,9 @@ SCHEMA_FILE_NAME = "schema.json"
 
 
 class QueueFixtures:
+    name: Optional[str] = None
+    queue_id: Optional[str] = None
+
     @pytest.fixture
     def create_queue_urls(self, requests_mock):
         requests_mock.get(
@@ -44,8 +48,7 @@ class QueueFixtures:
             json={"url": SCHEMA_URL},
         )
 
-        self.queue_url = f"{QUEUES_URL}/{self.queue_id}"
-        QUEUE_CONTENT = {
+        queue_content = {
             "name": self.name,
             "workspace": WORKSPACE_URL,
             "schema": SCHEMA_URL,
@@ -53,19 +56,23 @@ class QueueFixtures:
         }
         requests_mock.post(
             QUEUES_URL,
-            additional_matcher=partial(match_uploaded_json, QUEUE_CONTENT),
+            additional_matcher=partial(match_uploaded_json, queue_content),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=201,
             json={"id": self.queue_id, "url": self.queue_url},
         )
         requests_mock.get(
-            self.queue_url, json=QUEUE_CONTENT, request_headers={"Authorization": f"Token {TOKEN}"}
+            self.queue_url, json=queue_content, request_headers={"Authorization": f"Token {TOKEN}"}
         )
 
     @pytest.fixture
     def create_queue_schema(self, isolated_cli_runner):
         with open(SCHEMA_FILE_NAME, "w") as schema:
             print("[]", file=schema)
+
+    @property
+    def queue_url(self) -> str:
+        return f"{QUEUES_URL}/{self.queue_id}"
 
 
 @pytest.mark.runner_setup(
@@ -247,7 +254,7 @@ class TestChange(QueueFixtures):
 
     def test_success(self, requests_mock, cli_runner):
         requests_mock.patch(
-            f"{QUEUES_URL}/{self.queue_id}",
+            self.queue_url,
             additional_matcher=partial(match_uploaded_json, {"name": self.name}),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=200,
@@ -259,7 +266,7 @@ class TestChange(QueueFixtures):
     @pytest.mark.usefixtures("create_queue_urls", "create_queue_schema")
     def test_schema(self, requests_mock, cli_runner):
         requests_mock.patch(
-            f"{QUEUES_URL}/{self.queue_id}",
+            self.queue_url,
             additional_matcher=partial(match_uploaded_json, {"schema": SCHEMA_URL}),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=200,
