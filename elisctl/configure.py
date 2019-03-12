@@ -21,7 +21,7 @@ ELIS_PASSWORD: password to the ELIS account
 
 @click.command(name="configure", help=HELP)
 def cli():
-    config = configparser.ConfigParser()
+    config = configparser.RawConfigParser()
     config["default"] = {
         "url": click.prompt(f"API URL", default=DEFAULT_ELIS_URL, type=str).strip().rstrip("/"),
         "username": click.prompt(f"Username", type=str).strip(),
@@ -37,7 +37,7 @@ def get_credential(attr: str) -> str:
     if res is not None:
         return res
 
-    config = configparser.ConfigParser()
+    config = configparser.RawConfigParser()
     config.read(CONFIGURATION_PATH)
     try:
         config_dict = config["default"]
