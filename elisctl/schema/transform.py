@@ -158,6 +158,15 @@ def process_result(
 def traverse_datapoints(
     datapoints: List[dict], transformation: Callable, parent_categories: List[str] = None, **kwargs
 ) -> List[dict]:
+    dummy_root = {"category": "root", "id": None, "children": datapoints}
+    return _traverse_datapoints([dummy_root], transformation, parent_categories, **kwargs)[0][
+        "children"
+    ]
+
+
+def _traverse_datapoints(
+    datapoints: List[dict], transformation: Callable, parent_categories: List[str] = None, **kwargs
+) -> List[dict]:
     new_datapoints = []
     parent_categories = parent_categories or []
     for datapoint in datapoints:
@@ -167,13 +176,13 @@ def traverse_datapoints(
             parent_categories_ = parent_categories[:] + [category]
             children = new_datapoint.pop("children", [])
             if category == "multivalue" and children:
-                [new_datapoint["children"]] = traverse_datapoints(
+                [new_datapoint["children"]] = _traverse_datapoints(
                     [children], transformation, parent_categories_, **kwargs
                 )
             elif category == "multivalue":
                 new_datapoint["children"] = None
-            elif category in ("tuple", "section"):
-                new_datapoint["children"] = traverse_datapoints(
+            elif category in ("tuple", "section", "root"):
+                new_datapoint["children"] = _traverse_datapoints(
                     children, transformation, parent_categories_, **kwargs
                 )
         new_datapoint = transformation(new_datapoint, parent_categories, **kwargs)
@@ -213,7 +222,7 @@ def wrap_in_multivalue(
 ) -> dict:
     if (
         "multivalue" in parent_categories
-        or datapoint["category"] in ("multivalue", "section")
+        or datapoint["category"] in ("multivalue", "section", "root")
         or datapoint["id"] in exclude_ids
     ):
         return datapoint
@@ -237,7 +246,7 @@ def add(
     if datapoint["id"] != parent_id:
         return datapoint
 
-    if datapoint["category"] in ("tuple", "section"):
+    if datapoint["category"] in ("tuple", "section", "root"):
         new_datapoint = deepcopy(datapoint)
         if place_before is None:
             new_datapoint["children"].append(datapoint_to_add)

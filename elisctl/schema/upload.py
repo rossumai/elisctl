@@ -1,29 +1,41 @@
 #!/usr/bin/env python3
 import json
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union, Callable
 
 import click as click
-from typing.io import IO
+from elisctl.schema.xlsx import XlsxToSchema
 
 from elisctl.lib.api_client import get_json, ELISClient
-
+from typing.io import IO
 
 SchemaContent = List[dict]
 Schema = Dict[str, Union[str, SchemaContent]]
+LoadFunction = Callable[[IO[bytes]], SchemaContent]
 
 
 @click.command(name="update")
 @click.argument("id_", metavar="ID", type=str)
-@click.argument("json_file", metavar="JSON", type=click.File("r"))
+@click.argument("file", metavar="FILE", type=click.File("rb"))
+@click.option("--format", "format_", default="json", type=click.Choice(["json", "xlsx"]))
 @click.option("--rewrite", is_flag=True, type=bool)
 @click.option("--name", default=None, type=str)
-def upload_command(id_: str, json_file: IO[str], rewrite: bool, name: Optional[str]):
+def upload_command(id_: str, file: IO[bytes], format_: str, rewrite: bool, name: Optional[str]):
     """
     Update schema in ELIS.
     """
-    func = _rewrite_schema if rewrite else _create_schema
+    if format_ == "json":
+        load_func: LoadFunction = json.load
+    else:
+        load_func = XlsxToSchema().convert
+
+    try:
+        schema = load_func(file)
+    except Exception as e:
+        raise click.ClickException(f"File {file} could not be loaded. Because of {e}") from e
+
+    upload_func = _rewrite_schema if rewrite else _create_schema
     with ELISClient() as elis:
-        func(id_, json.load(json_file), elis, name)
+        upload_func(id_, schema, elis, name)
 
 
 def _rewrite_schema(

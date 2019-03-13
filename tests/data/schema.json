@@ -1,0 +1,120 @@
+[
+  {
+    "id": "invoice_info_section",
+    "icon": null,
+    "label": "Basic information",
+    "category": "section",
+    "children": [
+      {
+        "id": "invoice_id",
+        "type": "string",
+        "label": "Invoice number",
+        "category": "datapoint",
+        "constraints": {
+          "required": false
+        },
+        "width_chars": 10,
+        "default_value": "A01",
+        "rir_field_names": [
+          "invoice_id"
+        ]
+      },
+      {
+        "id": "date_issue",
+        "type": "date",
+        "label": "Issue date",
+        "format": "D/M/YYYY",
+        "category": "datapoint",
+        "constraints": {
+          "required": false
+        },
+        "width_chars": 10,
+        "default_value": "3/3/2099",
+        "rir_field_names": [
+          "date_issue"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "amounts_section",
+    "icon": null,
+    "label": "VAT & Amounts",
+    "category": "section",
+    "children": [
+      {
+        "id": "amount_total_base",
+        "type": "number",
+        "label": "Subtotal",
+        "format": "# ##0.#",
+        "category": "datapoint",
+        "constraints": {
+          "required": false
+        },
+        "width_chars": 10,
+        "default_value": null,
+        "rir_field_names": [
+          "amount_total_base"
+        ],
+        "additional_field": "some value"
+      },
+      {
+        "id": "test_enum",
+        "type": "enum",
+        "label": "List",
+        "category": "datapoint",
+        "constraints": {
+          "required": false
+        },
+        "width_chars": 10,
+        "default_value": "a123",
+        "rir_field_names": [
+          "amount_total_base"
+        ],
+        "options": [
+          {
+            "value": "a123",
+            "label": "A123"
+          },
+          {
+            "value": "b123",
+            "label": "B123"
+          }
+        ]
+      },
+      {
+        "id": "tax_details",
+        "label": "VAT",
+        "category": "multivalue",
+        "children": {
+          "id": "tax_detail",
+          "label": "VAT",
+          "category": "tuple",
+          "children": [
+            {
+              "id": "tax_detail_rate",
+              "type": "number",
+              "label": "VAT Rate",
+              "format": "# ##0.#",
+              "category": "datapoint",
+              "constraints": {
+                "required": false
+              },
+              "width_chars": 10,
+              "default_value": "21",
+              "rir_field_names": [
+                "tax_detail_rate"
+              ]
+            }
+          ],
+          "rir_field_names": [
+            "tax_details"
+          ]
+        },
+        "default_value": null,
+        "max_occurrences": 4,
+        "min_occurrences": null
+      }
+    ]
+  }
+]
