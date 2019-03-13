@@ -49,13 +49,44 @@ or run the interactive shell by simply running
 elisctl
 ```
 
-## Schema Transformations
+## Edit Schema
 
 Some of the most common advanced operations are related to setting up
-the sidebar-describing schema JSON according to business requirements
-and enumerations.
-`elisctl schema transform` and `elisctl tools` are designed to help
-with these operations.
+the sidebar-describing schema according to business requirements. Using elisctl
+you can edit schema easily as a JSON file.
+
+List queues to obtain schema id:
+```shell
+elisctl queue list
+  id  name                           workspace  inbox                                       schema  users
+----  ---------------------------  -----------  ----------------------------------------  --------  ----------------------
+   6  My Queue 1                             6  myqueue-ab12ee@elis.rossum.ai                    7  27
+```
+
+Download schema as a json:
+```shell
+elisctl schema get 7 -O schema.json
+```
+
+Open `schema.json` file in you favourite editor and upload modified version back to Elis.
+```shell
+elisctl schema update 7 schema.json
+```
+
+From now on, documents will follow new schema.
+
+As an experimental feature, you can also edit schema as an Excel (xlsx) file.
+```shell
+elisctl schema get 7 --format xlsx -O schema.xlsx
+elisctl schema update 7 --format xlsx schema.xlsx
+```
+
+
+## Schema Transformations
+
+In addition, there is a scripting support for many common schema operations,
+that may be easily used for schema management automation. See `elisctl schema transform`
+and `elisctl tools` tools for further reference.
 
 Run something like:
 ```shell
