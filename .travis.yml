@@ -40,7 +40,7 @@ jobs:
       install:
         - sudo apt-get update
         - sudo apt-get -y install nsis
-        - pip install pynsist tabulate jsondiff
+        - pip install pynsist tabulate jsondiff openpyxl>=2.6.0
       script: pynsist installer.cfg
       deploy:
         provider: releases

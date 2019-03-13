@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from setuptools import setup, find_packages
 
-
 setup(
     name="elisctl",
     version="1.1.1",
@@ -38,10 +37,11 @@ setup(
         "jsondiff",
         "tabulate",
         'dataclasses;python_version<"3.7"',
+        "openpyxl>=2.6",
     ],
     python_requires=">=3.6",
     setup_requires=["pytest-runner"],
-    tests_require=["pytest", "pytest-cov", "openpyxl", "requests_mock", "pytest-click"],
+    tests_require=["pytest", "pytest-cov", "requests_mock", "pytest-click"],
     zip_safe=False,
     entry_points={"console_scripts": ["elisctl = elisctl.main:entry_point"]},
 )
