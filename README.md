@@ -115,6 +115,11 @@ And select any of the maintainers as a reviewer.
  
 ## Changelog
 
+### 2019-03-14 v2.0.1
+
+* Fixed MS Windows application entry point (running elisctl from the start menu)
+* Fixed parsing of boolean values in xlsx schema export/import
+
 ### 2019-03-14 v2.0.0
 
 * Disable interpolation in config parsing, so that special characters are allowed in e.g. password
