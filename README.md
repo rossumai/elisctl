@@ -115,6 +115,12 @@ And select any of the maintainers as a reviewer.
  
 ## Changelog
 
+### 2019-03-14 v2.0.0
+
+* Disable interpolation in config parsing, so that special characters are allowed in e.g. password
+* Experimental support for schema modification using xlsx file format
+* Allow to show help in schema tranform add (backward incompatible change)
+
 ### 2019-03-08 v1.1.1
 
 * Fixed bug with UnicodeDecodeError in `elisctl schema get ID -O file.json` on Windows
