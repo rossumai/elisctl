@@ -128,7 +128,7 @@ class SchemaToXlsx:
                 value = datapoint[key]
             except KeyError:
                 return None
-            if attribute_types[key] == "json":
+            if attribute_types[key] in ("json", "bool"):
                 return json.dumps(value)
             return value
 
@@ -240,11 +240,10 @@ class XlsxToSchema:
             except ValueError:
                 raise click.ClickException(f"Cannot convert to number: {value}")
         if type_ == "bool":
-            if value in ("true", "True", "1", "t"):
-                return True
-            if value in ("false", "False", "0", "f"):
-                return False
-            raise click.ClickException(f"Cannot convert to bool: {value}")
+            try:
+                return json.loads(value)
+            except TypeError:
+                raise click.ClickException(f"Cannot convert to bool: {value}")
         if type_ == "json":
             try:
                 return json.loads(value)
