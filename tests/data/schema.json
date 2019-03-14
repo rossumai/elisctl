@@ -25,6 +25,7 @@
         "label": "Issue date",
         "format": "D/M/YYYY",
         "category": "datapoint",
+	"hidden": true,
         "constraints": {
           "required": false
         },

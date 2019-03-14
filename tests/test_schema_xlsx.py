@@ -47,9 +47,7 @@ class TestXlsx:
 
     @staticmethod
     def _sheet_to_matrix(sheet) -> Matrix:
-        return [
-            list(map(lambda c: str(c.value) if c.value is not None else None, row)) for row in sheet
-        ]
+        return [list(row) for row in sheet.values]
 
     def test_xlsx_loaded_correctly(self, isolated_cli_runner, requests_mock):
         xlsx_schema = deepcopy(xlsx_content["schema"])
