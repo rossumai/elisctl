@@ -6,7 +6,7 @@ import click
 
 from elisctl.lib.api_client import APIClient, get_json
 from elisctl.user.helpers import get_groups
-from elisctl.user.options import group_option, locale_option, queue_option, password_option
+from elisctl.user.options import group_option, locale_option, queue_option, password_option, profile_option
 
 
 @click.command(name="create", short_help="Create user.")
@@ -16,6 +16,7 @@ from elisctl.user.options import group_option, locale_option, queue_option, pass
 @click.option("-o", "--organization-id", type=int, help="Organization ID.", hidden=True)
 @group_option
 @locale_option
+@profile_option
 def create_command(
     username: str,
     password: Optional[str],
@@ -23,12 +24,13 @@ def create_command(
     organization_id: Optional[int],
     group: str,
     locale: str,
+    profile: Optional[str],
 ) -> None:
     """
     Create user with USERNAME and add him to QUEUES specified by ids.
     """
     password = password or _generate_password()
-    with APIClient() as api:
+    with APIClient(profile=profile) as api:
         _check_user_does_not_exists(api, username)
         organization_dict = _get_organization(api, organization_id)
 

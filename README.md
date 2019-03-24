@@ -48,6 +48,18 @@ or run the interactive shell by simply running
 ```shell
 elisctl
 ```
+## Configure schema
+
+To run commands described below under chosen user it is possible to use profiles defined by
+configure function such as
+```shell
+elisctl configure --profile profile_name
+```
+
+After defining necessary profiles and their creditials it is only required to set chosen profile such as
+```shell
+queue list --profile profile_name
+```
 
 ## Edit Schema
 

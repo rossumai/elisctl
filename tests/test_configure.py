@@ -33,11 +33,64 @@ class TestConfigure:
 
         assert expected_credentials == config["default"]
 
+    def test_profile_added(self, isolated_cli_runner, configuration_path):
+        expected_credentials = {
+            "url": "mock://some.example.com",
+            "username": "some_username",
+            "password": "secret%",
+        }
+        result = isolated_cli_runner.invoke(
+            configure.cli,
+            ["--profile", "new_profile"],
+            input=dedent(
+                f"""\
+                    {expected_credentials["url"]}
+                    {expected_credentials["username"]}
+                    {expected_credentials["password"]}
+                    """
+            ),
+        )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+
+        config = configparser.RawConfigParser()
+        config.read(configuration_path)
+
+        assert expected_credentials == config["new_profile"]
+
+
     @pytest.mark.runner_setup(env={"ELIS_TEST": "test"})
     def test_get_credential_from_env(self, isolated_cli_runner):
         with isolated_cli_runner.isolation():
             result = configure.get_credential("test")
         assert "test" == result
+
+    @pytest.mark.runner_setup(env={"ELIS_PROFILE": "test_profile"})
+    def test_get_credential_from_env_profile(self, isolated_cli_runner, configuration_path):
+        with isolated_cli_runner.isolation():
+            configuration_path.parent.mkdir()
+
+            config = configparser.RawConfigParser()
+            config["test_profile"] = {"test": "test%"}
+            with configuration_path.open("w") as f:
+                config.write(f)
+
+            result = configure.get_credential("test")
+        assert "test%" == result
+
+    '''
+        Test credentials from config file given profile
+    '''
+    def test_get_credential_from_file_given_profile(self, isolated_cli_runner, configuration_path):
+        with isolated_cli_runner.isolation():
+            configuration_path.parent.mkdir()
+
+            config = configparser.RawConfigParser()
+            config["test_profile"] = {"test": "test%"}
+            with configuration_path.open("w") as f:
+                config.write(f)
+
+            result = configure.get_credential("test", "test_profile")
+        assert "test%" == result
 
     def test_get_credential_from_file(self, isolated_cli_runner, configuration_path):
         with isolated_cli_runner.isolation():

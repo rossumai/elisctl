@@ -23,12 +23,14 @@ class APIClient(AbstractContextManager):
         password: Optional[str] = None,
         use_api_version: bool = True,
         auth_using_token: bool = True,
+        profile: Optional[str] = None
     ):
         self._url = url
         self._user = user
         self._password = password
         self._use_api_version = use_api_version
         self._auth_using_token = auth_using_token
+        self._profile = profile
 
         self.token: Optional[str] = None
 
@@ -36,25 +38,25 @@ class APIClient(AbstractContextManager):
         self.logout()
 
     @classmethod
-    def csv(cls, url: str = None, user: str = None, password: str = None) -> "APIClient":
-        return cls(url, user, password, False, False)
+    def csv(cls, url: str = None, user: str = None, password: str = None, profile: str = None) -> "APIClient":
+        return cls(url, user, password, False, False, profile)
 
     @property
     def user(self) -> str:
         if self._user is None:
-            self._user = get_credential("username")
+            self._user = get_credential("username", self._profile)
         return self._user
 
     @property
     def password(self) -> str:
         if self._password is None:
-            self._password = get_credential("password")
+            self._password = get_credential("password", self._profile)
         return self._password
 
     @property
     def url(self) -> str:
         if self._url is None:
-            _url = get_credential("url").rstrip("/")
+            _url = get_credential("url", self._profile).rstrip("/")
             self._url = f'{_url}{"/v1" if self._use_api_version else ""}'
         return self._url
 
