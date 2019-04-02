@@ -4,6 +4,7 @@ from typing import IO, Optional
 import click
 
 from elisctl.lib.api_client import APIClient, get_json
+from elisctl.options import output_file_option
 from elisctl.schema.xlsx import SchemaToXlsx
 
 from . import transform, upload
@@ -24,7 +25,7 @@ cli.add_command(upload.upload_command)
 @click.option("--indent", default=2, type=int)
 @click.option("--ensure-ascii", is_flag=True, type=bool)
 @click.option("--format", "format_", default="json", type=click.Choice(["json", "xlsx"]))
-@click.option("-O", "--output-file", type=click.File("wb"))
+@output_file_option
 def download_command(
     ctx: click.Context,
     id_: str,
