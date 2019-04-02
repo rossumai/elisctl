@@ -5,6 +5,9 @@ from typing import Optional
 
 import click as click
 import pandas as pd
+from typing.io import IO
+
+from elisctl.options import output_file_option
 
 
 @click.command("xls_to_csv", help="Convert an Excel sheet to a CSV. All indices are 0-based.")
@@ -20,8 +23,15 @@ import pandas as pd
     "(skiprows are applied before header lookup)",
 )
 @click.option("--skiprows", default="", type=str, help="Indices of rows to skip")
+@output_file_option
 def cli(
-    xls: click.File, label: int, value: int, sheet: int, skiprows: str, header: Optional[int]
+    xls: click.File,
+    label: int,
+    value: int,
+    sheet: int,
+    skiprows: str,
+    header: Optional[int],
+    output_file: Optional[IO[str]],
 ) -> None:
     try:
         skiprows_list = [int(r.strip()) for r in skiprows.split(",") if r]
@@ -40,4 +50,4 @@ def cli(
     df = df[list(cols.keys())]
     with StringIO() as buffer:
         df.to_csv(buffer, header=False, sep=";", index=False)
-        click.echo(buffer.getvalue())
+        click.echo(buffer.getvalue().encode("utf-8"), file=output_file, nl=False)
