@@ -17,6 +17,8 @@ connector_id_option = click.option(
     "--connector-id", type=str, help="If not specified, queue will not call back a connector."
 )
 
+output_file_option = click.option("-O", "--output-file", type=click.File("wb"))
+
 
 def schema_content_file_option(command: Optional[Callable] = None, **kwargs):
     default_kwargs = {"type": click.File("rb"), "help": "Schema JSON file."}

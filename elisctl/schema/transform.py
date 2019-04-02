@@ -8,6 +8,7 @@ import click as click
 
 from elisctl import arguments
 from elisctl.lib import split_dict_params
+from elisctl.options import output_file_option
 
 DataPointDictItem = Union[str, int, dict, None, list]
 DataPointDict = Dict[str, DataPointDictItem]
@@ -22,7 +23,14 @@ DataPointDict = Dict[str, DataPointDictItem]
     "--ensure-ascii", is_flag=True, type=bool, help="Escape non-ASCII characters in resulting JSON."
 )
 @click.option("--sort-keys", is_flag=True, type=bool, help="Order keys in resulting JSON.")
-def cli(ctx: click.Context, indent: int, ensure_ascii: bool, sort_keys: bool) -> None:
+@output_file_option
+def cli(
+    ctx: click.Context,
+    indent: int,
+    ensure_ascii: bool,
+    sort_keys: bool,
+    output_file: Optional[IO[str]],
+) -> None:
     pass
 
 
@@ -149,9 +157,15 @@ def move_command(ctx: click.Context, source_id: str, target_id: str) -> List[dic
 @cli.resultcallback()
 @click.pass_context
 def process_result(
-    ctx: click.Context, result: List[dict], indent: int, ensure_ascii: bool, sort_keys: bool
+    ctx: click.Context,
+    result: List[dict],
+    indent: int,
+    ensure_ascii: bool,
+    sort_keys: bool,
+    output_file: Optional[IO[str]],
 ) -> None:
-    click.echo(json.dumps(result, indent=indent, ensure_ascii=ensure_ascii, sort_keys=sort_keys))
+    output = json.dumps(result, indent=indent, ensure_ascii=ensure_ascii, sort_keys=sort_keys)
+    click.echo(output.encode("utf-8"), file=output_file, nl=False)
 
 
 def traverse_datapoints(

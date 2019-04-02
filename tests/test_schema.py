@@ -116,6 +116,18 @@ class TestTransformSchema:
         new_schema[1]["children"].append(new_schema[0]["children"].pop())
         assert new_schema == json.loads(result.stdout)
 
+    def test_output_file(self, isolated_cli_runner):
+        output_file = Path("test.csv")
+
+        # Arbitrarily chosen move command. It should work everywhere else the same way.
+        result = isolated_cli_runner.invoke(
+            transform.cli, ["-O", str(output_file), "move", SCHEMA_NAME, "vat_rate", "other"]
+        )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        new_schema = deepcopy(ORIGINAL_SCHEMA)
+        new_schema[1]["children"].append(new_schema[0]["children"].pop())
+        assert new_schema == json.loads(output_file.read_text())
+
     def test_add(self, isolated_cli_runner):
         result = isolated_cli_runner.invoke(
             transform.cli, ["add", SCHEMA_NAME, "basic_info", "id=test"]
