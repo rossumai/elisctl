@@ -90,11 +90,11 @@ and `elisctl tools` tools for further reference.
 
 Run something like:
 ```shell
-elisctl schema transform default_schema.json substitute-options centre <( \
+elisctl schema transform substitute-options default_schema.json centre <( \
    elisctl tools xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 --sheet 1 | elisctl tools csv_to_options - ) \
- | elisctl schema transform - substitute-options gl_code <( \
+ | elisctl schema transform substitute-options - gl_code <( \
     elisctl tools xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 | elisctl tools csv_to_options - ) \
- | elisctl schema transform - remove contract \
+ | elisctl schema transform remove - contract \
  > era_schema.json
 ```
 
@@ -114,6 +114,11 @@ And select any of the maintainers as a reviewer.
     ``` 
  
 ## Changelog
+
+### 2019-04-02 v2.1.0
+
+* Added support for `--output-file` to `elisctl tools` and `elisctl schema transform`
+* Fix [Schema Transformations](#schema-transformations) description in README
 
 ### 2019-03-14 v2.0.1
 
