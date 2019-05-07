@@ -10,7 +10,7 @@
 **elisctl** is a set of tools that wrap
 the [Elis Document Management API](https://api.elis.rossum.ai/docs)
 to provide an easy way to configure, integrate and customize Elis - either
-interactively or programmaticaly.
+interactively or programmatically.
 
 ## Installation
 
@@ -48,17 +48,17 @@ or run the interactive shell by simply running
 ```shell
 elisctl
 ```
-## Configure schema
+## Configure profiles
 
-To run commands described below under chosen user it is possible to use profiles defined by
+To run commands described below under a chosen user, it is possible to use profiles defined by
 configure function such as
 ```shell
-elisctl configure --profile profile_name
+elisctl --profile profile_name configure
 ```
 
-After defining necessary profiles and their creditials it is only required to set chosen profile such as
+After defining necessary profiles and their credentials, the profile can be chosen the following way
 ```shell
-queue list --profile profile_name
+elisctl --profile profile_name queue list
 ```
 
 ## Edit Schema
@@ -141,7 +141,7 @@ And select any of the maintainers as a reviewer.
 
 * Disable interpolation in config parsing, so that special characters are allowed in e.g. password
 * Experimental support for schema modification using xlsx file format
-* Allow to show help in schema tranform add (backward incompatible change)
+* Allow to show help in schema transform add (backward incompatible change)
 
 ### 2019-03-08 v1.1.1
 
