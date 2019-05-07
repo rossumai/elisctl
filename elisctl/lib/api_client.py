@@ -1,14 +1,14 @@
 import secrets
 import string
-from platform import platform
 from contextlib import AbstractContextManager
+from platform import platform
 
 import click
 import requests
 from requests import Response
 from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
 
-from elisctl import __version__
+from elisctl import __version__, CTX_PROFILE, CTX_DEFAULT_PROFILE
 from elisctl.configure import get_credential
 from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS
 
@@ -23,14 +23,14 @@ class APIClient(AbstractContextManager):
         password: Optional[str] = None,
         use_api_version: bool = True,
         auth_using_token: bool = True,
-        profile: Optional[str] = None
+        context: Optional[dict] = None,
     ):
         self._url = url
         self._user = user
         self._password = password
         self._use_api_version = use_api_version
         self._auth_using_token = auth_using_token
-        self._profile = profile
+        self._profile = (context or {}).get(CTX_PROFILE, CTX_DEFAULT_PROFILE)
 
         self.token: Optional[str] = None
 
@@ -38,8 +38,10 @@ class APIClient(AbstractContextManager):
         self.logout()
 
     @classmethod
-    def csv(cls, url: str = None, user: str = None, password: str = None, profile: str = None) -> "APIClient":
-        return cls(url, user, password, False, False, profile)
+    def csv(
+        cls, url: str = None, user: str = None, password: str = None, context: Optional[dict] = None
+    ) -> "APIClient":
+        return cls(url, user, password, False, False, context)
 
     @property
     def user(self) -> str:

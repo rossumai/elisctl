@@ -1,7 +1,18 @@
 import click
 from click_shell import shell
 
-from elisctl import tools, schema, csv, configure, user, workspace, queue, __version__
+from elisctl import (
+    tools,
+    schema,
+    csv,
+    configure,
+    user,
+    workspace,
+    queue,
+    __version__,
+    CTX_DEFAULT_PROFILE,
+    CTX_PROFILE,
+)
 
 
 @shell(
@@ -10,8 +21,17 @@ from elisctl import tools, schema, csv, configure, user, workspace, queue, __ver
     context_settings={"help_option_names": ["-h", "--help"]},
 )
 @click.version_option(__version__)
-def entry_point() -> None:
-    pass
+@click.option(
+    "-p",
+    "--profile",
+    default=CTX_DEFAULT_PROFILE,
+    type=str,
+    help="Profile name.",
+    show_default=True,
+)
+@click.pass_context
+def entry_point(ctx: click.Context, profile: str) -> None:
+    ctx.obj = {CTX_PROFILE: profile}
 
 
 entry_point.add_command(tools.cli)

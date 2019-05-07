@@ -49,17 +49,3 @@ def password_option(command: Optional[Callable] = None, **kwargs):
     if command is None:
         return decorator
     return decorator(command)
-
-
-def profile_option(command: Optional[Callable] = None, **kwargs):
-    default_kwargs = {
-        "default": "default",
-        "type": str,
-        "help": "Profile name.",
-        "show_default": True,
-    }
-    kwargs = {**default_kwargs, **kwargs}
-    decorator = click.option("-f", "--profile", **kwargs)
-    if command is None:
-        return decorator
-    return decorator(command)

@@ -6,7 +6,8 @@ from traceback import print_tb
 import pytest
 from click import ClickException
 
-from elisctl import configure
+from elisctl import configure, CTX_DEFAULT_PROFILE, CTX_PROFILE
+from elisctl.main import entry_point
 
 
 class TestConfigure:
@@ -25,6 +26,7 @@ class TestConfigure:
                 {expected_credentials["password"]}
                 """
             ),
+            obj={CTX_PROFILE: CTX_DEFAULT_PROFILE},
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
 
@@ -40,8 +42,8 @@ class TestConfigure:
             "password": "secret%",
         }
         result = isolated_cli_runner.invoke(
-            configure.cli,
-            ["--profile", "new_profile"],
+            entry_point,
+            ["--profile", "new_profile", "configure"],
             input=dedent(
                 f"""\
                     {expected_credentials["url"]}
@@ -56,7 +58,6 @@ class TestConfigure:
         config.read(configuration_path)
 
         assert expected_credentials == config["new_profile"]
-
 
     @pytest.mark.runner_setup(env={"ELIS_TEST": "test"})
     def test_get_credential_from_env(self, isolated_cli_runner):
@@ -77,9 +78,10 @@ class TestConfigure:
             result = configure.get_credential("test")
         assert "test%" == result
 
-    '''
+    """
         Test credentials from config file given profile
-    '''
+    """
+
     def test_get_credential_from_file_given_profile(self, isolated_cli_runner, configuration_path):
         with isolated_cli_runner.isolation():
             configuration_path.parent.mkdir()

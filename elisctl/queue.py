@@ -15,7 +15,6 @@ from elisctl.options import (
     schema_content_file_option,
     workspace_id_option,
 )
-from elisctl.user import profile_option
 
 locale_option = click.option(
     "--locale",
@@ -37,8 +36,9 @@ def cli() -> None:
 @workspace_id_option
 @connector_id_option
 @locale_option
-@profile_option
+@click.pass_context
 def create_command(
+    ctx: click.Context,
     name: str,
     schema_content_file: IO[bytes],
     email_prefix: Optional[str],
@@ -46,13 +46,12 @@ def create_command(
     workspace_id: Optional[int],
     connector_id: Optional[int],
     locale: Optional[str],
-    profile: Optional[str],
 ) -> None:
     schema_content = json.load(schema_content_file)
     if email_prefix is not None and bounce_email is None:
         raise click.ClickException("Inbox cannot be created without specified bounce email.")
 
-    with ELISClient(profile=profile) as elis:
+    with ELISClient(context=ctx.obj) as elis:
         workspace_url = elis.get_workspace(workspace_id)["url"]
         connector_url = (
             get_json(elis.get(f"connectors/{connector_id}"))["url"]
@@ -74,9 +73,9 @@ def create_command(
 
 
 @cli.command(name="list", help="List all queues.")
-@profile_option
-def list_command(profile: Optional[str],) -> None:
-    with ELISClient(profile=profile) as elis:
+@click.pass_context
+def list_command(ctx: click.Context,) -> None:
+    with ELISClient(context=ctx.obj) as elis:
         queues = elis.get_queues((WORKSPACES, INBOXES, SCHEMAS, USERS))
 
     table = [
@@ -99,9 +98,9 @@ def list_command(profile: Optional[str],) -> None:
 @click.confirmation_option(
     prompt="This will delete ALL DOCUMENTS in the queue. Do you want to continue?"
 )
-@profile_option
-def delete_command(id_: int, profile: Optional[str],) -> None:
-    with ELISClient(profile=profile) as elis:
+@click.pass_context
+def delete_command(ctx: click.Context, id_: int) -> None:
+    with ELISClient(context=ctx.obj) as elis:
         queue = elis.get_queue(id_)
         elis.delete({queue["id"]: queue["url"]})
 
@@ -112,14 +111,14 @@ def delete_command(id_: int, profile: Optional[str],) -> None:
 @schema_content_file_option
 @connector_id_option
 @locale_option
-@profile_option
+@click.pass_context
 def change_command(
+    ctx: click.Context,
     id_: int,
     name: Optional[str],
     schema_content_file: Optional[IO[bytes]],
     connector_id: Optional[int],
     locale: Optional[str],
-    profile: Optional[str],
 ) -> None:
     if not any([name, schema_content_file, connector_id, locale]):
         return
@@ -132,7 +131,7 @@ def change_command(
     if locale is not None:
         data["locale"] = locale
 
-    with ELISClient(profile=profile) as elis:
+    with ELISClient(context=ctx.obj) as elis:
         if connector_id is not None:
             data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
 

@@ -7,7 +7,6 @@ import pandas as pd
 from math import ceil
 
 from elisctl.lib.api_client import APIClient, get_text
-from elisctl.user import profile_option
 
 now = datetime.datetime.utcnow()
 FORMATS = [
@@ -36,11 +35,10 @@ def cli(ctx: click.Context) -> None:
 )
 @click.option("--stop", default=str(now), type=click.DateTime(FORMATS))  # type: ignore
 @click.option("--step", "float_step", default=0.1, type=float, help="Step in days")
-@profile_option
 def download_command(
-    ctx: click.Context, start: datetime.datetime, stop: datetime.datetime, float_step: float, profile: str,
+    ctx: click.Context, start: datetime.datetime, stop: datetime.datetime, float_step: float
 ) -> None:
-    api_client = APIClient.csv(profile=profile)
+    api_client = APIClient.csv(context=ctx.obj)
 
     step = datetime.timedelta(days=float_step)
     dfs = []

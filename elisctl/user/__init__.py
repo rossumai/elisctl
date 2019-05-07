@@ -6,7 +6,7 @@ from tabulate import tabulate
 from elisctl.lib.api_client import APIClient, get_json
 from elisctl.user import create
 from elisctl.user.helpers import get_groups
-from elisctl.user.options import queue_option, group_option, locale_option, password_option, profile_option
+from elisctl.user.options import queue_option, group_option, locale_option, password_option
 
 
 @click.group("user")
@@ -18,9 +18,9 @@ cli.add_command(create.create_command)
 
 
 @cli.command(name="list", help="List all users.")
-@profile_option
-def list_command(profile: Optional[str],):
-    with APIClient(profile=profile) as api_client:
+@click.pass_context
+def list_command(ctx: click.Context,):
+    with APIClient(context=ctx.obj) as api_client:
         users_list, _ = api_client.get_paginated("users", {"is_active": True})
         groups_list, _ = api_client.get_paginated("groups")
         queues_list, _ = api_client.get_paginated("queues")
@@ -46,14 +46,14 @@ def list_command(profile: Optional[str],):
 @group_option(default=None, show_default=False)
 @locale_option(default=None, show_default=False)
 @password_option(help=None)
-@profile_option
+@click.pass_context
 def change_command(
+    ctx: click.Context,
     id_: str,
     queue_id: Tuple[str],
     group: Optional[str],
     locale: Optional[str],
     password: Optional[str],
-    profile: Optional[str],
 ) -> None:
     if not any([queue_id, group, locale, password]):
         return
@@ -62,7 +62,7 @@ def change_command(
     if password is not None:
         data["password"] = password
 
-    with APIClient(profile=profile) as api_client:
+    with APIClient(context=ctx.obj) as api_client:
         if queue_id:
             data["queues"] = [
                 get_json(api_client.get(f"queues/{queue}"))["url"] for queue in queue_id
@@ -79,7 +79,7 @@ def change_command(
 @cli.command(name="delete", help="Delete a user.")
 @click.argument("id_", metavar="ID", type=str)
 @click.confirmation_option()
-@profile_option
-def delete_command(id_: str, profile: Optional[str]) -> None:
-    with APIClient(profile=profile) as api_client:
+@click.pass_context
+def delete_command(ctx: click.Context, id_: str) -> None:
+    with APIClient(context=ctx.obj) as api_client:
         api_client.patch(f"users/{id_}", {"is_active": False})
