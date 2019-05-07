@@ -78,10 +78,6 @@ class TestConfigure:
             result = configure.get_credential("test")
         assert "test%" == result
 
-    """
-        Test credentials from config file given profile
-    """
-
     def test_get_credential_from_file_given_profile(self, isolated_cli_runner, configuration_path):
         with isolated_cli_runner.isolation():
             configuration_path.parent.mkdir()

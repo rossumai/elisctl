@@ -19,8 +19,8 @@ HELP = f"""\
 Configure API setup.
 
 Credentials are saved into {CONFIGURATION_PATH}.
-It is possible to add new or update existing profile by writing down the profile name. If no profile is chosen,
-credentials are set to default profile.
+It is possible to add new or update existing profile by writing down the profile name.
+If no profile is chosen, credentials are set to default profile.
 
 Alternatively, configuration can be set using
 environment variables:
