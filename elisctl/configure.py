@@ -56,17 +56,12 @@ def get_credential(attr: str, profile: Optional[str] = None) -> str:
     if res is not None:
         return res
 
-    if profile is None:  # input profile was not set by parametr
-        l_profile = os.getenv(ELIS_ENV_PROFILE_VAR)  # try to get env var profile
-        if l_profile is None:
-            l_profile = CTX_DEFAULT_PROFILE  # set default profile
-    else:
-        l_profile = profile
+    profile = os.getenv(ELIS_ENV_PROFILE_VAR) or profile or CTX_DEFAULT_PROFILE
 
     config = configparser.RawConfigParser()
     config.read(CONFIGURATION_PATH)
     try:
-        config_dict = config[l_profile]
+        config_dict = config[profile]
     except KeyError as e:
         raise click.ClickException(
             f"Provide API credential {attr}. "
