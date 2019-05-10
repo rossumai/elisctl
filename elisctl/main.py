@@ -9,6 +9,7 @@ from elisctl import (
     user,
     workspace,
     queue,
+    connector,
     __version__,
     CTX_DEFAULT_PROFILE,
     CTX_PROFILE,
@@ -40,4 +41,5 @@ entry_point.add_command(schema.cli)
 entry_point.add_command(user.cli)
 entry_point.add_command(workspace.cli)
 entry_point.add_command(queue.cli)
+entry_point.add_command(connector.cli)
 entry_point.add_command(configure.cli)

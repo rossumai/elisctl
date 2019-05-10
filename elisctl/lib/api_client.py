@@ -280,6 +280,11 @@ class ELISClient(APIClient):
         groups_list, _ = self.get_paginated(GROUPS, query={"name": group_name})
         return groups_list
 
+    def get_connectors(self, sideloads: Optional[Iterable[APIObject]] = None) -> List[dict]:
+        connectors_list, _ = self.get_paginated(CONNECTORS)
+        self._sideload(connectors_list, sideloads)
+        return connectors_list
+
     def create_schema(self, name: str, content: List[dict]) -> dict:
         return get_json(self.post(SCHEMAS, data={"name": name, "content": content}))
 
@@ -340,6 +345,25 @@ class ELISClient(APIClient):
                 },
             )
         )
+
+    def create_connector(
+        self,
+        name: str,
+        queues: List[str],
+        service_url: str,
+        authorization_token: str = None,
+        params: Optional[str] = None,
+        asynchronous: Optional[bool] = True,
+    ) -> dict:
+        data = {
+            "name": name,
+            "queues": queues,
+            "service_url": service_url,
+            "authorization_token": authorization_token,
+            "params": params,
+            "asynchronous": asynchronous,
+        }
+        return get_json(self.post("connectors", data))
 
 
 def get_json(response: Response) -> dict:

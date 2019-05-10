@@ -48,6 +48,26 @@ queue = click.option(
 )
 
 
+service_url = click.option(
+    "-u", "--service-url", type=str, required=True, help="Url of the connector endpoint."
+)
+
+
+auth_token = click.option(
+    "-t",
+    "--auth-token",
+    type=str,
+    help="Token sent to the connector in the header to ensure authorization. "
+    "Generated automatically, if not set manually.",
+)
+
+params = click.option("-p", "--params", type=str, help="Query params appended to the service_url.")
+
+asynchronous = click.option(
+    "-a", "--asynchronous", type=bool, default=True, help="Affects calling of the connector."
+)
+
+
 def group(command: Optional[Callable] = None, **kwargs):
     default_kwargs = {
         "default": "annotator",

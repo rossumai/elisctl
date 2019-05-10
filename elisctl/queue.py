@@ -78,11 +78,16 @@ def list_command(ctx: click.Context,) -> None:
             queue["inbox"].get("email", ""),
             str(queue["schema"].get("id", "")),
             ", ".join(str(q.get("id", "")) for q in queue["users"]),
+            queue["connector"],
         ]
         for queue in queues
     ]
 
-    click.echo(tabulate(table, headers=["id", "name", "workspace", "inbox", "schema", "users"]))
+    click.echo(
+        tabulate(
+            table, headers=["id", "name", "workspace", "inbox", "schema", "users", "connector"]
+        )
+    )
 
 
 @cli.command(name="delete", help="Delete a queue.")
