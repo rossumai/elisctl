@@ -191,7 +191,7 @@ class APIClient(AbstractContextManager):
 class ELISClient(APIClient):
     def get_organization(self, organization_id: Optional[int] = None) -> dict:
         if organization_id is None:
-            user_details = get_json(self.get("auth/user"))
+            user_details = self.get_user()
             try:
                 organization_url = user_details[ORGANIZATIONS.singular]
             except KeyError:
@@ -261,6 +261,13 @@ class ELISClient(APIClient):
         users_list, _ = self.get_paginated(USERS, query=query)
         self._sideload(users_list, sideloads)
         return users_list
+
+    def get_user(self, id_: Optional[int] = None) -> dict:
+        if id_ is None:
+            user = get_json(self.get("auth/user"))
+        else:
+            user = get_json(self.get(f"{USERS}/{id_}"))
+        return user
 
     def get_groups(self, *, group_name: Optional[str]) -> List[dict]:
         if group_name is None:

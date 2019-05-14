@@ -5,6 +5,7 @@ from tabulate import tabulate
 
 from elisctl.lib.api_client import APIClient, ELISClient, get_json
 from elisctl.lib import QUEUES, GROUPS
+from elisctl.arguments import id_argument
 from elisctl.user import create
 from elisctl.user.options import queue_option, group_option, locale_option, password_option
 
@@ -37,7 +38,7 @@ def list_command(ctx: click.Context,):
 
 
 @cli.command(name="change", help="Change a user.")
-@click.argument("id_", metavar="ID", type=str)
+@id_argument
 @queue_option
 @group_option(default=None, show_default=False)
 @locale_option(default=None, show_default=False)
@@ -45,7 +46,7 @@ def list_command(ctx: click.Context,):
 @click.pass_context
 def change_command(
     ctx: click.Context,
-    id_: str,
+    id_: int,
     queue_id: Tuple[str],
     group: Optional[str],
     locale: Optional[str],
@@ -66,7 +67,7 @@ def change_command(
         if group is not None:
             data[str(GROUPS)] = [g["url"] for g in api_client.get_groups(group_name=group)]
         if locale is not None:
-            ui_settings = get_json(api_client.get(f"users/{id_}"))["ui_settings"]
+            ui_settings = api_client.get_user(id_)["ui_settings"]
             data["ui_settings"] = {**ui_settings, "locale": locale}
 
         api_client.patch(f"users/{id_}", data)
