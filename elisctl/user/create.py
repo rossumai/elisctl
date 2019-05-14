@@ -29,16 +29,16 @@ def create_command(
     Create user with USERNAME and add him to QUEUES specified by ids.
     """
     password = password or generate_secret()
-    with ELISClient(context=ctx.obj) as api:
-        if api.get_users(username=username):
+    with ELISClient(context=ctx.obj) as elis:
+        if elis.get_users(username=username):
             raise click.ClickException(f"User with username {username} already exists.")
-        organization_dict = api.get_organization(organization_id)
+        organization = elis.get_organization(organization_id)
 
-        workspaces = api.get_workspaces(organization=organization_dict["id"], sideloads=(QUEUES,))
+        workspaces = elis.get_workspaces(organization=organization["id"], sideloads=(QUEUES,))
         queues = chain.from_iterable(w[str(QUEUES)] for w in workspaces)
         queue_urls = [q["url"] for q in queues if q["id"] in queue_id]
 
-        response = api.create_user(
-            username, organization_dict["url"], queue_urls, password, group, locale
+        response = elis.create_user(
+            username, organization["url"], queue_urls, password, group, locale
         )
         click.echo(f"{response['id']}, {password}")

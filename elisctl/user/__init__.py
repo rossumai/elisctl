@@ -4,8 +4,8 @@ import click
 from tabulate import tabulate
 
 from elisctl.arguments import id_argument
-from elisctl.lib import QUEUES, GROUPS
-from elisctl.lib.api_client import ELISClient, APIClient
+from elisctl.lib import QUEUES, GROUPS, USERS
+from elisctl.lib.api_client import ELISClient
 from elisctl.user import create
 from elisctl.user.options import queue_option, group_option, locale_option, password_option
 
@@ -59,16 +59,16 @@ def change_command(
     if password is not None:
         data["password"] = password
 
-    with ELISClient(context=ctx.obj) as api_client:
+    with ELISClient(context=ctx.obj) as elis:
         if queue_id:
-            data[str(QUEUES)] = [api_client.get_queue(queue)["url"] for queue in queue_id]
+            data[str(QUEUES)] = [elis.get_queue(queue)["url"] for queue in queue_id]
         if group is not None:
-            data[str(GROUPS)] = [g["url"] for g in api_client.get_groups(group_name=group)]
+            data[str(GROUPS)] = [g["url"] for g in elis.get_groups(group_name=group)]
         if locale is not None:
-            ui_settings = api_client.get_user(id_)["ui_settings"]
+            ui_settings = elis.get_user(id_)["ui_settings"]
             data["ui_settings"] = {**ui_settings, "locale": locale}
 
-        api_client.patch(f"users/{id_}", data)
+        elis.patch(f"{USERS}/{id_}", data)
 
 
 @cli.command(name="delete", help="Delete a user.")
@@ -76,5 +76,5 @@ def change_command(
 @click.confirmation_option()
 @click.pass_context
 def delete_command(ctx: click.Context, id_: str) -> None:
-    with APIClient(context=ctx.obj) as api_client:
-        api_client.patch(f"users/{id_}", {"is_active": False})
+    with ELISClient(context=ctx.obj) as elis:
+        elis.patch(f"{USERS}/{id_}", {"is_active": False})

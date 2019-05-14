@@ -228,7 +228,7 @@ class ELISClient(APIClient):
         return workspace
 
     def get_queues(
-        self, sideloads: Optional[Iterable[APIObject]] = None, workspace: Optional[int] = None
+        self, sideloads: Optional[Iterable[APIObject]] = None, *, workspace: Optional[int] = None
     ) -> List[dict]:
         query = {}
         if workspace:
