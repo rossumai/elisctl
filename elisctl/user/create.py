@@ -2,9 +2,9 @@ from typing import Optional, Tuple
 
 import click
 
-from elisctl.lib.api_client import APIClient, get_json
 from elisctl.user.helpers import get_groups
 from elisctl.lib import generate_secret
+from elisctl.lib.api_client import ELISClient, get_json
 from elisctl.user.options import group_option, locale_option, queue_option, password_option
 
 
@@ -29,9 +29,9 @@ def create_command(
     Create user with USERNAME and add him to QUEUES specified by ids.
     """
     password = password or generate_secret()
-    with APIClient(context=ctx.obj) as api:
+    with ELISClient(context=ctx.obj) as api:
         _check_user_does_not_exists(api, username)
-        organization_dict = _get_organization(api, organization_id)
+        organization_dict = api.get_organization(organization_id)
 
         workspace_urls = {
             w["url"]
@@ -60,17 +60,7 @@ def create_command(
         click.echo(f"{get_json(response)['id']}, {password}")
 
 
-def _check_user_does_not_exists(api: APIClient, username: str) -> None:
+def _check_user_does_not_exists(api: ELISClient, username: str) -> None:
     total_users = get_json(api.get(f"users", {"username": username}))["pagination"]["total"]
     if total_users:
         raise click.ClickException(f"User with username {username} already exists.")
-
-
-def _get_organization(api: APIClient, organization_id: Optional[int] = None) -> dict:
-    if organization_id is None:
-        user_url = get_json(api.get("auth/user"))["url"]
-        organziation_url = get_json(api.get_url(user_url))["organization"]
-        res = api.get_url(organziation_url)
-    else:
-        res = api.get(f"organizations/{organization_id}")
-    return get_json(res)
