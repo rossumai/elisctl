@@ -1,13 +1,14 @@
+from itertools import chain
+
 from typing import Tuple, Optional, Dict, Any
 
 import click
 from tabulate import tabulate
 
 from elisctl.arguments import id_argument
-from elisctl.lib import QUEUES, GROUPS, USERS
+from elisctl.lib import QUEUES, GROUPS, USERS, generate_secret
 from elisctl.lib.api_client import ELISClient
-from elisctl.user import create
-from elisctl.user.options import queue_option, group_option, locale_option, password_option
+from elisctl.options import group_option, locale_option, queue_option, password_option
 
 
 @click.group("user")
@@ -15,7 +16,40 @@ def cli() -> None:
     pass
 
 
-cli.add_command(create.create_command)
+@cli.command(name="create", short_help="Create user.")
+@click.argument("username")
+@password_option
+@queue_option
+@click.option("-o", "--organization-id", type=int, help="Organization ID.", hidden=True)
+@group_option
+@locale_option
+@click.pass_context
+def create_command(
+    ctx: click.Context,
+    username: str,
+    password: Optional[str],
+    queue_id: Tuple[int],
+    organization_id: Optional[int],
+    group: str,
+    locale: str,
+) -> None:
+    """
+    Create user with USERNAME and add him to QUEUES specified by ids.
+    """
+    password = password or generate_secret()
+    with ELISClient(context=ctx.obj) as elis:
+        if elis.get_users(username=username):
+            raise click.ClickException(f"User with username {username} already exists.")
+        organization = elis.get_organization(organization_id)
+
+        workspaces = elis.get_workspaces(organization=organization["id"], sideloads=(QUEUES,))
+        queues = chain.from_iterable(w[str(QUEUES)] for w in workspaces)
+        queue_urls = [q["url"] for q in queues if q["id"] in queue_id]
+
+        response = elis.create_user(
+            username, organization["url"], queue_urls, password, group, locale
+        )
+        click.echo(f"{response['id']}, {password}")
 
 
 @cli.command(name="list", help="List all users.")

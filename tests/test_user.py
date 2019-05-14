@@ -9,8 +9,7 @@ from itertools import chain
 from requests import Request
 from requests_mock.response import _Context
 
-from elisctl.user import list_command, change_command, delete_command
-from elisctl.user.create import create_command
+from elisctl.user import list_command, change_command, delete_command, create_command
 from tests import SuperDictOf
 from tests.conftest import (
     API_URL,
@@ -39,7 +38,7 @@ WORKSPACES = QUEUES = ["1", "2"]
 @pytest.mark.usefixtures("mock_login_request")
 class TestCreate:
     @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
-    @mock.patch("elisctl.user.create.generate_secret")
+    @mock.patch("elisctl.user.generate_secret")
     def test_create(self, mock_password, requests_mock, cli_runner):
         mock_password.return_value = generated_password = PASSWORD * 2
         new_user_id = 1
