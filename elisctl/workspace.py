@@ -45,7 +45,7 @@ def list_command(ctx: click.Context,):
 
 
 @cli.command(name="delete", help="Delete a workspace.")
-@argument.id_argument
+@argument.id_
 @click.confirmation_option()
 @click.pass_context
 def delete_command(ctx: click.Context, id_: int) -> None:
@@ -65,7 +65,7 @@ def delete_command(ctx: click.Context, id_: int) -> None:
 
 
 @cli.command(name="change", help="Change a workspace.")
-@argument.id_argument
+@argument.id_
 @option.name
 @click.pass_context
 def change_command(ctx: click.Context, id_: str, name: Optional[str]) -> None:

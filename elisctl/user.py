@@ -71,7 +71,7 @@ def list_command(ctx: click.Context,):
 
 
 @cli.command(name="change", help="Change a user.")
-@argument.id_argument
+@argument.id_
 @option.queue
 @option.group(default=None, show_default=False)
 @option.locale(default=None, show_default=False)
@@ -105,7 +105,7 @@ def change_command(
 
 
 @cli.command(name="delete", help="Delete a user.")
-@argument.id_argument
+@argument.id_
 @click.confirmation_option()
 @click.pass_context
 def delete_command(ctx: click.Context, id_: int) -> None:

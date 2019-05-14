@@ -86,7 +86,7 @@ def list_command(ctx: click.Context,) -> None:
 
 
 @cli.command(name="delete", help="Delete a queue.")
-@argument.id_argument
+@argument.id_
 @click.confirmation_option(
     prompt="This will delete ALL DOCUMENTS in the queue. Do you want to continue?"
 )
@@ -98,7 +98,7 @@ def delete_command(ctx: click.Context, id_: int) -> None:
 
 
 @cli.command(name="change", help="Change a queue.")
-@argument.id_argument
+@argument.id_
 @option.name
 @option.schema_content_file
 @option.connector_id

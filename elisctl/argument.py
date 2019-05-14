@@ -5,10 +5,10 @@ import functools
 import click
 from typing import IO
 
-id_argument = click.argument("id_", metavar="ID", type=int)
+id_ = click.argument("id_", metavar="ID", type=int)
 
 
-def schema_file_argument(command):
+def schema_file(command):
     click.argument("schema_file", type=click.File("rb"))(command)
 
     @functools.wraps(command)
