@@ -305,6 +305,30 @@ class ELISClient(APIClient):
             )
         )
 
+    def create_user(
+        self,
+        username: str,
+        organization: str,
+        queues: List[str],
+        password: str,
+        group: str,
+        locale: str,
+    ) -> dict:
+        return get_json(
+            self.post(
+                USERS,
+                data={
+                    "username": username,
+                    "email": username,
+                    "organization": organization,
+                    "password": password,
+                    "groups": [g["url"] for g in self.get_groups(group_name=group)],
+                    "queues": queues,
+                    "ui_settings": {"locale": locale},
+                },
+            )
+        )
+
 
 def get_json(response: Response) -> dict:
     try:

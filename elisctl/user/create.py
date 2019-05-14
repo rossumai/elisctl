@@ -45,16 +45,7 @@ def create_command(
             if queue_dict["workspace"] in workspace_urls:
                 queue_urls.append(queue_dict["url"])
 
-        response = api.post(
-            "users",
-            {
-                "username": username,
-                "email": username,
-                "organization": organization_dict["url"],
-                "password": password,
-                "groups": [g["url"] for g in api.get_groups(group_name=group)],
-                "queues": queue_urls,
-                "ui_settings": {"locale": locale},
-            },
+        response = api.create_user(
+            username, organization_dict["url"], queue_urls, password, group, locale
         )
-        click.echo(f"{get_json(response)['id']}, {password}")
+        click.echo(f"{response['id']}, {password}")
