@@ -8,7 +8,16 @@ from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
 
 from elisctl import __version__, CTX_PROFILE, CTX_DEFAULT_PROFILE
 from elisctl.configure import get_credential
-from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS, generate_secret
+from . import (
+    ORGANIZATIONS,
+    APIObject,
+    WORKSPACES,
+    QUEUES,
+    SCHEMAS,
+    CONNECTORS,
+    USERS,
+    generate_secret,
+)
 
 HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
 
@@ -235,6 +244,22 @@ class ELISClient(APIClient):
 
         self._sideload([queue], sideloads)
         return queue
+
+    def get_users(
+        self,
+        sideloads: Optional[Iterable[APIObject]] = None,
+        *,
+        username: Optional[str] = None,
+        is_active: Optional[bool] = None,
+    ) -> List[dict]:
+        query: Dict[str, Union[str, bool]] = {}
+        if username:
+            query["username"] = username
+        if is_active is not None:
+            query["is_active"] = is_active
+        users_list, _ = self.get_paginated(USERS, query=query)
+        self._sideload(users_list, sideloads)
+        return users_list
 
     def create_schema(self, name: str, content: List[dict]) -> dict:
         return get_json(self.post(SCHEMAS, data={"name": name, "content": content}))

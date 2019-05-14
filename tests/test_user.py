@@ -131,7 +131,7 @@ class TestCreate:
         requests_mock.get(
             USERS_URL + f"?username={NEW_USERNAME}",
             complete_qs=True,
-            json={"pagination": {"total": 1}},
+            json={"pagination": {"total": 1, "next": None}, "results": [{}]},
         )
         result = cli_runner.invoke(create_command, [NEW_USERNAME])
         assert result.exit_code == 1
@@ -275,7 +275,9 @@ def mock_user_urls(requests_mock):
     )
 
     requests_mock.get(
-        USERS_URL + f"?username={NEW_USERNAME}", complete_qs=True, json={"pagination": {"total": 0}}
+        USERS_URL + f"?username={NEW_USERNAME}",
+        complete_qs=True,
+        json={"pagination": {"total": 0, "next": None}, "results": []},
     )
 
     requests_mock.get(f"{API_URL}/v1/auth/user", json={"url": f"{USERS_URL}/1"})

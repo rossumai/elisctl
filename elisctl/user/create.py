@@ -30,7 +30,8 @@ def create_command(
     """
     password = password or generate_secret()
     with ELISClient(context=ctx.obj) as api:
-        _check_user_does_not_exists(api, username)
+        if api.get_users(username=username):
+            raise click.ClickException(f"User with username {username} already exists.")
         organization_dict = api.get_organization(organization_id)
 
         workspace_urls = {
@@ -58,9 +59,3 @@ def create_command(
             },
         )
         click.echo(f"{get_json(response)['id']}, {password}")
-
-
-def _check_user_does_not_exists(api: ELISClient, username: str) -> None:
-    total_users = get_json(api.get(f"users", {"username": username}))["pagination"]["total"]
-    if total_users:
-        raise click.ClickException(f"User with username {username} already exists.")

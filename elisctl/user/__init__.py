@@ -3,7 +3,8 @@ from typing import Tuple, Optional, Dict, Any
 import click
 from tabulate import tabulate
 
-from elisctl.lib.api_client import APIClient, get_json
+from elisctl.lib.api_client import APIClient, ELISClient, get_json
+from elisctl.lib import QUEUES, GROUPS
 from elisctl.user import create
 from elisctl.user.helpers import get_groups
 from elisctl.user.options import queue_option, group_option, locale_option, password_option
@@ -20,19 +21,15 @@ cli.add_command(create.create_command)
 @cli.command(name="list", help="List all users.")
 @click.pass_context
 def list_command(ctx: click.Context,):
-    with APIClient(context=ctx.obj) as api_client:
-        users_list, _ = api_client.get_paginated("users", {"is_active": True})
-        groups_list, _ = api_client.get_paginated("groups")
-        queues_list, _ = api_client.get_paginated("queues")
-    groups = {group["url"]: group.get("name", "") for group in groups_list}
-    queues = {queue["url"]: queue.get("id", "") for queue in queues_list}
+    with ELISClient(context=ctx.obj) as elis:
+        users_list = elis.get_users((QUEUES, GROUPS), is_active=True)
 
     table = [
         [
             user["id"],
             user["username"],
-            ", ".join(str(groups[g]) for g in user["groups"]),
-            ", ".join(str(queues[q]) for q in user["queues"]),
+            ", ".join(str(g["name"]) for g in user[str(GROUPS)]),
+            ", ".join(str(q["id"]) for q in user[str(QUEUES)]),
         ]
         for user in users_list
     ]
