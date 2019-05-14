@@ -8,7 +8,13 @@ from tabulate import tabulate
 from elisctl.arguments import id_argument
 from elisctl.lib import QUEUES, GROUPS, USERS, generate_secret
 from elisctl.lib.api_client import ELISClient
-from elisctl.options import group_option, locale_option, queue_option, password_option
+from elisctl.options import (
+    group_option,
+    locale_option,
+    queue_option,
+    password_option,
+    organization_option,
+)
 
 
 @click.group("user")
@@ -20,7 +26,7 @@ def cli() -> None:
 @click.argument("username")
 @password_option
 @queue_option
-@click.option("-o", "--organization-id", type=int, help="Organization ID.", hidden=True)
+@organization_option
 @group_option
 @locale_option
 @click.pass_context
