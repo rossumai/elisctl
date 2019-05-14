@@ -15,7 +15,7 @@ HELP = "Create options list from csv. Usable for filling options key of enum dat
 @click.option("--header", default=None, type=int)
 @click.option("--add-value", is_flag=True)
 @click.option("--empty-value", default=None, type=str)
-@option.output_file_option
+@option.output_file
 def cli(
     csv: click.File,
     header: Optional[int],

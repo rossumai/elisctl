@@ -23,7 +23,7 @@ from elisctl import option
     "(skiprows are applied before header lookup)",
 )
 @click.option("--skiprows", default="", type=str, help="Indices of rows to skip")
-@option.output_file_option
+@option.output_file
 def cli(
     xls: click.File,
     label: int,

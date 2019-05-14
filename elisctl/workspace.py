@@ -15,7 +15,7 @@ def cli() -> None:
 
 @cli.command(name="create", short_help="Create workspace.")
 @click.argument("name")
-@option.organization_option
+@option.organization
 @click.pass_context
 def create_command(ctx: click.Context, name: str, organization_id: Optional[int]) -> None:
     with ELISClient(context=ctx.obj) as elis:
@@ -66,7 +66,7 @@ def delete_command(ctx: click.Context, id_: int) -> None:
 
 @cli.command(name="change", help="Change a workspace.")
 @argument.id_argument
-@option.name_option
+@option.name
 @click.pass_context
 def change_command(ctx: click.Context, id_: str, name: Optional[str]) -> None:
     if not any([name]):

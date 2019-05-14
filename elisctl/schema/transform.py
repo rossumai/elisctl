@@ -22,7 +22,7 @@ DataPointDict = Dict[str, DataPointDictItem]
     "--ensure-ascii", is_flag=True, type=bool, help="Escape non-ASCII characters in resulting JSON."
 )
 @click.option("--sort-keys", is_flag=True, type=bool, help="Order keys in resulting JSON.")
-@option.output_file_option
+@option.output_file
 def cli(
     ctx: click.Context,
     indent: int,

@@ -22,11 +22,11 @@ def cli() -> None:
 
 @cli.command(name="create", help="Create queue.")
 @click.argument("name")
-@option.schema_content_file_option(required=True)
-@option.email_prefix_option
-@option.bounce_email_option
-@option.workspace_id_option
-@option.connector_id_option
+@option.schema_content_file(required=True)
+@option.email_prefix
+@option.bounce_email
+@option.workspace_id
+@option.connector_id
 @locale_option
 @click.pass_context
 def create_command(
@@ -99,9 +99,9 @@ def delete_command(ctx: click.Context, id_: int) -> None:
 
 @cli.command(name="change", help="Change a queue.")
 @argument.id_argument
-@option.name_option
-@option.schema_content_file_option
-@option.connector_id_option
+@option.name
+@option.schema_content_file
+@option.connector_id
 @locale_option
 @click.pass_context
 def change_command(
