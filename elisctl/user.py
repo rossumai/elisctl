@@ -5,16 +5,9 @@ from typing import Tuple, Optional, Dict, Any
 import click
 from tabulate import tabulate
 
-from elisctl.arguments import id_argument
+from elisctl import argument, option
 from elisctl.lib import QUEUES, GROUPS, USERS, generate_secret
 from elisctl.lib.api_client import ELISClient
-from elisctl.options import (
-    group_option,
-    locale_option,
-    queue_option,
-    password_option,
-    organization_option,
-)
 
 
 @click.group("user")
@@ -24,11 +17,11 @@ def cli() -> None:
 
 @cli.command(name="create", short_help="Create user.")
 @click.argument("username")
-@password_option
-@queue_option
-@organization_option
-@group_option
-@locale_option
+@option.password_option
+@option.queue_option
+@option.organization_option
+@option.group_option
+@option.locale_option
 @click.pass_context
 def create_command(
     ctx: click.Context,
@@ -78,11 +71,11 @@ def list_command(ctx: click.Context,):
 
 
 @cli.command(name="change", help="Change a user.")
-@id_argument
-@queue_option
-@group_option(default=None, show_default=False)
-@locale_option(default=None, show_default=False)
-@password_option(help=None)
+@argument.id_argument
+@option.queue_option
+@option.group_option(default=None, show_default=False)
+@option.locale_option(default=None, show_default=False)
+@option.password_option(help=None)
 @click.pass_context
 def change_command(
     ctx: click.Context,
@@ -112,9 +105,9 @@ def change_command(
 
 
 @cli.command(name="delete", help="Delete a user.")
-@click.argument("id_", metavar="ID", type=str)
+@argument.id_argument
 @click.confirmation_option()
 @click.pass_context
-def delete_command(ctx: click.Context, id_: str) -> None:
+def delete_command(ctx: click.Context, id_: int) -> None:
     with ELISClient(context=ctx.obj) as elis:
         elis.patch(f"{USERS}/{id_}", {"is_active": False})

@@ -6,9 +6,8 @@ from typing import List, Callable, Optional, IO, Tuple, Iterable, Dict, Union, S
 
 import click as click
 
-from elisctl import arguments
+from elisctl import argument, option
 from elisctl.lib import split_dict_params
-from elisctl.options import output_file_option
 
 DataPointDictItem = Union[str, int, dict, None, list]
 DataPointDict = Dict[str, DataPointDictItem]
@@ -23,7 +22,7 @@ DataPointDict = Dict[str, DataPointDictItem]
     "--ensure-ascii", is_flag=True, type=bool, help="Escape non-ASCII characters in resulting JSON."
 )
 @click.option("--sort-keys", is_flag=True, type=bool, help="Order keys in resulting JSON.")
-@output_file_option
+@option.output_file_option
 def cli(
     ctx: click.Context,
     indent: int,
@@ -36,7 +35,7 @@ def cli(
 
 @cli.command(name="substitute-options", help="Substitute options in existing enum datapoint.")
 @click.pass_context
-@arguments.schema_file_argument
+@argument.schema_file_argument
 @click.argument("id_", metavar="ID", type=str)
 @click.argument("new_options", type=click.File("rb"))
 def substitute_options_command(ctx: click.Context, new_options: IO[str], id_: str) -> List[dict]:
@@ -46,7 +45,7 @@ def substitute_options_command(ctx: click.Context, new_options: IO[str], id_: st
 
 @cli.command(name="remove", help="Remove datapoints.")
 @click.pass_context
-@arguments.schema_file_argument
+@argument.schema_file_argument
 @click.argument("ids", nargs=-1, type=str)
 def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> List[dict]:
     return traverse_datapoints(ctx.obj["SCHEMA"], remove, ids=ids)
@@ -58,7 +57,7 @@ def remove_command(ctx: click.Context, ids: Tuple[str, ...]) -> List[dict]:
     help="Put all datapoints into a multivalue (unless they are already in a multivalue).",
 )
 @click.pass_context
-@arguments.schema_file_argument
+@argument.schema_file_argument
 @click.argument("exclude_ids", nargs=-1, type=str)
 def wrap_in_multivalue_command(ctx: click.Context, exclude_ids: Tuple[str, ...]) -> List[dict]:
     return traverse_datapoints(ctx.obj["SCHEMA"], wrap_in_multivalue, exclude_ids=set(exclude_ids))
@@ -74,7 +73,7 @@ DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a
 """,
 )
 @click.pass_context
-@arguments.schema_file_argument
+@argument.schema_file_argument
 @click.argument("parent_id", type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
 @click.option(
@@ -115,7 +114,7 @@ DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a
 """,
 )
 @click.pass_context
-@arguments.schema_file_argument
+@argument.schema_file_argument
 @click.argument("id_", metavar="ID", type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
 @click.option(
@@ -145,7 +144,7 @@ def change_command(
 
 @cli.command(name="move", help="Move datapoint to new parent datapoint.")
 @click.pass_context
-@arguments.schema_file_argument
+@argument.schema_file_argument
 @click.argument("source_id", type=str)
 @click.argument("target_id", type=str)
 def move_command(ctx: click.Context, source_id: str, target_id: str) -> List[dict]:
