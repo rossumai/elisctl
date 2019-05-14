@@ -3,9 +3,9 @@ from typing import Tuple, Optional, Dict, Any
 import click
 from tabulate import tabulate
 
-from elisctl.lib.api_client import APIClient, ELISClient, get_json
-from elisctl.lib import QUEUES, GROUPS
 from elisctl.arguments import id_argument
+from elisctl.lib import QUEUES, GROUPS
+from elisctl.lib.api_client import ELISClient, APIClient
 from elisctl.user import create
 from elisctl.user.options import queue_option, group_option, locale_option, password_option
 
@@ -47,7 +47,7 @@ def list_command(ctx: click.Context,):
 def change_command(
     ctx: click.Context,
     id_: int,
-    queue_id: Tuple[str],
+    queue_id: Tuple[int],
     group: Optional[str],
     locale: Optional[str],
     password: Optional[str],
@@ -61,9 +61,7 @@ def change_command(
 
     with ELISClient(context=ctx.obj) as api_client:
         if queue_id:
-            data["queues"] = [
-                get_json(api_client.get(f"queues/{queue}"))["url"] for queue in queue_id
-            ]
+            data[str(QUEUES)] = [api_client.get_queue(queue)["url"] for queue in queue_id]
         if group is not None:
             data[str(GROUPS)] = [g["url"] for g in api_client.get_groups(group_name=group)]
         if locale is not None:
