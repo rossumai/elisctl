@@ -1,9 +1,10 @@
+from itertools import chain
 from typing import Optional, Tuple
 
 import click
 
-from elisctl.lib import generate_secret
-from elisctl.lib.api_client import ELISClient, get_json
+from elisctl.lib import QUEUES, generate_secret
+from elisctl.lib.api_client import ELISClient
 from elisctl.user.options import group_option, locale_option, queue_option, password_option
 
 
@@ -33,17 +34,9 @@ def create_command(
             raise click.ClickException(f"User with username {username} already exists.")
         organization_dict = api.get_organization(organization_id)
 
-        workspace_urls = {
-            w["url"]
-            for w in get_json(api.get("workspaces", {"organization": organization_dict["id"]}))[
-                "results"
-            ]
-        }
-        queue_urls = []
-        for queue in queue_id:
-            queue_dict = get_json(api.get(f"queues/{queue}"))
-            if queue_dict["workspace"] in workspace_urls:
-                queue_urls.append(queue_dict["url"])
+        workspaces = api.get_workspaces(organization=organization_dict["id"], sideloads=(QUEUES,))
+        queues = chain.from_iterable(w[str(QUEUES)] for w in workspaces)
+        queue_urls = [q["url"] for q in queues if q["id"] in queue_id]
 
         response = api.create_user(
             username, organization_dict["url"], queue_urls, password, group, locale

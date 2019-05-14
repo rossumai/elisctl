@@ -256,8 +256,22 @@ def mock_user_urls(requests_mock):
     )
 
     requests_mock.get(
+        QUEUES_URL,
+        json={
+            "results": [{"url": f"{QUEUES_URL}/{q}", "id": int(q)} for q in QUEUES],
+            "pagination": {"next": None, "total": 1},
+        },
+    )
+
+    requests_mock.get(
         re.compile(fr"{WORKSPACES_URL}\?organization=\d"),
-        json={"results": [{"url": f"{WORKSPACES_URL}/{w}"} for w in WORKSPACES]},
+        json={
+            "results": [
+                {"url": f"{WORKSPACES_URL}/{w}", "queues": [f"{QUEUES_URL}/{w}"]}
+                for w in WORKSPACES
+            ],
+            "pagination": {"next": None, "total": 1},
+        },
     )
 
     requests_mock.get(

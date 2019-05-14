@@ -203,8 +203,13 @@ class ELISClient(APIClient):
             res = self.get(f"{ORGANIZATIONS}/{organization_id}")
         return get_json(res)
 
-    def get_workspaces(self, sideloads: Optional[Iterable[APIObject]] = None) -> List[dict]:
-        workspaces_list, _ = self.get_paginated(WORKSPACES)
+    def get_workspaces(
+        self, sideloads: Optional[Iterable[APIObject]] = None, *, organization: Optional[int] = None
+    ) -> List[dict]:
+        query = {}
+        if organization:
+            query[ORGANIZATIONS.singular] = organization
+        workspaces_list, _ = self.get_paginated(WORKSPACES, query=query)
         self._sideload(workspaces_list, sideloads)
         return workspaces_list
 
