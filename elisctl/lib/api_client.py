@@ -16,6 +16,7 @@ from . import (
     SCHEMAS,
     CONNECTORS,
     USERS,
+    GROUPS,
     generate_secret,
 )
 
@@ -260,6 +261,12 @@ class ELISClient(APIClient):
         users_list, _ = self.get_paginated(USERS, query=query)
         self._sideload(users_list, sideloads)
         return users_list
+
+    def get_groups(self, *, group_name: Optional[str]) -> List[dict]:
+        if group_name is None:
+            return []
+        groups_list, _ = self.get_paginated(GROUPS, query={"name": group_name})
+        return groups_list
 
     def create_schema(self, name: str, content: List[dict]) -> dict:
         return get_json(self.post(SCHEMAS, data={"name": name, "content": content}))

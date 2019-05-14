@@ -6,7 +6,6 @@ from tabulate import tabulate
 from elisctl.lib.api_client import APIClient, ELISClient, get_json
 from elisctl.lib import QUEUES, GROUPS
 from elisctl.user import create
-from elisctl.user.helpers import get_groups
 from elisctl.user.options import queue_option, group_option, locale_option, password_option
 
 
@@ -59,13 +58,13 @@ def change_command(
     if password is not None:
         data["password"] = password
 
-    with APIClient(context=ctx.obj) as api_client:
+    with ELISClient(context=ctx.obj) as api_client:
         if queue_id:
             data["queues"] = [
                 get_json(api_client.get(f"queues/{queue}"))["url"] for queue in queue_id
             ]
         if group is not None:
-            data["groups"] = get_groups(api_client, group)
+            data[str(GROUPS)] = [g["url"] for g in api_client.get_groups(group_name=group)]
         if locale is not None:
             ui_settings = get_json(api_client.get(f"users/{id_}"))["ui_settings"]
             data["ui_settings"] = {**ui_settings, "locale": locale}

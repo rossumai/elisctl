@@ -262,14 +262,14 @@ def mock_user_urls(requests_mock):
 
     requests_mock.get(
         f"{GROUPS_URL}?name=annotator",
-        json={"results": [{"url": f"{GROUPS_URL}/1"}]},
+        json={"results": [{"url": f"{GROUPS_URL}/1"}], "pagination": {"next": None, "total": 1}},
         request_headers={"Authorization": f"Token {TOKEN}"},
         complete_qs=True,
     )
 
     requests_mock.get(
         f"{GROUPS_URL}?name=admin",
-        json={"results": [{"url": f"{GROUPS_URL}/2"}]},
+        json={"results": [{"url": f"{GROUPS_URL}/2"}], "pagination": {"next": None, "total": 1}},
         request_headers={"Authorization": f"Token {TOKEN}"},
         complete_qs=True,
     )

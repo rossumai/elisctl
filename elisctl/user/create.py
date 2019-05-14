@@ -2,7 +2,6 @@ from typing import Optional, Tuple
 
 import click
 
-from elisctl.user.helpers import get_groups
 from elisctl.lib import generate_secret
 from elisctl.lib.api_client import ELISClient, get_json
 from elisctl.user.options import group_option, locale_option, queue_option, password_option
@@ -53,7 +52,7 @@ def create_command(
                 "email": username,
                 "organization": organization_dict["url"],
                 "password": password,
-                "groups": get_groups(api, group),
+                "groups": [g["url"] for g in api.get_groups(group_name=group)],
                 "queues": queue_urls,
                 "ui_settings": {"locale": locale},
             },
