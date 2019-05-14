@@ -39,7 +39,7 @@ WORKSPACES = QUEUES = ["1", "2"]
 @pytest.mark.usefixtures("mock_login_request")
 class TestCreate:
     @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
-    @mock.patch("elisctl.user.create._generate_password")
+    @mock.patch("elisctl.user.create.generate_secret")
     def test_create(self, mock_password, requests_mock, cli_runner):
         mock_password.return_value = generated_password = PASSWORD * 2
         new_user_id = 1

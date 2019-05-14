@@ -1,11 +1,10 @@
-import secrets
-import string
 from typing import Optional, Tuple
 
 import click
 
 from elisctl.lib.api_client import APIClient, get_json
 from elisctl.user.helpers import get_groups
+from elisctl.lib import generate_secret
 from elisctl.user.options import group_option, locale_option, queue_option, password_option
 
 
@@ -29,7 +28,7 @@ def create_command(
     """
     Create user with USERNAME and add him to QUEUES specified by ids.
     """
-    password = password or _generate_password()
+    password = password or generate_secret()
     with APIClient(context=ctx.obj) as api:
         _check_user_does_not_exists(api, username)
         organization_dict = _get_organization(api, organization_id)
@@ -65,11 +64,6 @@ def _check_user_does_not_exists(api: APIClient, username: str) -> None:
     total_users = get_json(api.get(f"users", {"username": username}))["pagination"]["total"]
     if total_users:
         raise click.ClickException(f"User with username {username} already exists.")
-
-
-def _generate_password():
-    alphabet = string.ascii_letters + string.digits
-    return "".join(secrets.choice(alphabet) for _ in range(10))
 
 
 def _get_organization(api: APIClient, organization_id: Optional[int] = None) -> dict:

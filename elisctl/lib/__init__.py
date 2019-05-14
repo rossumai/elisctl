@@ -1,4 +1,6 @@
 import json
+import secrets
+import string
 from contextlib import suppress
 from dataclasses import dataclass
 
@@ -13,6 +15,11 @@ def split_dict_params(
         with suppress(ValueError):
             value = json.loads(value)
         yield key, value
+
+
+def generate_secret(length: int = 10):
+    alphabet = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 @dataclass(frozen=True)

@@ -1,5 +1,3 @@
-import secrets
-import string
 from contextlib import AbstractContextManager
 from platform import platform
 
@@ -10,7 +8,7 @@ from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
 
 from elisctl import __version__, CTX_PROFILE, CTX_DEFAULT_PROFILE
 from elisctl.configure import get_credential
-from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS
+from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS, generate_secret
 
 HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
 
@@ -263,14 +261,12 @@ class ELISClient(APIClient):
         return get_json(self.post("queues", data))
 
     def create_inbox(self, name: str, email_prefix: str, bounce_email: str, queue_url: str) -> dict:
-        alphabet = string.ascii_lowercase + string.digits
-        email_suffix = "".join(secrets.choice(alphabet) for _ in range(6))
         return get_json(
             self.post(
                 "inboxes",
                 data={
                     "name": name,
-                    "email": email_prefix + "-" + email_suffix + "@elis.rossum.ai",
+                    "email": f"{email_prefix}-{generate_secret(6)}@elis.rossum.ai",
                     "bounce_email_to": bounce_email,
                     "queues": [queue_url],
                 },
