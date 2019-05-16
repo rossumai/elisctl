@@ -16,7 +16,9 @@ from elisctl.user.options import group_option, locale_option, queue_option, pass
 @click.option("-o", "--organization-id", type=int, help="Organization ID.", hidden=True)
 @group_option
 @locale_option
+@click.pass_context
 def create_command(
+    ctx: click.Context,
     username: str,
     password: Optional[str],
     queue_id: Tuple[int],
@@ -28,7 +30,7 @@ def create_command(
     Create user with USERNAME and add him to QUEUES specified by ids.
     """
     password = password or _generate_password()
-    with APIClient() as api:
+    with APIClient(context=ctx.obj) as api:
         _check_user_does_not_exists(api, username)
         organization_dict = _get_organization(api, organization_id)
 

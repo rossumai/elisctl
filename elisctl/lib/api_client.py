@@ -1,14 +1,14 @@
 import secrets
 import string
-from platform import platform
 from contextlib import AbstractContextManager
+from platform import platform
 
 import click
 import requests
 from requests import Response
 from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
 
-from elisctl import __version__
+from elisctl import __version__, CTX_PROFILE, CTX_DEFAULT_PROFILE
 from elisctl.configure import get_credential
 from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS
 
@@ -23,12 +23,14 @@ class APIClient(AbstractContextManager):
         password: Optional[str] = None,
         use_api_version: bool = True,
         auth_using_token: bool = True,
+        context: Optional[dict] = None,
     ):
         self._url = url
         self._user = user
         self._password = password
         self._use_api_version = use_api_version
         self._auth_using_token = auth_using_token
+        self._profile = (context or {}).get(CTX_PROFILE, CTX_DEFAULT_PROFILE)
 
         self.token: Optional[str] = None
 
@@ -36,25 +38,27 @@ class APIClient(AbstractContextManager):
         self.logout()
 
     @classmethod
-    def csv(cls, url: str = None, user: str = None, password: str = None) -> "APIClient":
-        return cls(url, user, password, False, False)
+    def csv(
+        cls, url: str = None, user: str = None, password: str = None, context: Optional[dict] = None
+    ) -> "APIClient":
+        return cls(url, user, password, False, False, context)
 
     @property
     def user(self) -> str:
         if self._user is None:
-            self._user = get_credential("username")
+            self._user = get_credential("username", self._profile)
         return self._user
 
     @property
     def password(self) -> str:
         if self._password is None:
-            self._password = get_credential("password")
+            self._password = get_credential("password", self._profile)
         return self._password
 
     @property
     def url(self) -> str:
         if self._url is None:
-            _url = get_credential("url").rstrip("/")
+            _url = get_credential("url", self._profile).rstrip("/")
             self._url = f'{_url}{"/v1" if self._use_api_version else ""}'
         return self._url
 

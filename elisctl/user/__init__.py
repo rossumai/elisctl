@@ -18,8 +18,9 @@ cli.add_command(create.create_command)
 
 
 @cli.command(name="list", help="List all users.")
-def list_command():
-    with APIClient() as api_client:
+@click.pass_context
+def list_command(ctx: click.Context,):
+    with APIClient(context=ctx.obj) as api_client:
         users_list, _ = api_client.get_paginated("users", {"is_active": True})
         groups_list, _ = api_client.get_paginated("groups")
         queues_list, _ = api_client.get_paginated("queues")
@@ -45,7 +46,9 @@ def list_command():
 @group_option(default=None, show_default=False)
 @locale_option(default=None, show_default=False)
 @password_option(help=None)
+@click.pass_context
 def change_command(
+    ctx: click.Context,
     id_: str,
     queue_id: Tuple[str],
     group: Optional[str],
@@ -59,7 +62,7 @@ def change_command(
     if password is not None:
         data["password"] = password
 
-    with APIClient() as api_client:
+    with APIClient(context=ctx.obj) as api_client:
         if queue_id:
             data["queues"] = [
                 get_json(api_client.get(f"queues/{queue}"))["url"] for queue in queue_id
@@ -76,6 +79,7 @@ def change_command(
 @cli.command(name="delete", help="Delete a user.")
 @click.argument("id_", metavar="ID", type=str)
 @click.confirmation_option()
-def delete_command(id_: str) -> None:
-    with APIClient() as api_client:
+@click.pass_context
+def delete_command(ctx: click.Context, id_: str) -> None:
+    with APIClient(context=ctx.obj) as api_client:
         api_client.patch(f"users/{id_}", {"is_active": False})

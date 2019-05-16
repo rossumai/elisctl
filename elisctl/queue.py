@@ -16,7 +16,6 @@ from elisctl.options import (
     workspace_id_option,
 )
 
-
 locale_option = click.option(
     "--locale",
     type=str,
@@ -37,7 +36,9 @@ def cli() -> None:
 @workspace_id_option
 @connector_id_option
 @locale_option
+@click.pass_context
 def create_command(
+    ctx: click.Context,
     name: str,
     schema_content_file: IO[bytes],
     email_prefix: Optional[str],
@@ -50,7 +51,7 @@ def create_command(
     if email_prefix is not None and bounce_email is None:
         raise click.ClickException("Inbox cannot be created without specified bounce email.")
 
-    with ELISClient() as elis:
+    with ELISClient(context=ctx.obj) as elis:
         workspace_url = elis.get_workspace(workspace_id)["url"]
         connector_url = (
             get_json(elis.get(f"connectors/{connector_id}"))["url"]
@@ -72,8 +73,9 @@ def create_command(
 
 
 @cli.command(name="list", help="List all queues.")
-def list_command() -> None:
-    with ELISClient() as elis:
+@click.pass_context
+def list_command(ctx: click.Context,) -> None:
+    with ELISClient(context=ctx.obj) as elis:
         queues = elis.get_queues((WORKSPACES, INBOXES, SCHEMAS, USERS))
 
     table = [
@@ -96,8 +98,9 @@ def list_command() -> None:
 @click.confirmation_option(
     prompt="This will delete ALL DOCUMENTS in the queue. Do you want to continue?"
 )
-def delete_command(id_: int) -> None:
-    with ELISClient() as elis:
+@click.pass_context
+def delete_command(ctx: click.Context, id_: int) -> None:
+    with ELISClient(context=ctx.obj) as elis:
         queue = elis.get_queue(id_)
         elis.delete({queue["id"]: queue["url"]})
 
@@ -108,7 +111,9 @@ def delete_command(id_: int) -> None:
 @schema_content_file_option
 @connector_id_option
 @locale_option
+@click.pass_context
 def change_command(
+    ctx: click.Context,
     id_: int,
     name: Optional[str],
     schema_content_file: Optional[IO[bytes]],
@@ -126,7 +131,7 @@ def change_command(
     if locale is not None:
         data["locale"] = locale
 
-    with ELISClient() as elis:
+    with ELISClient(context=ctx.obj) as elis:
         if connector_id is not None:
             data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
 

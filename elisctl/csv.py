@@ -38,7 +38,7 @@ def cli(ctx: click.Context) -> None:
 def download_command(
     ctx: click.Context, start: datetime.datetime, stop: datetime.datetime, float_step: float
 ) -> None:
-    api_client = APIClient.csv()
+    api_client = APIClient.csv(context=ctx.obj)
 
     step = datetime.timedelta(days=float_step)
     dfs = []

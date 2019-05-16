@@ -6,7 +6,8 @@ from traceback import print_tb
 import pytest
 from click import ClickException
 
-from elisctl import configure
+from elisctl import configure, CTX_DEFAULT_PROFILE, CTX_PROFILE
+from elisctl.main import entry_point
 
 
 class TestConfigure:
@@ -25,6 +26,7 @@ class TestConfigure:
                 {expected_credentials["password"]}
                 """
             ),
+            obj={CTX_PROFILE: CTX_DEFAULT_PROFILE},
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
 
@@ -33,11 +35,60 @@ class TestConfigure:
 
         assert expected_credentials == config["default"]
 
+    def test_profile_added(self, isolated_cli_runner, configuration_path):
+        expected_credentials = {
+            "url": "mock://some.example.com",
+            "username": "some_username",
+            "password": "secret%",
+        }
+        result = isolated_cli_runner.invoke(
+            entry_point,
+            ["--profile", "new_profile", "configure"],
+            input=dedent(
+                f"""\
+                    {expected_credentials["url"]}
+                    {expected_credentials["username"]}
+                    {expected_credentials["password"]}
+                    """
+            ),
+        )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+
+        config = configparser.RawConfigParser()
+        config.read(configuration_path)
+
+        assert expected_credentials == config["new_profile"]
+
     @pytest.mark.runner_setup(env={"ELIS_TEST": "test"})
     def test_get_credential_from_env(self, isolated_cli_runner):
         with isolated_cli_runner.isolation():
             result = configure.get_credential("test")
         assert "test" == result
+
+    @pytest.mark.runner_setup(env={"ELIS_PROFILE": "test_profile"})
+    def test_get_credential_from_env_profile(self, isolated_cli_runner, configuration_path):
+        with isolated_cli_runner.isolation():
+            configuration_path.parent.mkdir()
+
+            config = configparser.RawConfigParser()
+            config["test_profile"] = {"test": "test%"}
+            with configuration_path.open("w") as f:
+                config.write(f)
+
+            result = configure.get_credential("test")
+        assert "test%" == result
+
+    def test_get_credential_from_file_given_profile(self, isolated_cli_runner, configuration_path):
+        with isolated_cli_runner.isolation():
+            configuration_path.parent.mkdir()
+
+            config = configparser.RawConfigParser()
+            config["test_profile"] = {"test": "test%"}
+            with configuration_path.open("w") as f:
+                config.write(f)
+
+            result = configure.get_credential("test", "test_profile")
+        assert "test%" == result
 
     def test_get_credential_from_file(self, isolated_cli_runner, configuration_path):
         with isolated_cli_runner.isolation():

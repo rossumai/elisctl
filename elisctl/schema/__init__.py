@@ -6,7 +6,6 @@ import click
 from elisctl.lib.api_client import APIClient, get_json
 from elisctl.options import output_file_option
 from elisctl.schema.xlsx import SchemaToXlsx
-
 from . import transform, upload
 
 
@@ -34,7 +33,7 @@ def download_command(
     format_: str,
     output_file: Optional[IO[str]],
 ):
-    with APIClient() as api_client:
+    with APIClient(context=ctx.obj) as api_client:
         schema_dict = get_json(api_client.get(f"schemas/{id_}"))
     if format_ == "json":
         schema_file = json.dumps(

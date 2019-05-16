@@ -17,8 +17,9 @@ def cli() -> None:
 @cli.command(name="create", short_help="Create workspace.")
 @click.argument("name")
 @organization_option
-def create_command(name: str, organization_id: Optional[int]) -> None:
-    with ELISClient() as elis:
+@click.pass_context
+def create_command(ctx: click.Context, name: str, organization_id: Optional[int]) -> None:
+    with ELISClient(context=ctx.obj) as elis:
         organization_url = elis.get_organization(organization_id)["url"]
 
         res = elis.post("workspaces", {"name": name, "organization": organization_url})
@@ -27,8 +28,9 @@ def create_command(name: str, organization_id: Optional[int]) -> None:
 
 
 @cli.command(name="list", help="List all workspaces.")
-def list_command():
-    with ELISClient() as elis:
+@click.pass_context
+def list_command(ctx: click.Context,):
+    with ELISClient(context=ctx.obj) as elis:
         workspaces = elis.get_workspaces((QUEUES,))
 
     table = [
@@ -46,8 +48,9 @@ def list_command():
 @cli.command(name="delete", help="Delete a workspace.")
 @id_argument
 @click.confirmation_option()
-def delete_command(id_: int) -> None:
-    with ELISClient() as elis:
+@click.pass_context
+def delete_command(ctx: click.Context, id_: int) -> None:
+    with ELISClient(context=ctx.obj) as elis:
         workspace = elis.get_workspace(id_)
         queues = elis.get_queues(workspace=workspace["id"])
         documents = {}
@@ -65,7 +68,8 @@ def delete_command(id_: int) -> None:
 @cli.command(name="change", help="Change a workspace.")
 @id_argument
 @name_option
-def change_command(id_: str, name: Optional[str]) -> None:
+@click.pass_context
+def change_command(ctx: click.Context, id_: str, name: Optional[str]) -> None:
     if not any([name]):
         return
 
@@ -73,5 +77,5 @@ def change_command(id_: str, name: Optional[str]) -> None:
     if name is not None:
         data["name"] = name
 
-    with ELISClient() as elis:
+    with ELISClient(context=ctx.obj) as elis:
         elis.patch(f"workspaces/{id_}", data)
