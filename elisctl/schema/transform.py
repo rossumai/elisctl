@@ -36,7 +36,7 @@ def cli(
 @cli.command(name="substitute-options", help="Substitute options in existing enum datapoint.")
 @click.pass_context
 @argument.schema_file
-@click.argument("id_", metavar="ID", type=str)
+@argument.id_(type=str)
 @click.argument("new_options", type=click.File("rb"))
 def substitute_options_command(ctx: click.Context, new_options: IO[str], id_: str) -> List[dict]:
     options_dict = json.load(new_options)
@@ -115,7 +115,7 @@ DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a
 )
 @click.pass_context
 @argument.schema_file
-@click.argument("id_", metavar="ID", type=str)
+@argument.id_(type=str)
 @click.argument("datapoint_parameters", nargs=-1, type=str)
 @click.option(
     "-c",

@@ -1,15 +1,22 @@
-import json
-
 import functools
+import json
+from typing import IO, Optional, Callable
 
 import click
-from typing import IO
 
-id_ = click.argument("id_", metavar="ID", type=int)
 name = click.argument("name", type=str)
 
 
-def schema_file(command):
+def id_(command: Optional[Callable] = None, **kwargs):
+    default_kwargs = {"type": int, "metavar": "ID"}
+    kwargs = {**default_kwargs, **kwargs}
+    decorator = click.argument("id_", **kwargs)
+    if command is None:
+        return decorator
+    return decorator(command)
+
+
+def schema_file(command: Callable):
     click.argument("schema_file", type=click.File("rb"))(command)
 
     @functools.wraps(command)
