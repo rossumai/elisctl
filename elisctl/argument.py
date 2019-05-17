@@ -1,8 +1,10 @@
 import functools
 import json
-from typing import IO, Optional, Callable
+from typing import IO, Optional, Callable, Iterable
 
 import click
+
+from elisctl.lib import split_dict_params
 
 name = click.argument("name", type=str)
 
@@ -23,5 +25,19 @@ def schema_file(command: Callable):
     def wrapped(ctx: click.Context, schema_file: IO[str], *args, **kwargs):
         ctx.obj = {"SCHEMA": json.load(schema_file)}
         return command(ctx, *args, **kwargs)
+
+    return wrapped
+
+
+def datapoint_parameters(command: Callable):
+    click.argument("datapoint_parameters", nargs=-1, type=str)(command)
+
+    @functools.wraps(command)
+    def wrapped(*args, datapoint_parameters: Iterable[str], **kwargs):
+        try:
+            split_params = split_dict_params(datapoint_parameters)
+        except ValueError as e:
+            raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
+        return command(*args, datapoint_parameters=dict(split_params), **kwargs)
 
     return wrapped

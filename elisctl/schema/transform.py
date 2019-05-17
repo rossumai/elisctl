@@ -2,15 +2,12 @@
 import json
 import warnings
 from copy import deepcopy
-from typing import List, Callable, Optional, IO, Tuple, Iterable, Dict, Union, Set
+from typing import List, Callable, Optional, IO, Tuple, Set
 
 import click as click
 
 from elisctl import argument, option
-from elisctl.lib import split_dict_params
-
-DataPointDictItem = Union[str, int, dict, None, list]
-DataPointDict = Dict[str, DataPointDictItem]
+from elisctl.lib import DataPointDict
 
 
 @click.group("transform", help="Transform schema file content.")
@@ -75,7 +72,7 @@ DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a
 @click.pass_context
 @argument.schema_file
 @click.argument("parent_id", type=str)
-@click.argument("datapoint_parameters", nargs=-1, type=str)
+@argument.datapoint_parameters
 @click.option(
     "--place-before",
     "-p",
@@ -86,19 +83,15 @@ DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a
 def add_command(
     ctx: click.Context,
     parent_id: str,
-    datapoint_parameters: Iterable[str],
+    datapoint_parameters: DataPointDict,
     place_before: Optional[str],
 ) -> List[dict]:
-    try:
-        datapoint_parameters_dict = dict(split_dict_params(datapoint_parameters))
-    except ValueError as e:
-        raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
 
     return traverse_datapoints(
         ctx.obj["SCHEMA"],
         add,
         parent_id=parent_id,
-        datapoint_to_add=_new_datapoint(datapoint_parameters_dict),
+        datapoint_to_add=_new_datapoint(datapoint_parameters),
         place_before=place_before,
     )
 
@@ -116,7 +109,7 @@ DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a
 @click.pass_context
 @argument.schema_file
 @argument.id_(type=str)
-@click.argument("datapoint_parameters", nargs=-1, type=str)
+@argument.datapoint_parameters
 @click.option(
     "-c",
     "--category",
@@ -127,18 +120,13 @@ DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a
     "Multiple categories can be set.",
 )
 def change_command(
-    ctx: click.Context, id_: str, datapoint_parameters: Iterable[str], categories: Tuple[str]
+    ctx: click.Context, id_: str, datapoint_parameters: DataPointDict, categories: Tuple[str]
 ) -> List[dict]:
-    try:
-        datapoint_parameters_dict = dict(split_dict_params(datapoint_parameters))
-    except ValueError as e:
-        raise click.BadArgumentUsage("Expecting <key>=<value> pairs.") from e
-
     return traverse_datapoints(
         ctx.obj["SCHEMA"],
         change,
         id_=id_,
-        to_change=datapoint_parameters_dict,
+        to_change=datapoint_parameters,
         filtered_categories=categories,
     )
 
@@ -253,7 +241,7 @@ def add(
     datapoint: dict,
     parent_categories: List[str],
     parent_id: str,
-    datapoint_to_add: dict,
+    datapoint_to_add: DataPointDict,
     place_before: Optional[str] = None,
 ) -> dict:
     if datapoint["id"] != parent_id:
@@ -291,7 +279,7 @@ def change(
     datapoint: dict,
     parent_categories: List[str],
     id_: str,
-    to_change: dict,
+    to_change: DataPointDict,
     filtered_categories: Tuple[str],
 ) -> dict:
     is_of_id = id_ in (datapoint["id"], "ALL")

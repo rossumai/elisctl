@@ -4,12 +4,15 @@ import string
 from contextlib import suppress
 from dataclasses import dataclass
 
-from typing import Iterable, Iterator, Tuple, Union
+from typing import Iterable, Iterator, Tuple, Union, Dict
+
+DataPointDictItem = Union[str, int, dict, None, list]
+DataPointDict = Dict[str, DataPointDictItem]
 
 
 def split_dict_params(
     datapoint_parameters: Iterable[str]
-) -> Iterator[Tuple[str, Union[str, int, dict, None, list]]]:
+) -> Iterator[Tuple[str, DataPointDictItem]]:
     for param in datapoint_parameters:
         key, value = param.split("=", 1)
         with suppress(ValueError):
