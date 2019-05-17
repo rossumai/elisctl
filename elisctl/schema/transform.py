@@ -120,13 +120,14 @@ DATAPOINT_PARAMETERS are expected as <key>=<value> pairs, where <value> can be a
 @click.option(
     "-c",
     "--category",
+    "categories",
     type=click.Choice(["datapoint", "multivalue", "tuple", "section"]),
     multiple=True,
     help="Change only datapoints of specified categories. Useful with <id> set to ALL. "
     "Multiple categories can be set.",
 )
 def change_command(
-    ctx: click.Context, id_: str, datapoint_parameters: Iterable[str], category: Tuple[str]
+    ctx: click.Context, id_: str, datapoint_parameters: Iterable[str], categories: Tuple[str]
 ) -> List[dict]:
     try:
         datapoint_parameters_dict = dict(split_dict_params(datapoint_parameters))
@@ -138,7 +139,7 @@ def change_command(
         change,
         id_=id_,
         to_change=datapoint_parameters_dict,
-        filtered_categories=category,
+        filtered_categories=categories,
     )
 
 

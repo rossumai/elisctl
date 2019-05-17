@@ -27,7 +27,7 @@ def create_command(
     ctx: click.Context,
     username: str,
     password: Optional[str],
-    queue_id: Tuple[int],
+    queue_ids: Tuple[int],
     organization_id: Optional[int],
     group: str,
     locale: str,
@@ -43,7 +43,7 @@ def create_command(
 
         workspaces = elis.get_workspaces(organization=organization["id"], sideloads=(QUEUES,))
         queues = chain.from_iterable(w[str(QUEUES)] for w in workspaces)
-        queue_urls = [q["url"] for q in queues if q["id"] in queue_id]
+        queue_urls = [q["url"] for q in queues if q["id"] in queue_ids]
 
         response = elis.create_user(
             username, organization["url"], queue_urls, password, group, locale
@@ -80,12 +80,12 @@ def list_command(ctx: click.Context,):
 def change_command(
     ctx: click.Context,
     id_: int,
-    queue_id: Tuple[int],
+    queue_ids: Tuple[int],
     group: Optional[str],
     locale: Optional[str],
     password: Optional[str],
 ) -> None:
-    if not any([queue_id, group, locale, password]):
+    if not any([queue_ids, group, locale, password]):
         return
 
     data: Dict[str, Any] = {}
@@ -93,8 +93,8 @@ def change_command(
         data["password"] = password
 
     with ELISClient(context=ctx.obj) as elis:
-        if queue_id:
-            data[str(QUEUES)] = [elis.get_queue(queue)["url"] for queue in queue_id]
+        if queue_ids:
+            data[str(QUEUES)] = [elis.get_queue(queue)["url"] for queue in queue_ids]
         if group is not None:
             data[str(GROUPS)] = [g["url"] for g in elis.get_groups(group_name=group)]
         if locale is not None:

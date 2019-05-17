@@ -41,6 +41,7 @@ def workspace_id(command: Optional[Callable] = None, **kwargs):
 queue = click.option(
     "-q",
     "--queue-id",
+    "queue_ids",
     type=int,
     multiple=True,
     help="Queue IDs, which the user will be associated with.",
