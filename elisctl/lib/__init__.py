@@ -4,10 +4,14 @@ import string
 from contextlib import suppress
 from dataclasses import dataclass
 
-from typing import Iterable, Iterator, Tuple, Union, Dict
+from typing import Iterable, Iterator, Tuple, Union, Dict, List
 
+# todo: use TypedDict if available https://www.python.org/dev/peps/pep-0589/
+# todo: use Recursion (see the following) when https://github.com/python/mypy/issues/731 is ready
+# DataPointDictItem = Union[str, int, "DataPointDict", None, "DataPoints"]
 DataPointDictItem = Union[str, int, dict, None, list]
 DataPointDict = Dict[str, DataPointDictItem]
+DataPoints = List[DataPointDict]
 
 
 def split_dict_params(
