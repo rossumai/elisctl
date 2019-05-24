@@ -1,5 +1,3 @@
-import secrets
-import string
 from contextlib import AbstractContextManager
 from platform import platform
 
@@ -10,7 +8,17 @@ from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
 
 from elisctl import __version__, CTX_PROFILE, CTX_DEFAULT_PROFILE
 from elisctl.configure import get_credential
-from . import ORGANIZATIONS, APIObject, WORKSPACES, QUEUES, SCHEMAS, CONNECTORS
+from . import (
+    ORGANIZATIONS,
+    APIObject,
+    WORKSPACES,
+    QUEUES,
+    SCHEMAS,
+    CONNECTORS,
+    USERS,
+    GROUPS,
+    generate_secret,
+)
 
 HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
 
@@ -183,7 +191,7 @@ class APIClient(AbstractContextManager):
 class ELISClient(APIClient):
     def get_organization(self, organization_id: Optional[int] = None) -> dict:
         if organization_id is None:
-            user_details = get_json(self.get("auth/user"))
+            user_details = self.get_user()
             try:
                 organization_url = user_details[ORGANIZATIONS.singular]
             except KeyError:
@@ -195,8 +203,13 @@ class ELISClient(APIClient):
             res = self.get(f"{ORGANIZATIONS}/{organization_id}")
         return get_json(res)
 
-    def get_workspaces(self, sideloads: Optional[Iterable[APIObject]] = None) -> List[dict]:
-        workspaces_list, _ = self.get_paginated(WORKSPACES)
+    def get_workspaces(
+        self, sideloads: Optional[Iterable[APIObject]] = None, *, organization: Optional[int] = None
+    ) -> List[dict]:
+        query = {}
+        if organization:
+            query[ORGANIZATIONS.singular] = organization
+        workspaces_list, _ = self.get_paginated(WORKSPACES, query=query)
         self._sideload(workspaces_list, sideloads)
         return workspaces_list
 
@@ -215,7 +228,7 @@ class ELISClient(APIClient):
         return workspace
 
     def get_queues(
-        self, sideloads: Optional[Iterable[APIObject]] = None, workspace: Optional[int] = None
+        self, sideloads: Optional[Iterable[APIObject]] = None, *, workspace: Optional[int] = None
     ) -> List[dict]:
         query = {}
         if workspace:
@@ -237,6 +250,35 @@ class ELISClient(APIClient):
 
         self._sideload([queue], sideloads)
         return queue
+
+    def get_users(
+        self,
+        sideloads: Optional[Iterable[APIObject]] = None,
+        *,
+        username: Optional[str] = None,
+        is_active: Optional[bool] = None,
+    ) -> List[dict]:
+        query: Dict[str, Union[str, bool]] = {}
+        if username:
+            query["username"] = username
+        if is_active is not None:
+            query["is_active"] = is_active
+        users_list, _ = self.get_paginated(USERS, query=query)
+        self._sideload(users_list, sideloads)
+        return users_list
+
+    def get_user(self, id_: Optional[int] = None) -> dict:
+        if id_ is None:
+            user = get_json(self.get("auth/user"))
+        else:
+            user = get_json(self.get(f"{USERS}/{id_}"))
+        return user
+
+    def get_groups(self, *, group_name: Optional[str]) -> List[dict]:
+        if group_name is None:
+            return []
+        groups_list, _ = self.get_paginated(GROUPS, query={"name": group_name})
+        return groups_list
 
     def create_schema(self, name: str, content: List[dict]) -> dict:
         return get_json(self.post(SCHEMAS, data={"name": name, "content": content}))
@@ -263,16 +305,38 @@ class ELISClient(APIClient):
         return get_json(self.post("queues", data))
 
     def create_inbox(self, name: str, email_prefix: str, bounce_email: str, queue_url: str) -> dict:
-        alphabet = string.ascii_lowercase + string.digits
-        email_suffix = "".join(secrets.choice(alphabet) for _ in range(6))
         return get_json(
             self.post(
                 "inboxes",
                 data={
                     "name": name,
-                    "email": email_prefix + "-" + email_suffix + "@elis.rossum.ai",
+                    "email": f"{email_prefix}-{generate_secret(6)}@elis.rossum.ai",
                     "bounce_email_to": bounce_email,
                     "queues": [queue_url],
+                },
+            )
+        )
+
+    def create_user(
+        self,
+        username: str,
+        organization: str,
+        queues: List[str],
+        password: str,
+        group: str,
+        locale: str,
+    ) -> dict:
+        return get_json(
+            self.post(
+                USERS,
+                data={
+                    "username": username,
+                    "email": username,
+                    "organization": organization,
+                    "password": password,
+                    "groups": [g["url"] for g in self.get_groups(group_name=group)],
+                    "queues": queues,
+                    "ui_settings": {"locale": locale},
                 },
             )
         )

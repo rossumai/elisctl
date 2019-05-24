@@ -9,8 +9,7 @@ from itertools import chain
 from requests import Request
 from requests_mock.response import _Context
 
-from elisctl.user import list_command, change_command, delete_command
-from elisctl.user.create import create_command
+from elisctl.user import list_command, change_command, delete_command, create_command
 from tests import SuperDictOf
 from tests.conftest import (
     API_URL,
@@ -39,7 +38,7 @@ WORKSPACES = QUEUES = ["1", "2"]
 @pytest.mark.usefixtures("mock_login_request")
 class TestCreate:
     @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
-    @mock.patch("elisctl.user.create._generate_password")
+    @mock.patch("elisctl.user.generate_secret")
     def test_create(self, mock_password, requests_mock, cli_runner):
         mock_password.return_value = generated_password = PASSWORD * 2
         new_user_id = 1
@@ -131,7 +130,7 @@ class TestCreate:
         requests_mock.get(
             USERS_URL + f"?username={NEW_USERNAME}",
             complete_qs=True,
-            json={"pagination": {"total": 1}},
+            json={"pagination": {"total": 1, "next": None}, "results": [{}]},
         )
         result = cli_runner.invoke(create_command, [NEW_USERNAME])
         assert result.exit_code == 1
@@ -256,26 +255,42 @@ def mock_user_urls(requests_mock):
     )
 
     requests_mock.get(
+        QUEUES_URL,
+        json={
+            "results": [{"url": f"{QUEUES_URL}/{q}", "id": int(q)} for q in QUEUES],
+            "pagination": {"next": None, "total": 1},
+        },
+    )
+
+    requests_mock.get(
         re.compile(fr"{WORKSPACES_URL}\?organization=\d"),
-        json={"results": [{"url": f"{WORKSPACES_URL}/{w}"} for w in WORKSPACES]},
+        json={
+            "results": [
+                {"url": f"{WORKSPACES_URL}/{w}", "queues": [f"{QUEUES_URL}/{w}"]}
+                for w in WORKSPACES
+            ],
+            "pagination": {"next": None, "total": 1},
+        },
     )
 
     requests_mock.get(
         f"{GROUPS_URL}?name=annotator",
-        json={"results": [{"url": f"{GROUPS_URL}/1"}]},
+        json={"results": [{"url": f"{GROUPS_URL}/1"}], "pagination": {"next": None, "total": 1}},
         request_headers={"Authorization": f"Token {TOKEN}"},
         complete_qs=True,
     )
 
     requests_mock.get(
         f"{GROUPS_URL}?name=admin",
-        json={"results": [{"url": f"{GROUPS_URL}/2"}]},
+        json={"results": [{"url": f"{GROUPS_URL}/2"}], "pagination": {"next": None, "total": 1}},
         request_headers={"Authorization": f"Token {TOKEN}"},
         complete_qs=True,
     )
 
     requests_mock.get(
-        USERS_URL + f"?username={NEW_USERNAME}", complete_qs=True, json={"pagination": {"total": 0}}
+        USERS_URL + f"?username={NEW_USERNAME}",
+        complete_qs=True,
+        json={"pagination": {"total": 0, "next": None}, "results": []},
     )
 
     requests_mock.get(f"{API_URL}/v1/auth/user", json={"url": f"{USERS_URL}/1"})

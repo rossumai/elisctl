@@ -3,10 +3,9 @@ from typing import Optional, Dict, Any
 import click
 from tabulate import tabulate
 
-from elisctl.arguments import id_argument
+from elisctl import argument, option
 from elisctl.lib import QUEUES
 from elisctl.lib.api_client import ELISClient, get_json
-from elisctl.options import organization_option, name_option
 
 
 @click.group("workspace")
@@ -16,7 +15,7 @@ def cli() -> None:
 
 @cli.command(name="create", short_help="Create workspace.")
 @click.argument("name")
-@organization_option
+@option.organization
 @click.pass_context
 def create_command(ctx: click.Context, name: str, organization_id: Optional[int]) -> None:
     with ELISClient(context=ctx.obj) as elis:
@@ -46,7 +45,7 @@ def list_command(ctx: click.Context,):
 
 
 @cli.command(name="delete", help="Delete a workspace.")
-@id_argument
+@argument.id_
 @click.confirmation_option()
 @click.pass_context
 def delete_command(ctx: click.Context, id_: int) -> None:
@@ -66,8 +65,8 @@ def delete_command(ctx: click.Context, id_: int) -> None:
 
 
 @cli.command(name="change", help="Change a workspace.")
-@id_argument
-@name_option
+@argument.id_
+@option.name
 @click.pass_context
 def change_command(ctx: click.Context, id_: str, name: Optional[str]) -> None:
     if not any([name]):

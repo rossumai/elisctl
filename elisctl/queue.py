@@ -4,17 +4,9 @@ from typing import Optional, IO, Dict, Any
 import click
 from tabulate import tabulate
 
-from elisctl.arguments import id_argument
+from elisctl import argument, option
 from elisctl.lib import INBOXES, WORKSPACES, SCHEMAS, USERS
 from elisctl.lib.api_client import ELISClient, get_json
-from elisctl.options import (
-    bounce_email_option,
-    connector_id_option,
-    email_prefix_option,
-    name_option,
-    schema_content_file_option,
-    workspace_id_option,
-)
 
 locale_option = click.option(
     "--locale",
@@ -30,11 +22,11 @@ def cli() -> None:
 
 @cli.command(name="create", help="Create queue.")
 @click.argument("name")
-@schema_content_file_option(required=True)
-@email_prefix_option
-@bounce_email_option
-@workspace_id_option
-@connector_id_option
+@option.schema_content_file(required=True)
+@option.email_prefix
+@option.bounce_email
+@option.workspace_id
+@option.connector_id
 @locale_option
 @click.pass_context
 def create_command(
@@ -94,7 +86,7 @@ def list_command(ctx: click.Context,) -> None:
 
 
 @cli.command(name="delete", help="Delete a queue.")
-@id_argument
+@argument.id_
 @click.confirmation_option(
     prompt="This will delete ALL DOCUMENTS in the queue. Do you want to continue?"
 )
@@ -106,10 +98,10 @@ def delete_command(ctx: click.Context, id_: int) -> None:
 
 
 @cli.command(name="change", help="Change a queue.")
-@id_argument
-@name_option
-@schema_content_file_option
-@connector_id_option
+@argument.id_
+@option.name
+@option.schema_content_file
+@option.connector_id
 @locale_option
 @click.pass_context
 def change_command(

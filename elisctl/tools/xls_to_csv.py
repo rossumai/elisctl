@@ -7,7 +7,7 @@ import click as click
 import pandas as pd
 from typing.io import IO
 
-from elisctl.options import output_file_option
+from elisctl import option
 
 
 @click.command("xls_to_csv", help="Convert an Excel sheet to a CSV. All indices are 0-based.")
@@ -23,7 +23,7 @@ from elisctl.options import output_file_option
     "(skiprows are applied before header lookup)",
 )
 @click.option("--skiprows", default="", type=str, help="Indices of rows to skip")
-@output_file_option
+@option.output_file
 def cli(
     xls: click.File,
     label: int,
