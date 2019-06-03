@@ -26,12 +26,12 @@ HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
 class APIClient(AbstractContextManager):
     def __init__(
         self,
+        context: Optional[dict],
         url: Optional[str] = None,
         user: Optional[str] = None,
         password: Optional[str] = None,
         use_api_version: bool = True,
         auth_using_token: bool = True,
-        context: Optional[dict] = None,
     ):
         self._url = url
         self._user = user
@@ -47,9 +47,9 @@ class APIClient(AbstractContextManager):
 
     @classmethod
     def csv(
-        cls, url: str = None, user: str = None, password: str = None, context: Optional[dict] = None
+        cls, context: Optional[dict], url: str = None, user: str = None, password: str = None
     ) -> "APIClient":
-        return cls(url, user, password, False, False, context)
+        return cls(context, url, user, password, False, False)
 
     @property
     def user(self) -> str:
