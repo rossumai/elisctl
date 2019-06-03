@@ -11,7 +11,7 @@ from tests.conftest import API_URL, USERS_URL, ORGANIZATIONS_URL, TOKEN, LOGIN_U
     env={"ELIS_URL": API_URL, "ELIS_USERNAME": "some", "ELIS_PASSWORD": "secret"}
 )
 class TestAPIClient:
-    api_client = APIClient()
+    api_client = APIClient(None)
 
     def test_get_token_success(self, requests_mock, isolated_cli_runner):
         requests_mock.post(LOGIN_URL, json={"key": TOKEN})
@@ -43,7 +43,7 @@ class TestAPIClient:
     env={"ELIS_URL": API_URL, "ELIS_USERNAME": "some", "ELIS_PASSWORD": "secret"}
 )
 class TestELISClient:
-    api_client = ELISClient()
+    api_client = ELISClient(None)
 
     @pytest.mark.usefixtures("mock_login_request")
     def test_get_organization_old_api(self, requests_mock, isolated_cli_runner):

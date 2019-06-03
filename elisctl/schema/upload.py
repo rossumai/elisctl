@@ -19,7 +19,10 @@ LoadFunction = Callable[[IO[bytes]], SchemaContent]
 @click.option("--format", "format_", default="json", type=click.Choice(["json", "xlsx"]))
 @click.option("--rewrite", is_flag=True, type=bool)
 @click.option("--name", default=None, type=str)
-def upload_command(id_: str, file: IO[bytes], format_: str, rewrite: bool, name: Optional[str]):
+@click.pass_context
+def upload_command(
+    ctx: click.Context, id_: str, file: IO[bytes], format_: str, rewrite: bool, name: Optional[str]
+):
     """
     Update schema in ELIS.
     """
@@ -34,7 +37,7 @@ def upload_command(id_: str, file: IO[bytes], format_: str, rewrite: bool, name:
         raise click.ClickException(f"File {file} could not be loaded. Because of {e}") from e
 
     upload_func = _rewrite_schema if rewrite else _create_schema
-    with ELISClient() as elis:
+    with ELISClient(context=ctx.obj) as elis:
         upload_func(id_, schema, elis, name)
 
 
