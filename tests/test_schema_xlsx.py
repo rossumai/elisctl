@@ -54,6 +54,8 @@ class TestXlsx:
         xlsx_options = deepcopy(xlsx_content["options"])
         # rename label
         xlsx_schema[2][4] = "Invoice no"
+        # add superfluous space -- should be removed
+        xlsx_schema[2][5] += " "
         # delete date_issue
         del xlsx_schema[3]
         # append one option

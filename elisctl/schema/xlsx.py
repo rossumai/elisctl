@@ -1,4 +1,5 @@
 import json
+from contextlib import suppress
 from decimal import Decimal
 
 import click
@@ -6,7 +7,7 @@ import re
 from openpyxl import Workbook, load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.writer.excel import save_virtual_workbook
-from typing import List, Optional, Dict, Callable, Union, Tuple, IO
+from typing import List, Optional, Dict, Callable, Union, Tuple, IO, Any
 
 from elisctl.schema import transform
 
@@ -143,7 +144,7 @@ class XlsxToSchema:
 
     def _construct_objects_from_workbook(self, workbook: Workbook) -> SchemaContent:
         schema_sheet = workbook[SCHEMA_SHEET_NAME]
-        sheet_rows = schema_sheet.values
+        sheet_rows = ([_safe_strip(cell) for cell in columns] for columns in schema_sheet.values)
         attribute_types = self._extract_attribute_types(next(sheet_rows)[ATTRS_INDEX:])
 
         schema: SchemaContent = []
@@ -200,7 +201,7 @@ class XlsxToSchema:
         return schema
 
     @staticmethod
-    def _extract_attribute_types(attr_headers: Tuple[str]) -> Dict[str, str]:
+    def _extract_attribute_types(attr_headers: List[str]) -> Dict[str, str]:
         result = {}
         for header in attr_headers:
             match = HEADER_RE.match(header)
@@ -280,6 +281,12 @@ def _uniq(l: List[Dict]) -> Dict[str, str]:
     for item in l:
         result.update(**item)
     return result
+
+
+def _safe_strip(value: Any) -> Any:
+    with suppress(AttributeError):
+        return value.strip()
+    return value
 
 
 # Implemented according to https://stackoverflow.com/questions/13197574/openpyxl-adjust-column-width-size
