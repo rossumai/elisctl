@@ -127,6 +127,11 @@ And select any of the maintainers as a reviewer.
  
 ## Changelog
 
+### 2019-06-03 v2.2.0
+
+* Added support for [`--profile`](#configure-profiles) option to all `elisctl` commands
+* Fix: remove extra whitespace in xlsx schema export/import
+
 ### 2019-04-02 v2.1.0
 
 * Added support for `--output-file` to `elisctl tools` and `elisctl schema transform`
