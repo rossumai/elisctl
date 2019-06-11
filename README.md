@@ -127,6 +127,11 @@ And select any of the maintainers as a reviewer.
  
 ## Changelog
 
+### 2019-06-11 v2.2.1
+
+* Update packages for windows build.
+
+
 ### 2019-06-03 v2.2.0
 
 * Added support for [`--profile`](#configure-profiles) option to all `elisctl` commands
