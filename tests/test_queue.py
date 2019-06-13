@@ -16,6 +16,7 @@ from tests.conftest import (
     QUEUES_URL,
     INBOXES_URL,
     USERS_URL,
+    CONNECTORS_URL,
 )
 
 USERNAME = "test_user@rossum.ai"
@@ -160,9 +161,11 @@ class TestList:
         schema_url = f"{SCHEMAS_URL}/{schema_id}"
         user_ids = ["4", "5"]
         user_urls = [f"{USERS_URL}/{id_}" for id_ in user_ids]
+        connector_id = 2000
 
         queue_url = f"{QUEUES_URL}/{queue_id}"
         workspace_url = f"{WORKSPACES_URL}/{queue_id}"
+        connector_url = f"{CONNECTORS_URL}/{connector_id}"
 
         requests_mock.get(
             QUEUES_URL,
@@ -177,6 +180,7 @@ class TestList:
                         "inbox": inbox_url,
                         "schema": schema_url,
                         "users": user_urls,
+                        "connector": connector_url,
                     }
                 ],
             },
@@ -209,13 +213,20 @@ class TestList:
                 "results": [{"id": id_, "url": url} for id_, url in zip(user_ids, user_urls)],
             },
         )
+        requests_mock.get(
+            CONNECTORS_URL,
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"id": connector_id, "url": connector_url}],
+            },
+        )
 
         result = cli_runner.invoke(list_command)
         assert not result.exit_code, print_tb(result.exc_info[2])
         expected_table = f"""\
-  id  name         workspace  inbox               schema  users
-----  ---------  -----------  ----------------  --------  -------
-   {queue_id}  {name}            {workspace_id}  {inbox}         {schema_id}  {', '.join(user_ids)}
+  id  name         workspace  inbox               schema  users    connector
+----  ---------  -----------  ----------------  --------  -------  ------------------------------------------------
+   {queue_id}  {name}            {workspace_id}  {inbox}         {schema_id}  {', '.join(user_ids)}     {connector_url}
 """
         assert result.output == expected_table
 
