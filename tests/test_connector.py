@@ -1,7 +1,7 @@
 import re
 from functools import partial
 from itertools import chain
-from traceback import print_tb
+from traceback import print_tb, format_tb
 from unittest import mock
 
 import pytest
@@ -73,37 +73,7 @@ class TestCreate:
 @pytest.mark.usefixtures("mock_login_request")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
-
-        queue_url = f"{QUEUES_URL}/{QUEUE_ID}"
-
-        requests_mock.get(
-            f"{QUEUES_URL}",
-            json={
-                "pagination": {"total": 1, "next": None},
-                "results": [{"url": f"{QUEUES_URL}/{QUEUE_ID}", "id": f"{QUEUE_ID}"}],
-            },
-        )
-
-        requests_mock.get(
-            CONNECTORS_URL,
-            json={
-                "pagination": {"total": 1, "next": None},
-                "results": [
-                    {
-                        "id": CONNECTOR_ID,
-                        "name": CONNECTOR_NAME,
-                        "queues": [queue_url],
-                        "service_url": SERVICE_URL,
-                        "params": PARAMS,
-                        "authorization_token": AUTH_TOKEN,
-                        "asynchronous": ASYNCHRONOUS,
-                    }
-                ],
-            },
-        )
-
-        result = cli_runner.invoke(list_command)
-        assert not result.exit_code, print_tb(result.exc_info[2])
+        result = self._test_list(cli_runner, requests_mock, True)
 
         expected_table = f"""\
   id  name                service url                            queues  params       asynchronous    authorization_token
@@ -111,6 +81,48 @@ class TestList:
  {CONNECTOR_ID}  {CONNECTOR_NAME}  {SERVICE_URL}     {QUEUE_ID}  {PARAMS}  {ASYNCHRONOUS}            {AUTH_TOKEN}
 """
         assert result.output == expected_table
+
+    def test_non_admin_does_not_see_auth_token(self, requests_mock, cli_runner):
+
+        result = self._test_list(cli_runner, requests_mock, False)
+
+        expected_table = f"""\
+  id  name                service url                            queues  params       asynchronous
+----  ------------------  -----------------------------------  --------  -----------  --------------
+ {CONNECTOR_ID}  {CONNECTOR_NAME}  {SERVICE_URL}     {QUEUE_ID}  {PARAMS}  {ASYNCHRONOUS}
+"""
+        assert result.output == expected_table
+
+    @staticmethod
+    def _test_list(cli_runner, requests_mock, include_token: bool):
+        queue_url = f"{QUEUES_URL}/{QUEUE_ID}"
+        requests_mock.get(
+            f"{QUEUES_URL}",
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"url": queue_url, "id": QUEUE_ID}],
+            },
+        )
+
+        connector_result = {
+            "id": CONNECTOR_ID,
+            "name": CONNECTOR_NAME,
+            "queues": [queue_url],
+            "service_url": SERVICE_URL,
+            "params": PARAMS,
+            "asynchronous": ASYNCHRONOUS,
+        }
+
+        if include_token:
+            connector_result["authorization_token"] = AUTH_TOKEN
+
+        requests_mock.get(
+            CONNECTORS_URL,
+            json={"pagination": {"total": 1, "next": None}, "results": [connector_result]},
+        )
+        result = cli_runner.invoke(list_command)
+        assert not result.exit_code, format_tb(result.exc_info[2])
+        return result
 
 
 @pytest.mark.runner_setup(
