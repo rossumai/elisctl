@@ -1,10 +1,12 @@
+import sys
 from contextlib import AbstractContextManager
 from platform import platform
 
 import click
+import polling2
 import requests
 from requests import Response
-from typing import Dict, List, Tuple, Optional, Iterable, Any, Union
+from typing import Dict, List, Tuple, Optional, Iterable, Any, Union, BinaryIO, Callable
 
 from elisctl import __version__, CTX_PROFILE, CTX_DEFAULT_PROFILE
 from elisctl.configure import get_credential
@@ -17,6 +19,7 @@ from . import (
     CONNECTORS,
     USERS,
     GROUPS,
+    ANNOTATIONS,
     generate_secret,
 )
 
@@ -85,10 +88,18 @@ class APIClient(AbstractContextManager):
         return response.json()["key"]
 
     def post(
-        self, path: Union[str, APIObject], data: dict, expected_status_code: int = 201
+        self,
+        path: Union[str, APIObject],
+        data: dict = None,
+        expected_status_code: int = 201,
+        files: Optional[Dict[str, BinaryIO]] = None,
     ) -> Response:
         return self._request_url(
-            "post", f"{self.url}/{path}", json=data, expected_status_code=expected_status_code
+            "post",
+            f"{self.url}/{path}",
+            json=data,
+            expected_status_code=expected_status_code,
+            files=files,
         )
 
     def patch(self, path: Union[str, APIObject], data: dict) -> Response:
@@ -285,6 +296,34 @@ class ELISClient(APIClient):
         self._sideload(connectors_list, sideloads)
         return connectors_list
 
+    def get_annotation(self, id_: Optional[int] = None) -> dict:
+        if id_ is None:
+            raise click.ClickException("Annotation ID wasn't specified.")
+        return get_json(self.get(f"{ANNOTATIONS}/{id_}"))
+
+    def poll_annotation(
+        self, annotation: int, check_success: Callable, max_retries=120, sleep_secs=5
+    ) -> dict:
+        return polling2.poll(
+            lambda: self._get_annotation_polling(annotation),
+            check_success=check_success,
+            step=sleep_secs,
+            timeout=int(round(max_retries * sleep_secs)),
+        )
+
+    def _get_annotation_polling(self, annotation: int) -> dict:
+        annotation_object = self.get_annotation(annotation)
+        status = annotation_object["status"]
+        annotation_path = annotation_object["url"]
+        if status == "importing":
+            click.echo(".", nl=False, err=True)
+            sys.stdout.flush()
+        elif status == "to_review":
+            click.echo(f"Processing of the annotation at {annotation_path} finished.", err=True)
+        elif status == "failed_import":
+            click.echo(" Processing failed.")
+        return annotation_object
+
     def create_schema(self, name: str, content: List[dict]) -> dict:
         return get_json(self.post(SCHEMAS, data={"name": name, "content": content}))
 
@@ -364,6 +403,14 @@ class ELISClient(APIClient):
             "asynchronous": asynchronous,
         }
         return get_json(self.post("connectors", data))
+
+    def upload_document(self, id_: int, file: str) -> dict:
+        files = {"content": open(f"{file}", "rb")}
+        return get_json(self.post(f"queues/{id_}/upload", files=files))
+
+    def export_data(self, id_: int, annotation_ids: Iterable[int], format_: str):
+        ids = ",".join(str(a) for a in annotation_ids)
+        return self.get(f"queues/{id_}/export", query={"id": ids, "format": format_})
 
 
 def get_json(response: Response) -> dict:

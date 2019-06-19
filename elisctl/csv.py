@@ -49,7 +49,8 @@ def download_command(
 
     df = pd.concat(dfs)
     with StringIO() as buffer:
-        df.to_csv(buffer, sep=";", index=False)
+        # set line_terminator to ensure universal newline support for all the OS
+        df.to_csv(buffer, sep=";", index=False, line_terminator="\n")
         click.echo(buffer.getvalue())
 
 

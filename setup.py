@@ -38,6 +38,8 @@ setup(
         "tabulate",
         'dataclasses;python_version<"3.7"',
         "openpyxl>=2.6",
+        "jmespath",
+        "polling2",
     ],
     python_requires=">=3.6",
     setup_requires=["pytest-runner"],
