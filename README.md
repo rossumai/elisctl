@@ -127,6 +127,10 @@ And select any of the maintainers as a reviewer.
  
 ## Changelog
 
+### 2019-06-21 v2.3.1
+
+* Fix: annotator cannot use `elisctl connector list` command
+
 ### 2019-06-13 v2.3.0
 
 * Add connector command
