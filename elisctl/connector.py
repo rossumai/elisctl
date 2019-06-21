@@ -1,13 +1,12 @@
 import secrets
 import string
-from typing import Tuple, Optional, Dict, Any
+from typing import Tuple, Optional, Dict, Any, List
 
 import click
-from tabulate import tabulate
-
-from elisctl.lib import QUEUES
 from elisctl import option, argument
+from elisctl.lib import QUEUES
 from elisctl.lib.api_client import ELISClient
+from tabulate import tabulate
 
 
 @click.group("connector")
@@ -58,33 +57,31 @@ def list_command(ctx: click.Context,):
     with ELISClient(context=ctx.obj) as elis:
         connectors_list = elis.get_connectors((QUEUES,))
 
-    table = [
-        [
+    headers = ["id", "name", "service url", "queues", "params", "asynchronous"]
+
+    def get_row(connector: dict) -> List[str]:
+        res = [
             connector["id"],
             connector["name"],
             connector["service_url"],
             ", ".join(str(q.get("id", "")) for q in connector["queues"]),
             connector["params"],
             connector["asynchronous"],
-            connector["authorization_token"],
         ]
-        for connector in connectors_list
-    ]
+        try:
+            token = connector["authorization_token"]
+        except KeyError:
+            pass
+        else:
+            res.append(token)
+            if "authorization_token" not in headers:
+                headers.append("authorization_token")
 
-    click.echo(
-        tabulate(
-            table,
-            headers=[
-                "id",
-                "name",
-                "service url",
-                "queues",
-                "params",
-                "asynchronous",
-                "authorization_token",
-            ],
-        )
-    )
+        return res
+
+    table = [get_row(connector) for connector in connectors_list]
+
+    click.echo(tabulate(table, headers=headers))
 
 
 @cli.command(name="change", help="Update a connector object.")
