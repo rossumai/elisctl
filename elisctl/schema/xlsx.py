@@ -24,6 +24,7 @@ DEFAULT_ATTRIBUTE_TYPES = {
     "default_value": "json",
     "constraints": "json",
     "hidden": "bool",
+    "can_export": "bool",
     "score_threshold": "number",
     "width_chars": "number",
     "icon": "string",
