@@ -127,6 +127,11 @@ And select any of the maintainers as a reviewer.
  
 ## Changelog
 
+### 2019-07-09 v2.4.0
+
+* Add support for can_export in xlsx schema format
+* Add document command
+
 ### 2019-06-21 v2.3.1
 
 * Fix: annotator cannot use `elisctl connector list` command
