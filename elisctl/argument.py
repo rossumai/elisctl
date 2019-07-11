@@ -4,6 +4,7 @@ from typing import IO, Optional, Callable, Iterable
 
 import click
 
+from elisctl.common import schema_content_factory
 from elisctl.lib import split_dict_params
 
 name = click.argument("name", type=str)
@@ -41,3 +42,15 @@ def datapoint_parameters(command: Callable):
         return command(*args, datapoint_parameters=dict(split_params), **kwargs)
 
     return wrapped
+
+
+def schema_content_file(command: Optional[Callable] = None, **kwargs):
+    default_kwargs = {"type": click.File("rb"), "metavar": "FILE"}
+    kwargs = {**default_kwargs, **kwargs}
+    decorator = click.argument("schema_content_file_", **kwargs)
+    if command is None:
+        return decorator
+    return decorator(command)
+
+
+schema_content = schema_content_factory(schema_content_file)
