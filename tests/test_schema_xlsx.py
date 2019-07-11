@@ -8,7 +8,8 @@ import pytest
 
 from tests.conftest import TOKEN, SCHEMAS_URL, match_uploaded_json
 
-from elisctl.schema import download_command, xlsx
+from elisctl.schema import xlsx
+from elisctl.schema.commands import download_command
 from elisctl.schema.upload import upload_command
 from openpyxl import load_workbook, Workbook
 from tests.conftest import API_URL

@@ -5,7 +5,8 @@ from traceback import print_tb
 
 import pytest
 
-from elisctl.schema import transform, download_command
+from elisctl.schema.transform import commands as transform
+from elisctl.schema.commands import download_command
 from tests.conftest import API_URL
 
 SCHEMA_NAME = "schema.json"
