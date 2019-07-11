@@ -25,7 +25,7 @@ cli.add_command(upload.upload_command)
 @click.argument("id_", metavar="ID", type=str)
 @click.option("--indent", default=2, type=int)
 @click.option("--ensure-ascii", is_flag=True, type=bool)
-@option.file_format
+@click.option("--format", "format_", default="json", type=click.Choice(["json", "xlsx"]))
 @option.output_file
 def download_command(
     ctx: click.Context,

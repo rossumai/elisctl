@@ -2,7 +2,7 @@ from typing import Optional, Callable
 
 import click
 
-from elisctl.common import schema_content_factory, file_format  # noqa: F401
+from elisctl.common import schema_content_factory
 
 
 organization = click.option(
