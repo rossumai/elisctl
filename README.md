@@ -90,7 +90,7 @@ From now on, documents will follow new schema.
 As an experimental feature, you can also edit schema as an Excel (xlsx) file.
 ```shell
 elisctl schema get 7 --format xlsx -O schema.xlsx
-elisctl schema update 7 --format xlsx schema.xlsx
+elisctl schema update 7 schema.xlsx
 ```
 
 
