@@ -12,7 +12,9 @@ from elisctl import option
 
 @click.command(name="extract", help="Upload documents and extract data from them.")
 @click.argument("queue_id", metavar="QUEUE_ID", type=str)
-@click.argument("files", metavar="FILE_TO_UPLOAD", nargs=-1, type=click.Path(readable=True))
+@click.argument(
+    "files", metavar="FILE_TO_UPLOAD", nargs=-1, type=click.Path(readable=True), required=True
+)
 @click.option(
     "--format",
     "format_",
