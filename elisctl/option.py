@@ -2,6 +2,9 @@ from typing import Optional, Callable
 
 import click
 
+from elisctl.common import schema_content_factory
+
+
 organization = click.option(
     "-o", "--organization-id", type=int, help="Organization ID.", hidden=True
 )
@@ -21,12 +24,15 @@ output_file = click.option("-O", "--output-file", type=click.File("wb"))
 
 
 def schema_content_file(command: Optional[Callable] = None, **kwargs):
-    default_kwargs = {"type": click.File("rb"), "help": "Schema JSON file."}
+    default_kwargs = {"type": click.File("rb"), "help": "Schema file."}
     kwargs = {**default_kwargs, **kwargs}
-    decorator = click.option("-s", "--schema-content-file", **kwargs)
+    decorator = click.option("-s", "--schema-content-file", "schema_content_file_", **kwargs)
     if command is None:
         return decorator
     return decorator(command)
+
+
+schema_content = schema_content_factory(schema_content_file)
 
 
 def workspace_id(command: Optional[Callable] = None, **kwargs):

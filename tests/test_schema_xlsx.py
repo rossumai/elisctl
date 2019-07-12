@@ -8,7 +8,8 @@ import pytest
 
 from tests.conftest import TOKEN, SCHEMAS_URL, match_uploaded_json
 
-from elisctl.schema import download_command, xlsx
+from elisctl.schema import xlsx
+from elisctl.schema.commands import download_command
 from elisctl.schema.upload import upload_command
 from openpyxl import load_workbook, Workbook
 from tests.conftest import API_URL
@@ -85,7 +86,7 @@ class TestXlsx:
         )
 
         result = isolated_cli_runner.invoke(
-            upload_command, [schema_id, "--rewrite", "--format", "xlsx", str(self.output_file)]
+            upload_command, [schema_id, "--rewrite", str(self.output_file)]
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
 
