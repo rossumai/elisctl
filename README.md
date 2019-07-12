@@ -127,6 +127,12 @@ And select any of the maintainers as a reviewer.
  
 ## Changelog
 
+### 2019-07-12 v2.5.0
+
+* Add support for schema specified in XLSX when creating queue
+* Remove the necessity to specify schema file type when uploading
+* Fix XML and CSV formats of `elisctl document extract`
+
 ### 2019-07-09 v2.4.0
 
 * Add support for can_export in xlsx schema format
