@@ -408,7 +408,7 @@ class ELISClient(APIClient):
         files = {"content": open(f"{file}", "rb")}
         return get_json(self.post(f"queues/{id_}/upload", files=files))
 
-    def export_data(self, id_: int, annotation_ids: Iterable[int], format_: str):
+    def export_data(self, id_: int, annotation_ids: Iterable[int], format_: str) -> Response:
         ids = ",".join(str(a) for a in annotation_ids)
         return self.get(f"queues/{id_}/export", query={"id": ids, "format": format_})
 

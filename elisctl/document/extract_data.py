@@ -6,7 +6,7 @@ import click
 import jmespath
 from typing.io import IO
 
-from elisctl.lib.api_client import ELISClient
+from elisctl.lib.api_client import ELISClient, get_json, get_text
 from elisctl import option
 
 
@@ -50,10 +50,10 @@ def get_data(
         export_data = elis.export_data(queue_id, annotations_to_export, format_)
 
         if format_ == "json":
-            output = json.dumps(export_data.json(), indent=indent, ensure_ascii=ensure_ascii)
-            click.echo(output.encode("utf-8"), file=output_file, nl=False)
+            output = json.dumps(get_json(export_data), indent=indent, ensure_ascii=ensure_ascii)
         else:
-            click.echo(export_data, file=output_file, nl=False)
+            output = get_text(export_data)
+        click.echo(output.encode("utf-8"), file=output_file, nl=False)
 
 
 def get_id(json_response: dict) -> int:
