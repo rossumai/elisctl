@@ -49,7 +49,9 @@ class TestSchemaContent:
         with invalid_file.open() as buffer, pytest.raises(click.ClickException) as e:
             parameter(command)(schema_content_file_=buffer)
         assert e.value.args[0] == (
-            f"File {invalid_file} could not be loaded. Because of File is not a zip file"
+            f"File {invalid_file} could not be loaded."
+            "\n\tJSON: Expecting value: line 1 column 1 (char 0)"
+            "\n\tXLSX: File is not a zip file"
         )
         command.assert_not_called()
 
