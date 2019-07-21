@@ -30,9 +30,10 @@ def schema_content_factory(file_decorator):
                 try:
                     schema_content_ = _load_func(schema_content_file_)
                 except Exception as e:
-                    raise click.ClickException(
-                        f"File {schema_content_file_} could not be loaded.{e}"
-                    ) from e
+                    filename = (
+                        schema_content_file_.name if schema_content_file_ else schema_content_file_
+                    )
+                    raise click.ClickException(f"File {filename} could not be loaded.{e}") from e
 
                 return command_(*args, schema_content=schema_content_, **kwargs)
 
