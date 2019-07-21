@@ -16,7 +16,10 @@ def cli() -> None:
 
 @cli.command(name="create", help="Create a connector object.")
 @argument.name
-@option.queue
+@option.queue(
+    help="Queue IDs, that the connector will be associated with. "
+    "Required field - will be assigned to an only queue automatically if not specified."
+)
 @option.service_url
 @option.auth_token
 @option.params
@@ -25,7 +28,7 @@ def cli() -> None:
 def create_command(
     ctx: click.Context,
     name: str,
-    queue_ids: Tuple[int],
+    queue_ids: Tuple[int, ...],
     service_url: str,
     auth_token: str,
     params: Optional[str],
@@ -34,11 +37,14 @@ def create_command(
     token = auth_token or _generate_token()
 
     with ELISClient(context=ctx.obj) as elis:
-        queue_urls = []
-        for id_ in queue_ids:
-            queue_dict = elis.get_queue(id_)
-            if queue_dict:
-                queue_urls.append(queue_dict["url"])
+        if not queue_ids:
+            queue_urls = [elis.get_queue()["url"]]
+        else:
+            queue_urls = []
+            for id_ in queue_ids:
+                queue_dict = elis.get_queue(id_)
+                if queue_dict:
+                    queue_urls.append(queue_dict["url"])
 
         response = elis.create_connector(
             name=name,
@@ -48,7 +54,7 @@ def create_command(
             params=params,
             asynchronous=asynchronous,
         )
-        click.echo(f"{response['id']}, {response['name']}")
+        click.echo(f"{response['id']}, {response['name']}, {response['queues']}")
 
 
 @cli.command(name="list", help="List all connectors.")
@@ -86,7 +92,7 @@ def list_command(ctx: click.Context,):
 
 @cli.command(name="change", help="Update a connector object.")
 @argument.id_
-@option.queue
+@option.queue(related_object="connector")
 @option.name
 @option.service_url
 @option.auth_token

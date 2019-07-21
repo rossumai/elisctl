@@ -17,7 +17,7 @@ def cli() -> None:
 @cli.command(name="create", short_help="Create user.")
 @click.argument("username")
 @option.password
-@option.queue
+@option.queue(related_object="user")
 @option.organization
 @option.group
 @option.locale
@@ -71,7 +71,7 @@ def list_command(ctx: click.Context,):
 
 @cli.command(name="change", help="Change a user.")
 @argument.id_
-@option.queue
+@option.queue(related_object="user")
 @option.group(default=None, show_default=False)
 @option.locale(default=None, show_default=False)
 @option.password(help=None)
