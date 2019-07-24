@@ -13,15 +13,15 @@ def schema_content_factory(file_decorator):
             if schema_content_file_ is None:
                 return None
 
-            errors = []
-            for load_func in (json.load, XlsxToSchema().convert):
+            error = ""
+            for name, load_func in (("json", json.load), ("xlsx", XlsxToSchema().convert)):
                 try:
                     return load_func(schema_content_file_)  # type: ignore
                 except Exception as e:
-                    errors.append(str(e))
+                    error += f"\n\t{name.upper()}: {e}"
                     schema_content_file_.seek(0)
 
-            raise NotImplementedError(", ".join(errors))
+            raise NotImplementedError(error)
 
         def decorator(command_: Callable):
             @file_decorator(**file_decorator_kwargs)
@@ -30,9 +30,10 @@ def schema_content_factory(file_decorator):
                 try:
                     schema_content_ = _load_func(schema_content_file_)
                 except Exception as e:
-                    raise click.ClickException(
-                        f"File {schema_content_file_} could not be loaded. Because of {e}"
-                    ) from e
+                    filename = (
+                        schema_content_file_.name if schema_content_file_ else schema_content_file_
+                    )
+                    raise click.ClickException(f"File {filename} could not be loaded.{e}") from e
 
                 return command_(*args, schema_content=schema_content_, **kwargs)
 
