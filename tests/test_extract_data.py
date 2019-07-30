@@ -6,14 +6,7 @@ from unittest import mock
 import pytest
 
 from elisctl.document.extract_data import get_data
-from tests.conftest import (
-    ANNOTATIONS_URL,
-    API_URL,
-    QUEUES_URL,
-    TOKEN,
-    _EMPTY_PNG_FILE,
-    _EMPTY_PDF_FILE,
-)
+from tests.conftest import ANNOTATIONS_URL, API_URL, QUEUES_URL, TOKEN
 
 USERNAME = "something"
 PASSWORD = "secret"
@@ -46,12 +39,7 @@ OUTPUT_FILE = "output.json"
 @pytest.mark.usefixtures("mock_login_request")
 class TestExtractData:
     @pytest.mark.parametrize("format_", [None, "json", "xml", "csv"])
-    def test_get_data(self, mock_sleep, requests_mock, isolated_cli_runner, format_):
-        with open("empty_page.pdf", "wb") as f:
-            f.write(_EMPTY_PDF_FILE)
-
-        with open("empty_img.png", "wb") as f:
-            f.write(_EMPTY_PNG_FILE)
+    def test_get_data(self, mock_sleep, requests_mock, isolated_cli_runner, format_, mock_file):
 
         requests_mock.post(
             UPLOAD_ENDPOINT,
@@ -84,7 +72,7 @@ class TestExtractData:
             complete_qs=True,
             status_code=200,
         )
-        params = [QUEUE_ID, "empty_img.png", "empty_page.pdf", "-O", OUTPUT_FILE]
+        params = [QUEUE_ID, str(mock_file), str(mock_file), "-O", OUTPUT_FILE]
         if format_:
             params += ["--format", format_]
         result = isolated_cli_runner.invoke(get_data, params)
