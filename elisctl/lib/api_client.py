@@ -1,5 +1,6 @@
 import sys
 from contextlib import AbstractContextManager
+from pathlib import PurePath
 from platform import platform
 
 import click
@@ -92,7 +93,7 @@ class APIClient(AbstractContextManager):
         path: Union[str, APIObject],
         data: dict = None,
         expected_status_code: int = 201,
-        files: Optional[Dict[str, BinaryIO]] = None,
+        files: Optional[Dict[str, Tuple[str, BinaryIO]]] = None,
     ) -> Response:
         return self._request_url(
             "post",
@@ -404,8 +405,9 @@ class ELISClient(APIClient):
         }
         return get_json(self.post("connectors", data))
 
-    def upload_document(self, id_: int, file: str) -> dict:
-        files = {"content": open(f"{file}", "rb")}
+    def upload_document(self, id_: int, file: str, filename_overwrite: str = "") -> dict:
+        filename = PurePath(filename_overwrite).name or PurePath(file).name
+        files = {"content": (filename, open(f"{file}", "rb"))}
         return get_json(self.post(f"queues/{id_}/upload", files=files))
 
     def export_data(self, id_: int, annotation_ids: Iterable[int], format_: str) -> Response:
