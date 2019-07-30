@@ -1,10 +1,27 @@
 import json
+from functools import partial
 
 import click
 import pytest
 
 from elisctl.lib.api_client import APIClient, ELISClient
-from tests.conftest import API_URL, USERS_URL, ORGANIZATIONS_URL, TOKEN, LOGIN_URL, REQUEST_HEADERS
+from tests.conftest import (
+    API_URL,
+    USERS_URL,
+    ORGANIZATIONS_URL,
+    TOKEN,
+    LOGIN_URL,
+    REQUEST_HEADERS,
+    DOCUMENTS_URL,
+    QUEUES_URL,
+    match_uploaded_data,
+)
+
+UPLOADED_DOC = f"{DOCUMENTS_URL}/12345"
+QUEUE_ID = 20202
+UPLOAD_ENDPOINT = f"{QUEUES_URL}/{QUEUE_ID}/upload"
+DOCUMENT_ID = 315511
+DOCUMENT_URL = f"{DOCUMENTS_URL}/{DOCUMENT_ID}"
 
 
 @pytest.mark.runner_setup(
@@ -58,3 +75,33 @@ class TestELISClient:
         with isolated_cli_runner.isolation():
             assert organization_json == self.api_client.get_organization()
         assert requests_mock.called
+
+    @pytest.mark.usefixtures("mock_login_request")
+    def test_upload_overwrite_filename(self, requests_mock, isolated_cli_runner, mock_file):
+        original_filename = "empty_file.pdf"
+        overwritten_filename = "Overwritten filename.pdf"
+        api_response = {"results": [{"document": DOCUMENT_URL}]}
+
+        requests_mock.post(
+            UPLOAD_ENDPOINT,
+            additional_matcher=partial(match_uploaded_data, original_filename),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            json={"results": [{"document": DOCUMENT_URL}]},
+            status_code=201,
+        )
+
+        with isolated_cli_runner.isolation():
+            assert api_response == self.api_client.upload_document(QUEUE_ID, mock_file)
+
+        requests_mock.post(
+            UPLOAD_ENDPOINT,
+            additional_matcher=partial(match_uploaded_data, overwritten_filename),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            json={"results": [{"document": DOCUMENT_URL}]},
+            status_code=201,
+        )
+
+        with isolated_cli_runner.isolation():
+            assert api_response == self.api_client.upload_document(
+                QUEUE_ID, mock_file, overwritten_filename
+            )

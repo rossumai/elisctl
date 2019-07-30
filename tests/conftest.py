@@ -74,5 +74,65 @@ def mock_organization_urls(request: FixtureRequest, requests_mock):
     )
 
 
+@pytest.fixture
+def mock_file(tmp_path):
+    invoice_sample = tmp_path / "empty_file.pdf"
+    invoice_sample.write_bytes(_EMPTY_PDF_FILE)
+    yield invoice_sample
+
+
 def match_uploaded_json(uploaded_json: dict, request: Request) -> bool:
     return request.json() == uploaded_json
+
+
+def match_uploaded_data(filename: str, request) -> bool:
+    return filename in request.text
+
+
+_EMPTY_PDF_FILE = b"""%PDF-1.3
+1 0 obj
+<<
+/Type /Pages
+/Count 1
+/Kids [ 3 0 R ]
+>>
+endobj
+2 0 obj
+<<
+/Producer (PyPDF2)
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 1 0 R
+/Resources <<
+>>
+/MediaBox [ 0 0 10 10 ]
+>>
+endobj
+4 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+>>
+endobj
+xref
+0 5
+0000000000 65535 f
+0000000009 00000 n
+0000000068 00000 n
+0000000108 00000 n
+0000000196 00000 n
+trailer
+<<
+/Size 5
+/Root 4 0 R
+/Info 2 0 R
+>>
+startxref
+245
+%%EOF
+"""
+
+_EMPTY_PNG_FILE = b"""\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x01\x03\x00\x00\x00%\xdbV\xca\x00\x00\x00\x03PLTE\x00\x00\x00\xa7z=\xda\x00\x00\x00\x01tRNS\x00@\xe6\xd8f\x00\x00\x00\nIDAT\x08\xd7c`\x00\x00\x00\x02\x00\x01\xe2!\xbc3\x00\x00\x00\x00IEND\xaeB`\x82"""
