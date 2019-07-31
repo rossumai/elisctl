@@ -127,6 +127,9 @@ And select any of the maintainers as a reviewer.
  
 ## Changelog
 
+### 2019-07-30 v2.6.0
+* Enable passing custom filename with upload
+
 ### 2019-07-12 v2.5.0
 
 * Add support for schema specified in XLSX when creating queue
