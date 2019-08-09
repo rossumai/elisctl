@@ -4,7 +4,7 @@ from traceback import print_tb
 
 import pytest
 
-from elisctl.user_assignment import add_command, list_command
+from elisctl.user_assignment import add_command, list_command, remove_command
 from tests.conftest import API_URL, QUEUES_URL, TOKEN, USERS_URL, match_uploaded_json
 
 USERNAME = "test_user@rossum.ai"
@@ -131,3 +131,40 @@ class TestAdd:
         assert result.output == (
             f"Error: Invalid response [{self.new_queue_url}]: {json.dumps(error)}\n"
         )
+
+
+@pytest.mark.runner_setup(
+    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
+)
+@pytest.mark.usefixtures("mock_login_request")
+class TestRemoveQueues:
+    orig_queue_id = "1"
+    orig_queue_url = f"{QUEUES_URL}/{orig_queue_id}"
+    removed_queue_id = "2"
+    removed_queue_url = f"{QUEUES_URL}/{removed_queue_id}"
+    user_id = "3"
+    user_url = f"{USERS_URL}/{user_id}"
+
+    def test_success(self, requests_mock, cli_runner):
+        requests_mock.get(
+            f"{QUEUES_URL}?users={self.user_id}",
+            json={
+                "pagination": {"total": 2, "next": None},
+                "results": [
+                    {"id": self.orig_queue_id, "url": self.orig_queue_url},
+                    {"id": self.removed_queue_id, "url": self.removed_queue_url},
+                ],
+            },
+            complete_qs=True,
+        )
+        requests_mock.patch(
+            self.user_url,
+            additional_matcher=partial(match_uploaded_json, {"queues": [self.orig_queue_url]}),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=200,
+        )
+        result = cli_runner.invoke(
+            remove_command, ["-q", self.removed_queue_id, "-u", self.user_id]
+        )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert not result.output

@@ -56,3 +56,15 @@ def add_command(ctx: click.Context, user_ids: Tuple[int], queue_ids: Tuple[int])
             user = elis.get_user(user_id)
             new_queues = user["queues"] + [elis.get_queue(q_id)["url"] for q_id in queue_ids]
             elis.patch(f"{USERS}/{user_id}", {str(QUEUES): new_queues})
+
+
+@cli.command(name="remove", help="Remove user from queues.")
+@option.user
+@option.queue
+@click.pass_context
+def remove_command(ctx: click.Context, user_ids: Tuple[int], queue_ids: Tuple[int]) -> None:
+    with ELISClient(context=ctx.obj) as elis:
+        for user_id in user_ids:
+            queues = elis.get_queues(users=[user_id])
+            new_queues = [q["url"] for q in queues if int(q["id"]) not in queue_ids]
+            elis.patch(f"{USERS}/{user_id}", {str(QUEUES): new_queues})
