@@ -1,9 +1,11 @@
+import json
+from functools import partial
 from traceback import print_tb
 
 import pytest
 
-from elisctl.user_assignment import list_command
-from tests.conftest import USERS_URL, QUEUES_URL, API_URL
+from elisctl.user_assignment import add_command, list_command
+from tests.conftest import API_URL, QUEUES_URL, TOKEN, USERS_URL, match_uploaded_json
 
 USERNAME = "test_user@rossum.ai"
 PASSWORD = "secret"
@@ -92,3 +94,40 @@ class TestList:
    {self.user_ids[0]}  user_{self.user_ids[0]}               {self.queue_ids[0]}  {self.name}
 """
         assert result.output == expected_table
+
+
+@pytest.mark.runner_setup(
+    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
+)
+@pytest.mark.usefixtures("mock_login_request")
+class TestAdd:
+    orig_queue_url = f"{QUEUES_URL}/1"
+    new_queue_id = "2"
+    new_queue_url = f"{QUEUES_URL}/{new_queue_id}"
+    user_id = "3"
+    user_url = f"{USERS_URL}/{user_id}"
+
+    def test_success(self, requests_mock, cli_runner):
+        requests_mock.get(self.user_url, json={"queues": [self.orig_queue_url]})
+        requests_mock.get(self.new_queue_url, json={"url": self.new_queue_url})
+        requests_mock.patch(
+            self.user_url,
+            additional_matcher=partial(
+                match_uploaded_json, {"queues": [self.orig_queue_url, self.new_queue_url]}
+            ),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=200,
+        )
+        result = cli_runner.invoke(add_command, ["-q", self.new_queue_id, "-u", self.user_id])
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert not result.output
+
+    def test_queue_not_found(self, requests_mock, cli_runner):
+        error = {"detail": "Not found."}
+        requests_mock.get(self.user_url, json={"queues": [self.orig_queue_url]})
+        requests_mock.get(self.new_queue_url, status_code=404, json=error)
+        result = cli_runner.invoke(add_command, ["-q", self.new_queue_id, "-u", self.user_id])
+        assert result.exit_code == 1, print_tb(result.exc_info[2])
+        assert result.output == (
+            f"Error: Invalid response [{self.new_queue_url}]: {json.dumps(error)}\n"
+        )

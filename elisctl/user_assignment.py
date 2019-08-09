@@ -5,7 +5,7 @@ from typing import Tuple, Optional, List, Dict
 
 import click
 from elisctl import option
-from elisctl.lib import USERS
+from elisctl.lib import USERS, QUEUES
 from elisctl.lib.api_client import ELISClient
 
 
@@ -44,3 +44,15 @@ def list_command(ctx: click.Context, user_ids: Tuple[int], queue_ids: Tuple[int]
             headers=["id", "username", "queue id", "queue name"],
         )
     )
+
+
+@cli.command(name="add", help="Add user to queues.")
+@option.user
+@option.queue
+@click.pass_context
+def add_command(ctx: click.Context, user_ids: Tuple[int], queue_ids: Tuple[int]) -> None:
+    with ELISClient(context=ctx.obj) as elis:
+        for user_id in user_ids:
+            user = elis.get_user(user_id)
+            new_queues = user["queues"] + [elis.get_queue(q_id)["url"] for q_id in queue_ids]
+            elis.patch(f"{USERS}/{user_id}", {str(QUEUES): new_queues})
