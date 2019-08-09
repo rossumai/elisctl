@@ -240,11 +240,17 @@ class ELISClient(APIClient):
         return workspace
 
     def get_queues(
-        self, sideloads: Optional[Iterable[APIObject]] = None, *, workspace: Optional[int] = None
+        self,
+        sideloads: Optional[Iterable[APIObject]] = None,
+        *,
+        workspace: Optional[int] = None,
+        users: Optional[Iterable[int]] = None,
     ) -> List[dict]:
-        query = {}
+        query: Dict[str, Any] = {}
         if workspace:
             query[WORKSPACES.singular] = workspace
+        if users:
+            query[USERS.plural] = users
         queues_list, _ = self.get_paginated(QUEUES, query=query)
         self._sideload(queues_list, sideloads)
         return queues_list

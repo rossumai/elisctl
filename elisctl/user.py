@@ -1,12 +1,11 @@
 from itertools import chain
-
-from typing import Tuple, Optional, Dict, Any
+from typing import Any, Dict, Optional, Tuple
 
 import click
 from tabulate import tabulate
 
 from elisctl import argument, option
-from elisctl.lib import QUEUES, GROUPS, USERS, generate_secret
+from elisctl.lib import GROUPS, QUEUES, USERS, generate_secret
 from elisctl.lib.api_client import ELISClient
 
 

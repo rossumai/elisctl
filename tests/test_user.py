@@ -9,17 +9,17 @@ from itertools import chain
 from requests import Request
 from requests_mock.response import _Context
 
-from elisctl.user import list_command, change_command, delete_command, create_command
+from elisctl.user import change_command, create_command, delete_command, list_command
 from tests import SuperDictOf
 from tests.conftest import (
     API_URL,
-    TOKEN,
-    match_uploaded_json,
-    ORGANIZATIONS_URL,
-    WORKSPACES_URL,
-    QUEUES_URL,
     GROUPS_URL,
+    ORGANIZATIONS_URL,
+    QUEUES_URL,
+    TOKEN,
     USERS_URL,
+    WORKSPACES_URL,
+    match_uploaded_json,
 )
 
 USERNAME = "test_user@rossum.ai"
