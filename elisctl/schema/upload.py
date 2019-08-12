@@ -12,7 +12,7 @@ LoadFunction = Callable[[IO[bytes]], SchemaContent]
 
 
 @click.command(name="update")
-@click.argument("id_", metavar="ID", type=str)
+@argument.id_(type=str)
 @argument.schema_content
 @click.option("--rewrite", is_flag=True, type=bool)
 @click.option("--name", default=None, type=str)

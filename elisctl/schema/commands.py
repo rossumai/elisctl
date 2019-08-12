@@ -4,7 +4,7 @@ from typing import Optional, IO
 
 import click
 
-from elisctl import option
+from elisctl import option, argument
 from elisctl.lib.api_client import APIClient, get_json
 from . import upload
 from .xlsx import SchemaToXlsx
@@ -22,7 +22,7 @@ cli.add_command(upload.upload_command)
 
 @cli.command(name="get", help="Download schema from ELIS.")
 @click.pass_context
-@click.argument("id_", metavar="ID", type=str)
+@argument.id_(type=str)
 @click.option("--indent", default=2, type=int)
 @click.option("--ensure-ascii", is_flag=True, type=bool)
 @click.option("--format", "format_", default="json", type=click.Choice(["json", "xlsx"]))

@@ -14,6 +14,7 @@ from elisctl import (
     __version__,
     CTX_DEFAULT_PROFILE,
     CTX_PROFILE,
+    user_assignment,
 )
 
 
@@ -40,6 +41,7 @@ entry_point.add_command(tools.cli)
 entry_point.add_command(csv.cli)
 entry_point.add_command(elisctl.schema.commands.cli)
 entry_point.add_command(user.cli)
+entry_point.add_command(user_assignment.cli)
 entry_point.add_command(workspace.cli)
 entry_point.add_command(queue.cli)
 entry_point.add_command(document.cli)

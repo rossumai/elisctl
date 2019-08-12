@@ -4,6 +4,7 @@ from functools import partial
 import click
 import pytest
 
+from elisctl.lib import APIObject
 from elisctl.lib.api_client import APIClient, ELISClient
 from tests.conftest import (
     API_URL,
@@ -54,6 +55,53 @@ class TestAPIClient:
         with isolated_cli_runner.isolation():
             self.api_client.get("")
         assert requests_mock.called
+
+
+@pytest.mark.runner_setup(
+    env={"ELIS_URL": API_URL, "ELIS_USERNAME": "some", "ELIS_PASSWORD": "secret"}
+)
+@pytest.mark.usefixtures("mock_login_request")
+class TestSideload:
+    api_client = APIClient(None)
+    url = f"{API_URL}/v1/tests"
+    obj_url = f"{url}/1"
+    sideloaded_obj = {"url": obj_url, "some": "test"}
+    TESTS = APIObject("tests")
+
+    def test_sideload_singular(self, requests_mock, isolated_cli_runner):
+        requests_mock.get(self.url, json=self._paginated_rsp())
+
+        with isolated_cli_runner.isolation():
+            res = self.api_client._sideload([{"test": self.obj_url}], (self.TESTS,))
+        assert res == [{"test": self.sideloaded_obj}]
+
+    def test_sideload_plural(self, requests_mock, isolated_cli_runner):
+        requests_mock.get(self.url, json=self._paginated_rsp())
+
+        with isolated_cli_runner.isolation():
+            res = self.api_client._sideload([{"tests": [self.obj_url]}], (self.TESTS,))
+        assert res == [{"tests": [self.sideloaded_obj]}]
+
+    def test_sideload_not_reachable_singular(self, requests_mock, isolated_cli_runner):
+        requests_mock.get(self.url, json=self._paginated_rsp(0))
+
+        with isolated_cli_runner.isolation():
+            res = self.api_client._sideload([{"test": self.obj_url}], (self.TESTS,))
+        assert res == [{"test": {}}]
+
+    def test_sideload_not_reachable_plural(self, requests_mock, isolated_cli_runner):
+        requests_mock.get(self.url, json=self._paginated_rsp(0))
+
+        with isolated_cli_runner.isolation():
+            res = self.api_client._sideload([{"tests": [self.obj_url]}], (self.TESTS,))
+        assert res == [{"tests": []}]
+
+    def _paginated_rsp(self, total: int = 1):
+        assert total <= 1, "URL in sideloaded_obj is not unique."
+        return {
+            "results": [self.sideloaded_obj for _ in range(total)],
+            "pagination": {"next": None, "total": total},
+        }
 
 
 @pytest.mark.runner_setup(

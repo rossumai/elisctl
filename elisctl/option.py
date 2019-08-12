@@ -44,14 +44,30 @@ def workspace_id(command: Optional[Callable] = None, **kwargs):
     return decorator(command)
 
 
-queue = click.option(
-    "-q",
-    "--queue-id",
-    "queue_ids",
-    type=int,
-    multiple=True,
-    help="Queue IDs, which the user will be associated with.",
-)
+def queue(command: Optional[Callable] = None, **kwargs):
+    default_kwargs = {
+        "type": int,
+        "multiple": True,
+        "help": "Queue IDs, which the user will be associated with.",
+    }
+    kwargs = {**default_kwargs, **kwargs}
+    decorator = click.option("-q", "--queue-id", "queue_ids", **kwargs)
+    if command is None:
+        return decorator
+    return decorator(command)
+
+
+def user(command: Optional[Callable] = None, **kwargs):
+    default_kwargs = {
+        "type": int,
+        "multiple": True,
+        "help": "User IDs, which the queues will be associated with.",
+    }
+    kwargs = {**default_kwargs, **kwargs}
+    decorator = click.option("-u", "--user-id", "user_ids", **kwargs)
+    if command is None:
+        return decorator
+    return decorator(command)
 
 
 service_url = click.option(
