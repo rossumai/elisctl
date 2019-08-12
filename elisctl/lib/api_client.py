@@ -177,7 +177,9 @@ class APIClient(AbstractContextManager):
                     url = obj[sideload.singular]
                 except KeyError:
                     obj[sideload.plural] = [
-                        sideloaded_dicts.get(url, {}) for url in obj[sideload.plural]
+                        sideloaded_dicts[url]
+                        for url in obj[sideload.plural]
+                        if url in sideloaded_dicts
                     ]
                 else:
                     obj[sideload.singular] = sideloaded_dicts.get(url, {})
