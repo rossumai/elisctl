@@ -26,6 +26,7 @@ DEFAULT_ATTRIBUTE_TYPES = {
     "hidden": "bool",
     "can_export": "bool",
     "score_threshold": "number",
+    "width": "number",
     "width_chars": "number",
     "icon": "string",
     "min_occurrences": "number",
