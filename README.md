@@ -131,6 +131,14 @@ And select any of the maintainers as a reviewer.
    
 ## Changelog
 
+### 2019-08-13 v2.7.0
+* Add command `user_assignment` for bulk assignment of users to queues
+* Change command `connector create`: `queue_id` parameter needs to be specified, if there is more than one queue in organization
+* Support schema attribute `width` in XLSX schema format
+* Fixed: booleans, in XLSX schema format, can be specified as boolean types
+* Internal: filename can be specified in `ELISClient.upload_document`
+
+
 ### 2019-07-30 v2.6.0
 * Enable passing custom filename with upload
 
