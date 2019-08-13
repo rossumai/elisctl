@@ -118,13 +118,17 @@ MIT
 * Submit a pull request from forked version of this repo. 
 And select any of the maintainers as a reviewer.
 * Use [`pre-commit`](https://pre-commit.com/#install) to avoid linting issues.
-* When releasing, run in `master` branch:
+* When releasing, a `Collaborator` with `Admin` role shall run in `master` branch:
     ```bash
-    bumpversion minor
+    bump2version minor
     git push
     git push --tags
     ``` 
- 
+ * To build a Windows installer, run:
+     ```bash
+    pynsist installer.cfg
+    ``` 
+   
 ## Changelog
 
 ### 2019-07-12 v2.5.0
