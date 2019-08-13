@@ -15,6 +15,7 @@ PASSWORD = "secret"
 QUEUES = ["1", "2"]
 QUEUE_ID = "12345"
 QUEUES_URLS = [f"{QUEUES_URL}/{id_}" for id_ in QUEUES]
+DEFAULT_QUEUE_URL = f"{QUEUES_URL}/{QUEUE_ID}"
 
 CONNECTOR_ID = "101"
 CONNECTOR_NAME = "My First Connector"
@@ -54,7 +55,7 @@ class TestCreate:
             ),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=201,
-            json={"id": CONNECTOR_ID, "name": CONNECTOR_NAME},
+            json={"id": CONNECTOR_ID, "name": CONNECTOR_NAME, "queues": [DEFAULT_QUEUE_URL]},
         )
 
         result = cli_runner.invoke(
@@ -64,7 +65,61 @@ class TestCreate:
             + ["-u", SERVICE_URL, "-p", PARAMS, "-a", ASYNCHRONOUS],
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
-        assert f"{CONNECTOR_ID}, {CONNECTOR_NAME}\n" == result.output
+        assert f"{CONNECTOR_ID}, {CONNECTOR_NAME}, ['{DEFAULT_QUEUE_URL}']\n" == result.output
+
+    @mock.patch("elisctl.connector._generate_token")
+    def test_missing_queue_id(self, mock_token, requests_mock, cli_runner):
+        mock_token.return_value = generated_token = TOKEN * 3
+
+        requests_mock.get(
+            QUEUES_URL,
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"id": QUEUE_ID, "url": DEFAULT_QUEUE_URL}],
+            },
+        )
+
+        requests_mock.post(
+            CONNECTORS_URL,
+            additional_matcher=partial(
+                match_uploaded_json,
+                {
+                    "name": CONNECTOR_NAME,
+                    "queues": [DEFAULT_QUEUE_URL],
+                    "service_url": SERVICE_URL,
+                    "authorization_token": generated_token,
+                    "params": PARAMS,
+                    "asynchronous": ASYNCHRONOUS,
+                },
+            ),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=201,
+            json={
+                "id": CONNECTOR_ID,
+                "name": CONNECTOR_NAME,
+                "queues": [f"{QUEUES_URL}/{QUEUE_ID}"],
+            },
+        )
+
+        requests_mock.get(
+            CONNECTORS_URL,
+            json={
+                "results": [
+                    {
+                        "id": "101",
+                        "name": "My First Connector",
+                        "queues": ["httpmock://api.elis.rossum.ai/v1/queues/12345"],
+                    }
+                ]
+            },
+            request_headers={"Authorization": f"Token {TOKEN}"},
+        )
+
+        result = cli_runner.invoke(
+            create_command, [CONNECTOR_NAME, "-u", SERVICE_URL, "-p", PARAMS, "-a", ASYNCHRONOUS]
+        )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert f"{CONNECTOR_ID}, {CONNECTOR_NAME}, ['{DEFAULT_QUEUE_URL}']\n" == result.output
 
 
 @pytest.mark.runner_setup(

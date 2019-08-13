@@ -44,11 +44,12 @@ def workspace_id(command: Optional[Callable] = None, **kwargs):
     return decorator(command)
 
 
-def queue(command: Optional[Callable] = None, **kwargs):
+def queue(command: Optional[Callable] = None, related_object: Optional[str] = "object", **kwargs):
     default_kwargs = {
         "type": int,
+        "help": f"Queue IDs, which the {related_object} will be associated with.",
         "multiple": True,
-        "help": "Queue IDs, which the user will be associated with.",
+        "show_default": True,
     }
     kwargs = {**default_kwargs, **kwargs}
     decorator = click.option("-q", "--queue-id", "queue_ids", **kwargs)
