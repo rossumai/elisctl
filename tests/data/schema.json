@@ -25,7 +25,7 @@
         "label": "Issue date",
         "format": "D/M/YYYY",
         "category": "datapoint",
-	"hidden": true,
+        "hidden": true,
         "constraints": {
           "required": false
         },
@@ -52,6 +52,7 @@
         "constraints": {
           "required": false
         },
+        "hidden": true,
         "width_chars": 10,
         "default_value": null,
         "rir_field_names": [
@@ -67,6 +68,7 @@
         "constraints": {
           "required": false
         },
+        "hidden": false,
         "width_chars": 10,
         "default_value": "a123",
         "rir_field_names": [

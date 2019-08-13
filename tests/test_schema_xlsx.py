@@ -57,6 +57,8 @@ class TestXlsx:
         xlsx_schema[2][4] = "Invoice no"
         # add superfluous space -- should be removed
         xlsx_schema[2][5] += " "
+        # bool as string
+        xlsx_schema[6][10] = str(xlsx_schema[6][10]).lower()
         # delete date_issue
         del xlsx_schema[3]
         # append one option
