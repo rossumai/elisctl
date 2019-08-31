@@ -75,7 +75,6 @@ service_url = click.option(
     "-u", "--service-url", type=str, required=True, help="Url of the connector endpoint."
 )
 
-
 auth_token = click.option(
     "-t",
     "--auth-token",
@@ -88,6 +87,33 @@ params = click.option("-p", "--params", type=str, help="Query params appended to
 
 asynchronous = click.option(
     "-a", "--asynchronous", type=bool, default=True, help="Affects calling of the connector."
+)
+
+active = click.option("--active", type=bool, help="Affects whether the webhook is notified.")
+
+events = click.option(
+    "-e",
+    "--events",
+    type=str,
+    multiple=True,
+    help="List of events, when the hook should be notified.",
+)
+
+config_url = click.option(
+    "--config-url",
+    type=str,
+    help="URL endpoint where the message from the webhook should be pushed.",
+)
+
+config_secret = click.option(
+    "--config-secret", type=str, default=None, help="Secret key for authorization of payloads."
+)
+
+config_insecure_ssl = click.option(
+    "--config_insecure_ssl",
+    type=bool,
+    default=False,
+    help="Disable SSL certificate verification. (Use only for testing purposes.)",
 )
 
 

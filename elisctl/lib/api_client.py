@@ -18,6 +18,7 @@ from . import (
     QUEUES,
     SCHEMAS,
     CONNECTORS,
+    WEBHOOKS,
     USERS,
     GROUPS,
     ANNOTATIONS,
@@ -305,6 +306,11 @@ class ELISClient(APIClient):
         self._sideload(connectors_list, sideloads)
         return connectors_list
 
+    def get_webhooks(self, sideloads: Optional[Iterable[APIObject]] = None) -> List[dict]:
+        webhooks_list, _ = self.get_paginated(WEBHOOKS)
+        self._sideload(webhooks_list, sideloads)
+        return webhooks_list
+
     def get_annotation(self, id_: Optional[int] = None) -> dict:
         if id_ is None:
             raise click.ClickException("Annotation ID wasn't specified.")
@@ -412,6 +418,30 @@ class ELISClient(APIClient):
             "asynchronous": asynchronous,
         }
         return get_json(self.post("connectors", data))
+
+    def create_webhook(
+        self,
+        name: str,
+        queues: List[str],
+        active: bool,
+        events: List[str],
+        config_url: str,
+        config_secret: str,
+        config_insecure_ssl: bool,
+    ) -> dict:
+
+        data = {
+            "name": name,
+            "queues": queues,
+            "active": active,
+            "events": events,
+            "config": {
+                "url": config_url,
+                "secret": config_secret,
+                "insecure_ssl": config_insecure_ssl,
+            },
+        }
+        return get_json(self.post("webhooks", data))
 
     def upload_document(self, id_: int, file: str, filename_overwrite: str = "") -> dict:
         filename = PurePath(filename_overwrite).name or PurePath(file).name
