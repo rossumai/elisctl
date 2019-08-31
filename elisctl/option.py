@@ -20,6 +20,13 @@ connector_id = click.option(
     "--connector-id", type=str, help="If not specified, queue will not call back a connector."
 )
 
+webhook_id = click.option(
+    "--webhook-id",
+    type=int,
+    multiple=True,
+    help="If not specified, webhook will not be associated with the queue.",
+)
+
 output_file = click.option("-O", "--output-file", type=click.File("wb"))
 
 

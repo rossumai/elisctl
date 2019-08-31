@@ -248,12 +248,15 @@ class ELISClient(APIClient):
         *,
         workspace: Optional[int] = None,
         users: Optional[Iterable[int]] = None,
+        webhooks: Optional[Iterable[int]] = None,
     ) -> List[dict]:
         query: Dict[str, Any] = {}
         if workspace:
             query[WORKSPACES.singular] = workspace
         if users:
             query[USERS.plural] = users
+        if webhooks:
+            query[WEBHOOKS.plural] = webhooks
         queues_list, _ = self.get_paginated(QUEUES, query=query)
         self._sideload(queues_list, sideloads)
         return queues_list
@@ -348,6 +351,7 @@ class ELISClient(APIClient):
         workspace_url: str,
         schema_url: str,
         connector_url: Optional[str] = None,
+        webhooks_urls: Optional[List] = None,
         locale: Optional[str] = None,
     ) -> dict:
         data = {
@@ -359,6 +363,8 @@ class ELISClient(APIClient):
         }
         if connector_url is not None:
             data[CONNECTORS.singular] = connector_url
+        if webhooks_urls is not None:
+            data[WEBHOOKS.plural] = webhooks_urls  # type: ignore
         if locale is not None:
             data["locale"] = locale
         return get_json(self.post("queues", data))
