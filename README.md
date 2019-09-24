@@ -7,19 +7,21 @@
 ![PyPI - supported python versions](https://img.shields.io/pypi/pyversions/elisctl.svg)
 ![MIT licence](https://img.shields.io/pypi/l/elisctl.svg)
 
-**elisctl** is a set of tools that wrap
+**elisctl** is a set of [tools for Rossum integrators](https://developers.rossum.ai/) that wrap
 the [Rossum API](https://api.elis.rossum.ai/docs)
 to provide an easy way to configure and customize a Rossum account - either
 interactively or programmatically.
 
 ## Installation
 
+See the [elisctl setup tutorial](https://developers.rossum.ai/docs/setting-up-elisctl)
+for detailed instructions.
+
 ### Windows
 
 Download an installation file from
 [GitHub releases](https://github.com/rossumai/elisctl/releases).
 Install it. And run it either from start menu or from command prompt.
-
 
 ### UNIX based systems
 

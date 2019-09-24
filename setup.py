@@ -7,7 +7,7 @@ setup(
     description="Command line interface for controlling the Rossum platform",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://rossum.ai/data-capture",
+    url="https://developers.rossum.ai/",
     author="Rossum developers",
     author_email="support@rossum.ai",
     license="MIT",
