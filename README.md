@@ -8,8 +8,8 @@
 ![MIT licence](https://img.shields.io/pypi/l/elisctl.svg)
 
 **elisctl** is a set of tools that wrap
-the [Elis Document Management API](https://api.elis.rossum.ai/docs)
-to provide an easy way to configure, integrate and customize Elis - either
+the [Rossum API](https://api.elis.rossum.ai/docs)
+to provide an easy way to configure and customize a Rossum account - either
 interactively or programmatically.
 
 ## Installation
@@ -30,7 +30,7 @@ pip install elisctl
 
 ## How to use
 
-Individual Elis operation are triggered by passing specific *commands* to `elisctl`.
+Individual Rossum operations are triggered by passing specific *commands* to `elisctl`.
 Commands are organized by object type in a tree-like structure and thus are composed
 of multiple words (e.g. `user create` or `schema transform`).
 
