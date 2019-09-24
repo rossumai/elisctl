@@ -80,12 +80,13 @@ Download schema as a json:
 elisctl schema get 7 -O schema.json
 ```
 
-Open `schema.json` file in you favourite editor and upload modified version back to Elis.
+Open the `schema.json` file in you favourite editor and upload modified version back to Rossum.
 ```shell
 elisctl schema update 7 schema.json
 ```
 
-From now on, documents will follow new schema.
+From now on, documents will follow new schema. (Warning! The new schema
+receives a new id - obtain it by `queue list` again.)
 
 As an experimental feature, you can also edit schema as an Excel (xlsx) file.
 ```shell
