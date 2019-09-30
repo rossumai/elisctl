@@ -134,6 +134,9 @@ And select any of the maintainers as a reviewer.
    
 ## Changelog
 
+### 2019-09-30 v2.7.1
+* Improve documentation
+
 ### 2019-08-13 v2.7.0
 * Add command `user_assignment` for bulk assignment of users to queues
 * Change command `connector create`: `queue_id` parameter needs to be specified, if there is more than one queue in organization
