@@ -7,19 +7,21 @@
 ![PyPI - supported python versions](https://img.shields.io/pypi/pyversions/elisctl.svg)
 ![MIT licence](https://img.shields.io/pypi/l/elisctl.svg)
 
-**elisctl** is a set of tools that wrap
-the [Elis Document Management API](https://api.elis.rossum.ai/docs)
-to provide an easy way to configure, integrate and customize Elis - either
+**elisctl** is a set of [tools for Rossum integrators](https://developers.rossum.ai/) that wrap
+the [Rossum API](https://api.elis.rossum.ai/docs)
+to provide an easy way to configure and customize a Rossum account - either
 interactively or programmatically.
 
 ## Installation
+
+See the [elisctl setup tutorial](https://developers.rossum.ai/docs/setting-up-elisctl)
+for detailed instructions.
 
 ### Windows
 
 Download an installation file from
 [GitHub releases](https://github.com/rossumai/elisctl/releases).
 Install it. And run it either from start menu or from command prompt.
-
 
 ### UNIX based systems
 
@@ -30,7 +32,7 @@ pip install elisctl
 
 ## How to use
 
-Individual Elis operation are triggered by passing specific *commands* to `elisctl`.
+Individual Rossum operations are triggered by passing specific *commands* to `elisctl`.
 Commands are organized by object type in a tree-like structure and thus are composed
 of multiple words (e.g. `user create` or `schema transform`).
 
@@ -80,12 +82,13 @@ Download schema as a json:
 elisctl schema get 7 -O schema.json
 ```
 
-Open `schema.json` file in you favourite editor and upload modified version back to Elis.
+Open the `schema.json` file in you favourite editor and upload modified version back to Rossum.
 ```shell
 elisctl schema update 7 schema.json
 ```
 
-From now on, documents will follow new schema.
+From now on, documents will follow new schema. (Warning! The new schema
+receives a new id - obtain it by `queue list` again.)
 
 As an experimental feature, you can also edit schema as an Excel (xlsx) file.
 ```shell
