@@ -4,7 +4,7 @@ import click
 from tabulate import tabulate
 
 from elisctl import argument, option
-from elisctl.lib import INBOXES, WORKSPACES, SCHEMAS, USERS
+from elisctl.lib import INBOXES, WORKSPACES, SCHEMAS, USERS, generate_secret
 from elisctl.lib.api_client import ELISClient, get_json
 
 locale_option = click.option(
@@ -105,6 +105,8 @@ def delete_command(ctx: click.Context, id_: int) -> None:
 @option.name
 @option.schema_content
 @option.connector_id
+@option.email_prefix
+@option.bounce_email
 @locale_option
 @click.pass_context
 def change_command(
@@ -112,10 +114,18 @@ def change_command(
     id_: int,
     name: Optional[str],
     schema_content: Optional[List[dict]],
+    email_prefix: Optional[str],
+    bounce_email: Optional[str],
     connector_id: Optional[int],
     locale: Optional[str],
 ) -> None:
-    if not any([name, schema_content, connector_id, locale]):
+
+    if (email_prefix or bounce_email) and not (email_prefix and bounce_email):
+        raise click.ClickException(
+            "Inbox cannot be created or updated without both bounce email and email prefix specified."
+        )
+
+    if not any([name, schema_content, email_prefix, bounce_email, connector_id, locale]):
         return
 
     data: Dict[str, Any] = {}
@@ -127,6 +137,24 @@ def change_command(
         data["locale"] = locale
 
     with ELISClient(context=ctx.obj) as elis:
+        if email_prefix and bounce_email:
+            queue_dict = elis.get_queue(id_)
+            if not queue_dict["inbox"]:
+                inbox_dict = elis.create_inbox(
+                    f"{name or queue_dict['name']} inbox",
+                    email_prefix,
+                    bounce_email,
+                    queue_dict["url"],
+                )
+                click.echo(
+                    f"{inbox_dict['id']}, {inbox_dict['email']}, {inbox_dict['bounce_email_to']}"
+                )
+            else:
+                email = f"{email_prefix}-{generate_secret(6)}@elis.rossum.ai"
+                inbox_data = {"email": email, "bounce_email_to": bounce_email}
+                _, inbox_id = queue_dict["inbox"].rsplit("/", 1)
+                elis.patch(f"inboxes/{inbox_id}", inbox_data)
+
         if connector_id is not None:
             data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
 
@@ -135,4 +163,5 @@ def change_command(
             schema_dict = elis.create_schema(f"{name} schema", schema_content)
             data["schema"] = schema_dict["url"]
 
-        elis.patch(f"queues/{id_}", data)
+        if data:
+            elis.patch(f"queues/{id_}", data)
