@@ -30,6 +30,7 @@ SCHEMA_FILE_NAME = "schema.json"
 class QueueFixtures:
     name: Optional[str] = None
     queue_id: Optional[str] = None
+    inbox_url: Optional[str] = None
 
     @pytest.fixture
     def create_queue_urls(self, requests_mock):
@@ -49,7 +50,7 @@ class QueueFixtures:
             json={"url": SCHEMA_URL},
         )
 
-        queue_content = {
+        create_queue_content = {
             "name": self.name,
             "workspace": WORKSPACE_URL,
             "schema": SCHEMA_URL,
@@ -57,13 +58,22 @@ class QueueFixtures:
         }
         requests_mock.post(
             QUEUES_URL,
-            additional_matcher=partial(match_uploaded_json, queue_content),
+            additional_matcher=partial(match_uploaded_json, create_queue_content),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=201,
-            json={"id": self.queue_id, "url": self.queue_url},
+            json={"id": self.queue_id, "url": self.queue_url, "inbox": self.inbox_url},
         )
+
+        queue_content_incl_inbox = {
+            **create_queue_content,
+            "inbox": self.inbox_url,
+            "url": self.queue_url,
+        }
+
         requests_mock.get(
-            self.queue_url, json=queue_content, request_headers={"Authorization": f"Token {TOKEN}"}
+            self.queue_url,
+            json=queue_content_incl_inbox,
+            request_headers={"Authorization": f"Token {TOKEN}"},
         )
 
     @pytest.fixture
@@ -262,6 +272,7 @@ class TestDelete:
 class TestChange(QueueFixtures):
     name = "TestName"
     queue_id = "1"
+    inbox_url = f"{INBOXES_URL}/12345"
 
     def test_success(self, requests_mock, cli_runner):
         requests_mock.patch(
@@ -287,3 +298,93 @@ class TestChange(QueueFixtures):
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert not result.output
+
+    @pytest.mark.usefixtures("create_queue_urls")
+    def test_create_inbox_on_queue_change(self, requests_mock, isolated_cli_runner):
+        email_prefix = "123456"
+        bounce_mail = "test@example.com"
+        email = f"{email_prefix}-aaaaaa@elis.rossum.ai"
+        queue_id = "1"
+        inbox_id = "1"
+        name = "My First Queue"
+
+        requests_mock.get(
+            f"{QUEUES_URL}/{self.queue_id}",
+            json={"name": name, "inbox": None, "url": f"{QUEUES_URL}/{self.queue_id}"},
+            request_headers={"Authorization": f"Token {TOKEN}"},
+        )
+
+        requests_mock.post(
+            INBOXES_URL,
+            additional_matcher=partial(
+                match_uploaded_json,
+                {
+                    "name": f"{name} inbox",
+                    "email": email,
+                    "bounce_email_to": bounce_mail,
+                    "queues": [f"{QUEUES_URL}/{self.queue_id}"],
+                },
+            ),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=201,
+            json={"id": inbox_id, "email": email, "bounce_email_to": bounce_mail},
+        )
+
+        with mock.patch("secrets.choice", return_value="a"):
+            result = isolated_cli_runner.invoke(
+                change_command,
+                [queue_id, "--email-prefix", email_prefix, "--bounce-email", bounce_mail],
+            )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert result.output == f"{inbox_id}, 123456-aaaaaa@elis.rossum.ai, test@example.com\n"
+
+    def test_update_inbox_on_queue_change(self, requests_mock, isolated_cli_runner):
+        email_prefix = "123456"
+        bounce_mail = "test@example.com"
+        email = f"{email_prefix}-aaaaaa@elis.rossum.ai"
+
+        requests_mock.get(
+            f"{QUEUES_URL}/{self.queue_id}",
+            json={"inbox": self.inbox_url},
+            request_headers={"Authorization": f"Token {TOKEN}"},
+        )
+
+        requests_mock.patch(
+            self.inbox_url,
+            additional_matcher=partial(
+                match_uploaded_json, {"email": email, "bounce_email_to": bounce_mail}
+            ),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=200,
+            json={"email": email, "bounce_email_to": bounce_mail},
+        )
+
+        requests_mock.patch(
+            self.queue_url,
+            additional_matcher=partial(match_uploaded_json, {}),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            status_code=200,
+        )
+
+        with mock.patch("secrets.choice", return_value="a"):
+            result = isolated_cli_runner.invoke(
+                change_command,
+                [self.queue_id, "--email-prefix", email_prefix, "--bounce-email", bounce_mail],
+            )
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        assert not result.output
+
+    @pytest.mark.usefixtures("create_queue_urls")
+    def test_cannot_create_inbox_on_queue_change(self, isolated_cli_runner):
+        email_prefix = "123456"
+        queue_id = "1"
+
+        with mock.patch("secrets.choice", return_value="a"):
+            result = isolated_cli_runner.invoke(
+                change_command, [queue_id, "--email-prefix", email_prefix]
+            )
+        assert result.exit_code == 1, print_tb(result.exc_info[2])
+        assert (
+            "Error: Inbox cannot be created or updated without both bounce email and email prefix specified.\n"
+            == result.output
+        )
