@@ -146,7 +146,9 @@ def change_command(
             "Inbox cannot be created or updated without both bounce email and email prefix specified."
         )
 
-    if not any([name, schema_content, email_prefix, bounce_email, connector_id, locale, webhook_id]):
+    if not any(
+        [name, schema_content, email_prefix, bounce_email, connector_id, locale, webhook_id]
+    ):
         return
 
     data: Dict[str, Any] = {}
