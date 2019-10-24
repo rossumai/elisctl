@@ -96,11 +96,18 @@ asynchronous = click.option(
     "-a", "--asynchronous", type=bool, default=True, help="Affects calling of the connector."
 )
 
-active = click.option("--active", type=bool, help="Affects whether the webhook is notified.")
+active = click.option(
+    "--active",
+    type=bool,
+    required=True,
+    default=True,
+    help="Affects whether the webhook is notified.",
+)
 
 events = click.option(
     "-e",
     "--events",
+    required=True,
     type=str,
     multiple=True,
     help="List of events, when the hook should be notified.",
@@ -108,6 +115,7 @@ events = click.option(
 
 config_url = click.option(
     "--config-url",
+    required=True,
     type=str,
     help="URL endpoint where the message from the webhook should be pushed.",
 )

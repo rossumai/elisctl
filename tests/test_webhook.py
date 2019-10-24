@@ -204,6 +204,7 @@ class TestChange:
                     "queues": [f"{QUEUES_URL}/{QUEUE_ID}"],
                     "name": self.new_webhook_name,
                     "events": [[self.new_event]],
+                    "active": True,
                     "config": {"url": CONFIG_URL, "secret": CONFIG_SECRET, "insecure_ssl": False},
                 },
             ),
