@@ -10,6 +10,7 @@ from elisctl import (
     workspace,
     queue,
     connector,
+    webhook,
     document,
     __version__,
     CTX_DEFAULT_PROFILE,
@@ -46,4 +47,5 @@ entry_point.add_command(workspace.cli)
 entry_point.add_command(queue.cli)
 entry_point.add_command(document.cli)
 entry_point.add_command(connector.cli)
+entry_point.add_command(webhook.cli)
 entry_point.add_command(configure.cli)

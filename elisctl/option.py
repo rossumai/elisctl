@@ -20,6 +20,13 @@ connector_id = click.option(
     "--connector-id", type=str, help="If not specified, queue will not call back a connector."
 )
 
+webhook_id = click.option(
+    "--webhook-id",
+    type=int,
+    multiple=True,
+    help="If not specified, webhook will not be associated with the queue.",
+)
+
 output_file = click.option("-O", "--output-file", type=click.File("wb"))
 
 
@@ -75,7 +82,6 @@ service_url = click.option(
     "-u", "--service-url", type=str, required=True, help="Url of the connector endpoint."
 )
 
-
 auth_token = click.option(
     "-t",
     "--auth-token",
@@ -88,6 +94,41 @@ params = click.option("-p", "--params", type=str, help="Query params appended to
 
 asynchronous = click.option(
     "-a", "--asynchronous", type=bool, default=True, help="Affects calling of the connector."
+)
+
+active = click.option(
+    "--active",
+    type=bool,
+    required=True,
+    default=True,
+    help="Affects whether the webhook is notified.",
+)
+
+events = click.option(
+    "-e",
+    "--events",
+    required=True,
+    type=str,
+    multiple=True,
+    help="List of events, when the hook should be notified.",
+)
+
+config_url = click.option(
+    "--config-url",
+    required=True,
+    type=str,
+    help="URL endpoint where the message from the webhook should be pushed.",
+)
+
+config_secret = click.option(
+    "--config-secret", type=str, default=None, help="Secret key for authorization of payloads."
+)
+
+config_insecure_ssl = click.option(
+    "--config_insecure_ssl",
+    type=bool,
+    default=False,
+    help="Disable SSL certificate verification. (Use only for testing purposes.)",
 )
 
 
