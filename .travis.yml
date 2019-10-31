@@ -45,7 +45,7 @@ jobs:
       deploy:
         provider: releases
         api_key: ${GITHUB_DEPLOY_TOKEN}
-        file: build/nsis/elisctl_2.7.1.exe
+        file: build/nsis/elisctl_2.8.0.exe
         skip_cleanup: true
         on:
           tags: true
