@@ -17,7 +17,7 @@ def cli() -> None:
 @cli.command(name="create", short_help="Create user.")
 @click.argument("username")
 @option.password
-@option.queue(related_object="user")
+@option.queue(related_object="user", required=True)
 @option.organization
 @option.group
 @option.locale
