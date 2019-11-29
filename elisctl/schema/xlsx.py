@@ -31,6 +31,7 @@ DEFAULT_ATTRIBUTE_TYPES = {
     "icon": "string",
     "min_occurrences": "number",
     "max_occurrences": "number",
+    "can_collapse": "bool",
     "use_rir_content": "bool",
 }
 
