@@ -163,20 +163,9 @@ def change_command(
         if email_prefix and bounce_email:
             queue_dict = elis.get_queue(id_)
             if not queue_dict["inbox"]:
-                inbox_dict = elis.create_inbox(
-                    f"{name or queue_dict['name']} inbox",
-                    email_prefix,
-                    bounce_email,
-                    queue_dict["url"],
-                )
-                click.echo(
-                    f"{inbox_dict['id']}, {inbox_dict['email']}, {inbox_dict['bounce_email_to']}"
-                )
+                _create_inbox(elis, queue_dict, email_prefix, bounce_email, name)
             else:
-                email = f"{email_prefix}-{generate_secret(6)}@elis.rossum.ai"
-                inbox_data = {"email": email, "bounce_email_to": bounce_email}
-                _, inbox_id = queue_dict["inbox"].rsplit("/", 1)
-                elis.patch(f"inboxes/{inbox_id}", inbox_data)
+                _patch_inbox(elis, queue_dict, email_prefix, bounce_email)
 
         if connector_id is not None:
             data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
@@ -195,3 +184,19 @@ def change_command(
 
         if data:
             elis.patch(f"queues/{id_}", data)
+
+
+def _create_inbox(
+    elis: ELISClient, queue_dict: dict, email_prefix: str, bounce_email: str, name: str
+) -> None:
+    inbox_dict = elis.create_inbox(
+        f"{name or queue_dict['name']} inbox", email_prefix, bounce_email, queue_dict["url"]
+    )
+    click.echo(f"{inbox_dict['id']}, {inbox_dict['email']}, {inbox_dict['bounce_email_to']}")
+
+
+def _patch_inbox(elis: ELISClient, queue_dict: dict, email_prefix: str, bounce_email: str) -> None:
+    email = f"{email_prefix}-{generate_secret(6)}@elis.rossum.ai"
+    inbox_data = {"email": email, "bounce_email_to": bounce_email}
+    _, inbox_id = queue_dict["inbox"].rsplit("/", 1)
+    elis.patch(f"inboxes/{inbox_id}", inbox_data)
