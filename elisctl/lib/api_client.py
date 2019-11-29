@@ -22,7 +22,6 @@ from . import (
     USERS,
     GROUPS,
     ANNOTATIONS,
-    generate_secret,
 )
 
 HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
@@ -375,8 +374,9 @@ class ELISClient(APIClient):
                 "inboxes",
                 data={
                     "name": name,
-                    "email": f"{email_prefix}-{generate_secret(6)}@elis.rossum.ai",
+                    "email_prefix": f"{email_prefix}",
                     "bounce_email_to": bounce_email,
+                    "bounce_unprocessable_attachments": True,
                     "queues": [queue_url],
                 },
             )
