@@ -33,6 +33,7 @@
       "icon (string)",
       "min_occurrences (number)",
       "max_occurrences (number)",
+      "can_collapse (bool)",
       "use_rir_content (bool)",
       "additional_field (json)"
     ],
@@ -42,6 +43,7 @@
       null,
       null,
       "Basic information",
+      null,
       null,
       null,
       null,
@@ -78,6 +80,7 @@
       null,
       null,
       null,
+      null,
       null
     ],
     [
@@ -100,6 +103,7 @@
       null,
       null,
       null,
+      null,
       null
     ],
     [
@@ -108,6 +112,7 @@
       null,
       null,
       "VAT & Amounts",
+      null,
       null,
       null,
       null,
@@ -144,6 +149,7 @@
       null,
       null,
       null,
+      null,
       "\"some value\""
     ],
     [
@@ -162,6 +168,7 @@
       null,
       null,
       10,
+      null,
       null,
       null,
       null,
@@ -188,6 +195,7 @@
       null,
       4,
       null,
+      null,
       null
     ],
     [
@@ -198,6 +206,7 @@
       "VAT",
       null,
       "[\"tax_details\"]",
+      null,
       null,
       null,
       null,
@@ -228,6 +237,7 @@
       null,
       null,
       10,
+      null,
       null,
       null,
       null,
