@@ -67,7 +67,7 @@ elisctl --profile profile_name queue list
 
 Some of the most common advanced operations are related to setting up
 the sidebar-describing schema according to business requirements. Using elisctl
-you can edit schema easily as a JSON file.
+you can edit schema easily as a JSON or XLSX file.
 
 List queues to obtain schema id:
 ```shell
@@ -84,17 +84,17 @@ elisctl schema get 7 -O schema.json
 
 Open the `schema.json` file in you favourite editor and upload modified version back to Rossum.
 ```shell
-elisctl schema update 7 schema.json
+elisctl schema update 7 --rewrite schema.json
 ```
 
-From now on, documents will follow new schema. (Warning! The new schema
-receives a new id - obtain it by `queue list` again.)
-
-As an experimental feature, you can also edit schema as an Excel (xlsx) file.
+You can also edit schema as an Excel (xlsx) file.
 ```shell
 elisctl schema get 7 --format xlsx -O schema.xlsx
-elisctl schema update 7 schema.xlsx
+elisctl schema update 7 --rewrite schema.xlsx
 ```
+
+From now on, documents will follow new schema. (Warning! If you don't use `--rewrite` option,
+the new schema will receive a new id - obtain it by `queue list` again.)
 
 
 ## Schema Transformations
@@ -118,21 +118,25 @@ MIT
 
 ## Contributing
 
-* Submit a pull request from forked version of this repo. 
-And select any of the maintainers as a reviewer.
 * Use [`pre-commit`](https://pre-commit.com/#install) to avoid linting issues.
-* When releasing, a `Collaborator` with `Admin` role shall run in `master` branch:
+* Submit a pull request from forked version of this repo.
+* Select any of the maintainers as a reviewer.
+* After an approved review, when releasing, a `Collaborator` with `Admin` role shall run in `master` branch:
     ```bash
     bump2version minor
     git push
     git push --tags
     ``` 
- * To build a Windows installer, run:
-     ```bash
+* To build a Windows installer, run:
+    ```bash
     pynsist installer.cfg
     ``` 
    
 ## Changelog
+
+### 2019-10-31 v2.8.0
+* Add webhook command
+* Allow creating and changing inbox properties on `queue change` command
 
 ### 2019-09-30 v2.7.1
 * Improve documentation
