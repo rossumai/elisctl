@@ -30,16 +30,57 @@ Install the package from PyPI:
 pip install elisctl
 ```
 
-## How to use
+## Usage
+### Python API Client Library
+The **elisctl** library can be used to communicate with Rossum API,
+instead of using `requests` library directly. The advantages of using **elisctl**:
+* it takes care of login and logout for the user,
+* in case the API version changes, the change will be implemented to the
+library by Rossum for all the users.
 
-Individual Rossum operations are triggered by passing specific *commands* to `elisctl`.
-Commands are organized by object type in a tree-like structure and thus are composed
-of multiple words (e.g. `user create` or `schema transform`).
+See the sample script using **elisctl** within a code to export the documents:
 
+```python
+import json
+
+from elisctl.lib.api_client import APIClient
+from datetime import date, timedelta
+
+queue_id = 12673
+username = 'your_username'
+password = 'your_password'
+reviewed_documents = "exported,exporting,failed_export"
+export_format = "json"
+
+date_today = date.today()
+date_end = date_today
+date_start = date_today - timedelta(days=1)
+
+def export_documents():
+    with APIClient(context=None, user=username, password=password) as rossum:
+        response = rossum.get(f"queues/{queue_id}/export?"
+                               f"status={reviewed_documents}"
+                               f"&format={export_format}"
+                               f"&exported_at_after={date_start.isoformat()}"
+                               f"&exported_at_before={date_end.isoformat()}"
+                               f"&ordering=exported_at"
+                               f"&page_size=100&page=1")
+
+        with open('exported_data.json', 'w') as f:
+            json.dump(response.json(), f)
+
+if __name__ == "__main__":
+    export_documents()
+```
+### API Client command line tool
 The **elisctl** tool can be either used in a **command line interface** mode
 by executing each command through `elisctl` individually by passing it as an argument,
 or in an **interactive shell** mode of executing `elisctl` without parameters
 and then typing the commands into the shown prompt.
+
+Individual Rossum operations are triggered by passing specific *commands* to `elisctl`.
+Commands are organized by object type in a tree-like structure and thus are composed
+of multiple words (e.g. `user create` or `schema transform`).
 
 So either get the list of commands and execute them immediately such as:
 ```shell
