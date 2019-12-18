@@ -51,6 +51,7 @@ username = 'your_username'
 password = 'your_password'
 reviewed_documents = "exported,exporting,failed_export"
 
+# This example downloads data for documents exported during the previous calendar day.
 date_today = date.today()
 date_end = date_today
 date_start = date_today - timedelta(days=1)
