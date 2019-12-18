@@ -50,7 +50,6 @@ queue_id = 12673
 username = 'your_username'
 password = 'your_password'
 reviewed_documents = "exported,exporting,failed_export"
-export_format = "json"
 
 date_today = date.today()
 date_end = date_today
@@ -60,7 +59,7 @@ def export_documents():
     with APIClient(context=None, user=username, password=password) as rossum:
         response = rossum.get(f"queues/{queue_id}/export?"
                                f"status={reviewed_documents}"
-                               f"&format={export_format}"
+                               f"&format=json"
                                f"&exported_at_after={date_start.isoformat()}"
                                f"&exported_at_before={date_end.isoformat()}"
                                f"&ordering=exported_at"
