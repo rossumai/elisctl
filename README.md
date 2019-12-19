@@ -34,6 +34,8 @@ pip install elisctl
 ### Python API Client Library
 The **elisctl** library can be used to communicate with Rossum API,
 instead of using `requests` library directly. The advantages of using **elisctl**:
+* it contains a function that merges the paginated results into one list so the user does not need
+to get results page by page and take care of their merging,
 * it takes care of login and logout for the user,
 * in case the API version changes, the change will be implemented to the
 library by Rossum for all the users.
@@ -42,6 +44,7 @@ See the sample script using **elisctl** within a code to export the documents:
 
 ```python
 import json
+import logging
 
 from elisctl.lib.api_client import APIClient
 from datetime import date, timedelta
@@ -57,20 +60,23 @@ date_end = date_today
 date_start = date_today - timedelta(days=1)
 
 def export_documents():
+    logging.info("Export started...")
     with APIClient(context=None, user=username, password=password) as rossum:
-        response = rossum.get(f"queues/{queue_id}/export?"
-                               f"status={reviewed_documents}"
-                               f"&format=json"
-                               f"&exported_at_after={date_start.isoformat()}"
-                               f"&exported_at_before={date_end.isoformat()}"
-                               f"&ordering=exported_at"
-                               f"&page_size=100&page=1")
 
-        with open('exported_data.json', 'w') as f:
-            json.dump(response.json(), f)
+            annotations_list, _ = rossum.get_paginated(f"queues/{queue_id}/export",
+                                                        {"status": reviewed_documents,
+                                                        "format": "json",
+                                                        "ordering": "exported_at",
+                                                        "exported_at_after": date_start.isoformat(),
+                                                        "exported_at_before": date_end.isoformat()})
+
+            with open('data.json', 'w') as f:
+                json.dump(annotations_list, f)
+    logging.info("...export finished.")
 
 if __name__ == "__main__":
     export_documents()
+
 ```
 ### API Client command line tool
 The **elisctl** tool can be either used in a **command line interface** mode
