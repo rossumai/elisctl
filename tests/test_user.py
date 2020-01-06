@@ -61,7 +61,7 @@ class TestCreate:
             status_code=201,
             json={"id": new_user_id},
         )
-        result = cli_runner.invoke(create_command, [NEW_USERNAME])
+        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-q", 12345])
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert f"{new_user_id}, {generated_password}\n" == result.output
 
@@ -82,6 +82,11 @@ class TestCreate:
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
 
+    def test_queues_not_specified(self, cli_runner):
+        result = cli_runner.invoke(create_command, [NEW_USERNAME])
+        assert result.exit_code == 2
+        assert 'Error: Missing option "-q" / "--queue-id".' in result.output
+
     @pytest.mark.usefixtures("mock_user_urls")
     def test_create_in_organization(self, requests_mock, cli_runner):
         organization_id = 2
@@ -101,7 +106,9 @@ class TestCreate:
                 match_uploaded_json, SuperDictOf({"organization": organization_url})
             ),
         )
-        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-o", organization_id])
+        result = cli_runner.invoke(
+            create_command, [NEW_USERNAME, "-o", organization_id, "-q", 12345]
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
 
     @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
@@ -122,7 +129,7 @@ class TestCreate:
             ),
             json=error_json,
         )
-        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-p", weak_password])
+        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-p", weak_password, "-q", 12345])
         assert result.exit_code == 1, print_tb(result.exc_info[2])
         assert result.output == f"Error: Invalid response [{USERS_URL}]: {json.dumps(error_json)}\n"
 
@@ -132,7 +139,7 @@ class TestCreate:
             complete_qs=True,
             json={"pagination": {"total": 1, "next": None}, "results": [{}]},
         )
-        result = cli_runner.invoke(create_command, [NEW_USERNAME])
+        result = cli_runner.invoke(create_command, [NEW_USERNAME, "-q", 12345])
         assert result.exit_code == 1
         assert result.output == f"Error: User with username {NEW_USERNAME} already exists.\n"
 
