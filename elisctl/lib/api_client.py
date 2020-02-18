@@ -368,13 +368,20 @@ class ELISClient(APIClient):
             data["locale"] = locale
         return get_json(self.post("queues", data))
 
-    def create_inbox(self, name: str, email_prefix: str, bounce_email: str, queue_url: str) -> dict:
+    def create_inbox(
+        self, name: str, email_prefix: Optional[str], bounce_email: Optional[str], queue_url: str
+    ) -> dict:
+        if not (email_prefix and bounce_email):
+            raise click.ClickException(
+                "Inbox cannot be created without both bounce email and email prefix specified."
+            )
+
         return get_json(
             self.post(
                 "inboxes",
                 data={
                     "name": name,
-                    "email_prefix": f"{email_prefix}",
+                    "email_prefix": email_prefix,
                     "bounce_email_to": bounce_email,
                     "bounce_unprocessable_attachments": True,
                     "queues": [queue_url],
