@@ -202,7 +202,7 @@ def _patch_inbox(
     inbox_data: Dict[str, Any] = {}
 
     if email_prefix:
-        inbox_data["email_prefix"] = f"{email_prefix}"
+        inbox_data["email_prefix"] = email_prefix
 
     if bounce_email:
         inbox_data["bounce_email_to"] = bounce_email
