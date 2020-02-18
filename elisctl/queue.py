@@ -188,11 +188,6 @@ def _create_inbox(
     bounce_email: Optional[str],
     name: Optional[str],
 ) -> None:
-
-    if not (email_prefix and bounce_email):
-        raise click.ClickException(
-            "Inbox cannot be created without both bounce email and email prefix specified."
-        )
     inbox_dict = elis.create_inbox(
         f"{name or queue_dict['name']} inbox", email_prefix, bounce_email, queue_dict["url"]
     )
