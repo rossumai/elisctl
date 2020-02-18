@@ -1,6 +1,5 @@
 from itertools import chain
 from typing import Optional
-from unittest import mock
 
 from functools import partial
 from traceback import print_tb
@@ -139,19 +138,18 @@ class TestCreate(QueueFixtures):
             json={"email": email},
         )
 
-        with mock.patch("secrets.choice", return_value="a"):
-            result = isolated_cli_runner.invoke(
-                create_command,
-                [
-                    "--schema-content-file",
-                    SCHEMA_FILE_NAME,
-                    "--email-prefix",
-                    email_prefix,
-                    "--bounce-email",
-                    bounce_mail,
-                    self.name,
-                ],
-            )
+        result = isolated_cli_runner.invoke(
+            create_command,
+            [
+                "--schema-content-file",
+                SCHEMA_FILE_NAME,
+                "--email-prefix",
+                email_prefix,
+                "--bounce-email",
+                bounce_mail,
+                self.name,
+            ],
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert f"{self.queue_id}, {email}\n" == result.output
 
@@ -396,11 +394,10 @@ class TestChange(QueueFixtures):
             json={"id": self.inbox_id, "email": self.inbox_email, "bounce_email_to": bounce_mail},
         )
 
-        with mock.patch("secrets.choice", return_value="a"):
-            result = isolated_cli_runner.invoke(
-                change_command,
-                [self.queue_id, "--email-prefix", self.email_prefix, "--bounce-email", bounce_mail],
-            )
+        result = isolated_cli_runner.invoke(
+            change_command,
+            [self.queue_id, "--email-prefix", self.email_prefix, "--bounce-email", bounce_mail],
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert result.output == f"{self.inbox_id}, {self.inbox_email}, test@example.com\n"
 
@@ -435,20 +432,18 @@ class TestChange(QueueFixtures):
             status_code=200,
         )
 
-        with mock.patch("secrets.choice", return_value="a"):
-            result = isolated_cli_runner.invoke(
-                change_command,
-                [self.queue_id, "--email-prefix", self.email_prefix, "--bounce-email", bounce_mail],
-            )
+        result = isolated_cli_runner.invoke(
+            change_command,
+            [self.queue_id, "--email-prefix", self.email_prefix, "--bounce-email", bounce_mail],
+        )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert result.output == f"{self.inbox_id}, {self.inbox_email}, {bounce_mail}\n"
 
     @pytest.mark.usefixtures("create_queue_urls")
     def test_cannot_create_inbox_on_queue_change(self, isolated_cli_runner):
-        with mock.patch("secrets.choice", return_value="a"):
-            result = isolated_cli_runner.invoke(
-                change_command, [self.queue_id, "--email-prefix", self.email_prefix]
-            )
+        result = isolated_cli_runner.invoke(
+            change_command, [self.queue_id, "--email-prefix", self.email_prefix]
+        )
         assert result.exit_code == 1, print_tb(result.exc_info[2])
         assert (
             "Error: Inbox cannot be created without both bounce email and email prefix specified.\n"
