@@ -4,7 +4,7 @@ import click
 from tabulate import tabulate
 
 from elisctl import argument, option
-from elisctl.lib import INBOXES, WORKSPACES, SCHEMAS, USERS, WEBHOOKS, generate_secret
+from elisctl.lib import INBOXES, WORKSPACES, SCHEMAS, USERS, WEBHOOKS
 from elisctl.lib.api_client import ELISClient, get_json
 
 locale_option = click.option(
@@ -141,11 +141,6 @@ def change_command(
     locale: Optional[str],
 ) -> None:
 
-    if (email_prefix or bounce_email) and not (email_prefix and bounce_email):
-        raise click.ClickException(
-            "Inbox cannot be created or updated without both bounce email and email prefix specified."
-        )
-
     if not any(
         [name, schema_content, email_prefix, bounce_email, connector_id, locale, webhook_id]
     ):
@@ -160,23 +155,12 @@ def change_command(
         data["locale"] = locale
 
     with ELISClient(context=ctx.obj) as elis:
-        if email_prefix and bounce_email:
+        if email_prefix or bounce_email:
             queue_dict = elis.get_queue(id_)
             if not queue_dict["inbox"]:
-                inbox_dict = elis.create_inbox(
-                    f"{name or queue_dict['name']} inbox",
-                    email_prefix,
-                    bounce_email,
-                    queue_dict["url"],
-                )
-                click.echo(
-                    f"{inbox_dict['id']}, {inbox_dict['email']}, {inbox_dict['bounce_email_to']}"
-                )
+                _create_inbox(elis, queue_dict, email_prefix, bounce_email, name)
             else:
-                email = f"{email_prefix}-{generate_secret(6)}@elis.rossum.ai"
-                inbox_data = {"email": email, "bounce_email_to": bounce_email}
-                _, inbox_id = queue_dict["inbox"].rsplit("/", 1)
-                elis.patch(f"inboxes/{inbox_id}", inbox_data)
+                _patch_inbox(elis, queue_dict, email_prefix, bounce_email)
 
         if connector_id is not None:
             data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
@@ -195,3 +179,39 @@ def change_command(
 
         if data:
             elis.patch(f"queues/{id_}", data)
+
+
+def _create_inbox(
+    elis: ELISClient,
+    queue_dict: dict,
+    email_prefix: Optional[str],
+    bounce_email: Optional[str],
+    name: Optional[str],
+) -> None:
+
+    if not (email_prefix and bounce_email):
+        raise click.ClickException(
+            "Inbox cannot be created without both bounce email and email prefix specified."
+        )
+    inbox_dict = elis.create_inbox(
+        f"{name or queue_dict['name']} inbox", email_prefix, bounce_email, queue_dict["url"]
+    )
+    click.echo(f"{inbox_dict['id']}, {inbox_dict['email']}, {inbox_dict['bounce_email_to']}")
+
+
+def _patch_inbox(
+    elis: ELISClient, queue_dict: dict, email_prefix: Optional[str], bounce_email: Optional[str]
+) -> None:
+    inbox_data: Dict[str, Any] = {}
+
+    if email_prefix:
+        inbox_data["email_prefix"] = f"{email_prefix}"
+
+    if bounce_email:
+        inbox_data["bounce_email_to"] = bounce_email
+        inbox_data["bounce_unprocessable_attachments"] = True
+
+    _, inbox_id = queue_dict["inbox"].rsplit("/", 1)
+    response_dict = get_json(elis.patch(f"inboxes/{inbox_id}", inbox_data))
+
+    click.echo(f"{inbox_id}, {response_dict['email']}, {response_dict['bounce_email_to']}")
