@@ -340,8 +340,8 @@ class TestChange(QueueFixtures):
     webhooks = [first_webhook_id, second_webhook_id]
     webhook_urls = [f"{WEBHOOKS_URL}/{id_}" for id_ in webhooks]
     inbox_id = "1"
-    stable_email_prefix = "123456"
-    inbox_email = f"{stable_email_prefix}-aaaaaa@elis.rossum.ai"
+    email_prefix = "test-email-prefix"
+    inbox_email = f"{email_prefix}-aaaaaa@elis.rossum.ai"
 
     def test_success(self, requests_mock, cli_runner):
         requests_mock.patch(
@@ -385,7 +385,7 @@ class TestChange(QueueFixtures):
                 match_uploaded_json,
                 {
                     "name": f"{name} inbox",
-                    "email_prefix": self.stable_email_prefix,
+                    "email_prefix": self.email_prefix,
                     "bounce_email_to": bounce_mail,
                     "bounce_unprocessable_attachments": True,
                     "queues": [f"{QUEUES_URL}/{self.queue_id}"],
@@ -399,13 +399,7 @@ class TestChange(QueueFixtures):
         with mock.patch("secrets.choice", return_value="a"):
             result = isolated_cli_runner.invoke(
                 change_command,
-                [
-                    self.queue_id,
-                    "--email-prefix",
-                    self.stable_email_prefix,
-                    "--bounce-email",
-                    bounce_mail,
-                ],
+                [self.queue_id, "--email-prefix", self.email_prefix, "--bounce-email", bounce_mail],
             )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert result.output == f"{self.inbox_id}, {self.inbox_email}, test@example.com\n"
@@ -424,7 +418,7 @@ class TestChange(QueueFixtures):
             additional_matcher=partial(
                 match_uploaded_json,
                 {
-                    "email_prefix": self.stable_email_prefix,
+                    "email_prefix": self.email_prefix,
                     "bounce_email_to": bounce_mail,
                     "bounce_unprocessable_attachments": True,
                 },
@@ -444,13 +438,7 @@ class TestChange(QueueFixtures):
         with mock.patch("secrets.choice", return_value="a"):
             result = isolated_cli_runner.invoke(
                 change_command,
-                [
-                    self.queue_id,
-                    "--email-prefix",
-                    self.stable_email_prefix,
-                    "--bounce-email",
-                    bounce_mail,
-                ],
+                [self.queue_id, "--email-prefix", self.email_prefix, "--bounce-email", bounce_mail],
             )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert result.output == f"{self.inbox_id}, {self.inbox_email}, {bounce_mail}\n"
@@ -459,7 +447,7 @@ class TestChange(QueueFixtures):
     def test_cannot_create_inbox_on_queue_change(self, isolated_cli_runner):
         with mock.patch("secrets.choice", return_value="a"):
             result = isolated_cli_runner.invoke(
-                change_command, [self.queue_id, "--email-prefix", self.stable_email_prefix]
+                change_command, [self.queue_id, "--email-prefix", self.email_prefix]
             )
         assert result.exit_code == 1, print_tb(result.exc_info[2])
         assert (
