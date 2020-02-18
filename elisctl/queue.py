@@ -158,9 +158,12 @@ def change_command(
         if email_prefix or bounce_email:
             queue_dict = elis.get_queue(id_)
             if not queue_dict["inbox"]:
-                _create_inbox(elis, queue_dict, email_prefix, bounce_email, name)
+                inbox_dict = _create_inbox(elis, queue_dict, email_prefix, bounce_email, name)
             else:
-                _patch_inbox(elis, queue_dict, email_prefix, bounce_email)
+                inbox_dict = _patch_inbox(elis, queue_dict, email_prefix, bounce_email)
+            click.echo(
+                f"{inbox_dict['id']}, {inbox_dict['email']}, {inbox_dict['bounce_email_to']}"
+            )
 
         if connector_id is not None:
             data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
@@ -187,16 +190,15 @@ def _create_inbox(
     email_prefix: Optional[str],
     bounce_email: Optional[str],
     name: Optional[str],
-) -> None:
-    inbox_dict = elis.create_inbox(
+) -> dict:
+    return elis.create_inbox(
         f"{name or queue_dict['name']} inbox", email_prefix, bounce_email, queue_dict["url"]
     )
-    click.echo(f"{inbox_dict['id']}, {inbox_dict['email']}, {inbox_dict['bounce_email_to']}")
 
 
 def _patch_inbox(
     elis: ELISClient, queue_dict: dict, email_prefix: Optional[str], bounce_email: Optional[str]
-) -> None:
+) -> dict:
     inbox_data: Dict[str, Any] = {}
 
     if email_prefix:
@@ -207,6 +209,4 @@ def _patch_inbox(
         inbox_data["bounce_unprocessable_attachments"] = True
 
     _, inbox_id = queue_dict["inbox"].rsplit("/", 1)
-    response_dict = get_json(elis.patch(f"inboxes/{inbox_id}", inbox_data))
-
-    click.echo(f"{inbox_id}, {response_dict['email']}, {response_dict['bounce_email_to']}")
+    return get_json(elis.patch(f"inboxes/{inbox_id}", inbox_data))

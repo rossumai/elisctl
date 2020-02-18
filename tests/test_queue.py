@@ -112,9 +112,9 @@ class TestCreate(QueueFixtures):
 
     @pytest.mark.usefixtures("create_queue_urls", "create_queue_schema")
     def test_create_inbox(self, requests_mock, isolated_cli_runner):
-        stable_email_prefix = "123456"
+        email_prefix = "123456"
         bounce_mail = "test@example.com"
-        email_prefix = f"{stable_email_prefix}-aaaaaa"
+        email = f"{email_prefix}-aaaaaa@elis.localhost"
 
         requests_mock.get(
             INBOXES_URL,
@@ -129,14 +129,14 @@ class TestCreate(QueueFixtures):
                 {
                     "name": f"{self.name} inbox",
                     "queues": [self.queue_url],
-                    "email_prefix": stable_email_prefix,
+                    "email_prefix": email_prefix,
                     "bounce_email_to": bounce_mail,
                     "bounce_unprocessable_attachments": True,
                 },
             ),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=201,
-            json={"email": email_prefix},
+            json={"email": email},
         )
 
         with mock.patch("secrets.choice", return_value="a"):
@@ -146,14 +146,14 @@ class TestCreate(QueueFixtures):
                     "--schema-content-file",
                     SCHEMA_FILE_NAME,
                     "--email-prefix",
-                    stable_email_prefix,
+                    email_prefix,
                     "--bounce-email",
                     bounce_mail,
                     self.name,
                 ],
             )
         assert not result.exit_code, print_tb(result.exc_info[2])
-        assert f"{self.queue_id}, {email_prefix}\n" == result.output
+        assert f"{self.queue_id}, {email}\n" == result.output
 
     @pytest.mark.usefixtures("create_queue_schema")
     def test_cannot_create_inbox(self, isolated_cli_runner):
@@ -415,12 +415,12 @@ class TestChange(QueueFixtures):
 
         requests_mock.get(
             f"{QUEUES_URL}/{self.queue_id}",
-            json={"inbox": f"{INBOXES_URL}/12345"},
+            json={"inbox": f"{INBOXES_URL}/{self.inbox_id}"},
             request_headers={"Authorization": f"Token {TOKEN}"},
         )
 
         requests_mock.patch(
-            f"{INBOXES_URL}/12345",
+            f"{INBOXES_URL}/{self.inbox_id}",
             additional_matcher=partial(
                 match_uploaded_json,
                 {
@@ -453,7 +453,7 @@ class TestChange(QueueFixtures):
                 ],
             )
         assert not result.exit_code, print_tb(result.exc_info[2])
-        assert result.output == f"12345, {self.inbox_email}, {bounce_mail}\n"
+        assert result.output == f"{self.inbox_id}, {self.inbox_email}, {bounce_mail}\n"
 
     @pytest.mark.usefixtures("create_queue_urls")
     def test_cannot_create_inbox_on_queue_change(self, isolated_cli_runner):
