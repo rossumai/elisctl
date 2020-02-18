@@ -181,6 +181,12 @@ MIT
    
 ## Changelog
 
+### 2020-02-18 v2.9.0
+* allow editing inbox attributes separately on queue-related commands
+* add support for `can_collapse` in xlsx schema
+* add sample usage of elisctl library in a Python code
+* make queue option required on `user create`
+
 ### 2019-10-31 v2.8.0
 * Add webhook command
 * Allow creating and changing inbox properties on `queue change` command
