@@ -85,7 +85,7 @@ class TestCreate:
     def test_queues_not_specified(self, cli_runner):
         result = cli_runner.invoke(create_command, [NEW_USERNAME])
         assert result.exit_code == 2
-        assert 'Error: Missing option "-q" / "--queue-id".' in result.output
+        assert 'Error: Missing option "-q" / "--queue-id".' in result.output.replace("'", '"')
 
     @pytest.mark.usefixtures("mock_user_urls")
     def test_create_in_organization(self, requests_mock, cli_runner):

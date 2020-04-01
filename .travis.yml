@@ -23,16 +23,16 @@ jobs:
       env: TOXENV=linting TOXCFG=tox.ini
       stage: test
 
+    - python: 3.8
+      env: TOXENV=py38 TOXCFG=tox.ini
+      stage: test
+
     - python: 3.7
       env: TOXENV=py37 TOXCFG=tox.ini
       stage: test
 
     - python: 3.6
       env: TOXENV=py36 TOXCFG=tox.ini
-      stage: test
-
-    - python: 3.7-dev
-      env: TOXENV=py37-dev TOXCFG=tox.ini
       stage: test
 
     - stage: deploy
