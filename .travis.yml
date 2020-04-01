@@ -35,10 +35,6 @@ jobs:
       env: TOXENV=py36 TOXCFG=tox.ini
       stage: test
 
-    - python: 3.7-dev
-      env: TOXENV=py37-dev TOXCFG=tox.ini
-      stage: test
-
     - stage: deploy
       python: 3.7
       install:
