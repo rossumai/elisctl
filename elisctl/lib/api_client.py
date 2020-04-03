@@ -466,6 +466,28 @@ class ELISClient(APIClient):
             files["values"] = (None, json.dumps(values))  # type: ignore
         return get_json(self.post(f"queues/{id_}/upload", files=files))
 
+    def set_metadata(self, object_type: str, object_id: int, metadata: Dict[str, Any]):
+        known_object_types = {
+            "annotations",
+            "connectors",
+            "documents",
+            "inboxes",
+            "organizations",
+            "pages",
+            "queues",
+            "schemas",
+            "users",
+            "webhooks",
+            "workspaces",
+        }
+
+        if object_type not in known_object_types:
+            raise click.ClickException(
+                f"Invalid object type {object_type}; expected one of {known_object_types}"
+            )
+
+        return get_json(self.patch(f"{object_type}/{object_id}", {"metadata": metadata}))
+
     def export_data(self, id_: int, annotation_ids: Iterable[int], format_: str) -> Response:
         ids = ",".join(str(a) for a in annotation_ids)
         return self.get(f"queues/{id_}/export", query={"id": ids, "format": format_})
