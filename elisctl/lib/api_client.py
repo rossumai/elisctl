@@ -1,3 +1,4 @@
+import json
 import sys
 from contextlib import AbstractContextManager
 from pathlib import PurePath
@@ -456,9 +457,13 @@ class ELISClient(APIClient):
         }
         return get_json(self.post("webhooks", data))
 
-    def upload_document(self, id_: int, file: str, filename_overwrite: str = "") -> dict:
+    def upload_document(
+        self, id_: int, file: str, filename_overwrite: str = "", values: Dict[str, str] = None
+    ) -> dict:
         filename = PurePath(filename_overwrite).name or PurePath(file).name
         files = {"content": (filename, open(f"{file}", "rb"))}
+        if values is not None:
+            files["values"] = (None, json.dumps(values))  # type: ignore
         return get_json(self.post(f"queues/{id_}/upload", files=files))
 
     def export_data(self, id_: int, annotation_ids: Iterable[int], format_: str) -> Response:
