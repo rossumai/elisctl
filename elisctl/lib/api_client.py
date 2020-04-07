@@ -8,7 +8,7 @@ import click
 import polling2
 import requests
 from requests import Response
-from typing import Dict, List, Tuple, Optional, Iterable, Any, Union, BinaryIO, Callable
+from typing import Any, BinaryIO, Callable, Dict, IO, Iterable, List, Optional, Tuple, Union
 
 from elisctl import __version__, CTX_PROFILE, CTX_DEFAULT_PROFILE
 from elisctl.configure import get_credential
@@ -24,6 +24,8 @@ from . import (
     GROUPS,
     ANNOTATIONS,
 )
+
+RequestsFiles = Dict[str, Tuple[Optional[str], Union[IO[bytes], BinaryIO, str]]]
 
 HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
 
@@ -94,7 +96,7 @@ class APIClient(AbstractContextManager):
         path: Union[str, APIObject],
         data: dict = None,
         expected_status_code: int = 201,
-        files: Optional[Dict[str, Tuple[str, BinaryIO]]] = None,
+        files: Optional[RequestsFiles] = None,
     ) -> Response:
         return self._request_url(
             "post",
@@ -461,9 +463,9 @@ class ELISClient(APIClient):
         self, id_: int, file: str, filename_overwrite: str = "", values: Dict[str, str] = None
     ) -> dict:
         filename = PurePath(filename_overwrite).name or PurePath(file).name
-        files = {"content": (filename, open(f"{file}", "rb"))}
+        files: RequestsFiles = {"content": (filename, open(f"{file}", "rb"))}
         if values is not None:
-            files["values"] = (None, json.dumps(values))  # type: ignore
+            files["values"] = (None, json.dumps(values))
         return get_json(self.post(f"queues/{id_}/upload", files=files))
 
     def set_metadata(self, object_type: str, object_id: int, metadata: Dict[str, Any]):
