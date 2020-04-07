@@ -3,7 +3,7 @@ from platform import platform
 
 import pytest
 from _pytest.fixtures import FixtureRequest
-from requests import Request
+from requests_mock.request import _RequestObjectProxy as Request
 
 from elisctl import __version__
 
@@ -86,7 +86,7 @@ def match_uploaded_json(uploaded_json: dict, request: Request) -> bool:
     return request.json() == uploaded_json
 
 
-def match_uploaded_data(filename: str, request) -> bool:
+def match_uploaded_data(filename: str, request: Request) -> bool:
     return filename in request.text
 
 
