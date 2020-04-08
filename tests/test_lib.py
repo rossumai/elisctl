@@ -4,25 +4,37 @@ from functools import partial
 import click
 import pytest
 
-from elisctl.lib import APIObject
+from elisctl.lib import APIObject, ANNOTATIONS
 from elisctl.lib.api_client import APIClient, ELISClient
 from tests.conftest import (
+    ANNOTATIONS_URL,
     API_URL,
+    SCHEMAS_URL,
     USERS_URL,
     ORGANIZATIONS_URL,
+    PAGES_URL,
     TOKEN,
     LOGIN_URL,
     REQUEST_HEADERS,
     DOCUMENTS_URL,
     QUEUES_URL,
     match_uploaded_data,
+    match_uploaded_json,
+    match_uploaded_values,
 )
 
 UPLOADED_DOC = f"{DOCUMENTS_URL}/12345"
+SCHEMA_ID = 398431
+SCHEMA_URL = f"{SCHEMAS_URL}/{SCHEMA_ID}"
 QUEUE_ID = 20202
-UPLOAD_ENDPOINT = f"{QUEUES_URL}/{QUEUE_ID}/upload"
+QUEUE_URL = f"{QUEUES_URL}/{QUEUE_ID}"
+UPLOAD_ENDPOINT = f"{QUEUE_URL}/upload"
 DOCUMENT_ID = 315511
 DOCUMENT_URL = f"{DOCUMENTS_URL}/{DOCUMENT_ID}"
+PAGE_ID = 4210254
+PAGE_URL = f"{PAGES_URL}/{PAGE_ID}"
+ANNOTATION_ID = 1863864
+ANNOTATION_URL = f"{ANNOTATIONS_URL}/{ANNOTATION_ID}"
 
 
 @pytest.mark.runner_setup(
@@ -152,4 +164,62 @@ class TestELISClient:
         with isolated_cli_runner.isolation():
             assert api_response == self.api_client.upload_document(
                 QUEUE_ID, mock_file, overwritten_filename
+            )
+
+    @pytest.mark.usefixtures("mock_login_request")
+    def test_upload_values(self, requests_mock, isolated_cli_runner, mock_file):
+        values = {"upload:key_1": "value_1", "upload:key_2": "value_2"}
+        api_response = {
+            "document": DOCUMENT_URL,
+            "annotation": ANNOTATION_URL,
+            "results": [{"document": DOCUMENT_URL, "annotation": ANNOTATION_URL}],
+        }
+
+        requests_mock.post(
+            UPLOAD_ENDPOINT,
+            additional_matcher=partial(match_uploaded_values, values),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            json=api_response,
+            status_code=201,
+        )
+
+        with isolated_cli_runner.isolation():
+            assert api_response == self.api_client.upload_document(
+                QUEUE_ID, mock_file, values=values
+            )
+
+    @pytest.mark.usefixtures("mock_login_request")
+    def test_set_metadata(self, requests_mock, isolated_cli_runner):
+        metadata = {"key_1": 42, "key_2": "str_value", "nested_key": {"key_a": "value_a"}}
+        api_response = {
+            "document": DOCUMENT_URL,
+            "id": DOCUMENT_ID,
+            "queue": QUEUE_URL,
+            "schema": SCHEMA_URL,
+            "pages": [PAGE_URL],
+            "modifier": None,
+            "modified_at": None,
+            "confirmed_at": None,
+            "exported_at": None,
+            "assigned_at": None,
+            "status": "to_review",
+            "rir_poll_id": "de8fb2e5877741bf97808eda",
+            "messages": None,
+            "url": ANNOTATION_URL,
+            "content": f"{ANNOTATION_URL}/content",
+            "time_spent": 0.0,
+            "metadata": metadata,
+        }
+
+        requests_mock.patch(
+            ANNOTATION_URL,
+            additional_matcher=partial(match_uploaded_json, {"metadata": metadata}),
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            json=api_response,
+            status_code=200,
+        )
+
+        with isolated_cli_runner.isolation():
+            assert api_response == self.api_client.set_metadata(
+                ANNOTATIONS, ANNOTATION_ID, metadata
             )

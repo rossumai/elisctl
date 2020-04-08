@@ -1,9 +1,12 @@
+import email
+import json
 import re
 from platform import platform
+from typing import Dict, Tuple
 
 import pytest
 from _pytest.fixtures import FixtureRequest
-from requests import Request
+from requests_mock.request import _RequestObjectProxy as Request
 
 from elisctl import __version__
 
@@ -14,6 +17,7 @@ ORGANIZATIONS_URL = f"{API_URL}/v1/organizations"
 WORKSPACES_URL = f"{API_URL}/v1/workspaces"
 DOCUMENTS_URL = f"{API_URL}/v1/documents"
 ANNOTATIONS_URL = f"{API_URL}/v1/annotations"
+PAGES_URL = f"{API_URL}/v1/pages"
 QUEUES_URL = f"{API_URL}/v1/queues"
 INBOXES_URL = f"{API_URL}/v1/inboxes"
 SCHEMAS_URL = f"{API_URL}/v1/schemas"
@@ -86,8 +90,32 @@ def match_uploaded_json(uploaded_json: dict, request: Request) -> bool:
     return request.json() == uploaded_json
 
 
-def match_uploaded_data(filename: str, request) -> bool:
+def match_uploaded_data(filename: str, request: Request) -> bool:
     return filename in request.text
+
+
+def match_uploaded_values(values: dict, request: Request) -> bool:
+    return values == json.loads(parse_multipart_message(request)["values"][1])
+
+
+def parse_multipart_message(request: Request) -> Dict[str, Tuple[Dict[str, str], str]]:
+    epost_data = f"""\
+MIME-Version: 1.0
+Content-Type: {request.headers['Content-Type']}
+
+{request.body.decode()}"""
+
+    msg = email.message_from_string(epost_data)
+
+    assert msg.is_multipart()
+
+    return {
+        params["name"]: (params, contents)
+        for params, contents in map(
+            lambda part: (dict(part.get_params(header="content-disposition")), part.get_payload()),
+            msg.get_payload(),
+        )
+    }
 
 
 _EMPTY_PDF_FILE = b"""%PDF-1.3
