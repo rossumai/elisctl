@@ -127,7 +127,7 @@ def change_command(
         if active is not None:
             data["active"] = active
         if events:
-            data["events"] = [events]
+            data["events"] = list(events)
         if config_url is not None:
             data["config"].update({"url": config_url})
         if config_secret is not None:
