@@ -7,10 +7,7 @@ from unittest import mock
 import pytest
 
 from elisctl.connector import list_command, change_command, delete_command, create_command
-from tests.conftest import API_URL, TOKEN, match_uploaded_json, QUEUES_URL, CONNECTORS_URL
-
-USERNAME = "test_user@rossum.ai"
-PASSWORD = "secret"
+from tests.conftest import TOKEN, match_uploaded_json, QUEUES_URL, CONNECTORS_URL
 
 QUEUES = ["1", "2"]
 QUEUE_ID = "12345"
@@ -25,10 +22,7 @@ AUTH_TOKEN = "secretly_secret"
 ASYNCHRONOUS = True
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestCreate:
     @mock.patch("elisctl.connector._generate_token")
     def test_success(self, mock_token, requests_mock, cli_runner):
@@ -122,10 +116,7 @@ class TestCreate:
         assert f"{CONNECTOR_ID}, {CONNECTOR_NAME}, ['{DEFAULT_QUEUE_URL}']\n" == result.output
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
         result = self._test_list(cli_runner, requests_mock, True)
@@ -180,10 +171,7 @@ class TestList:
         return result
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestChange:
     def test_success(self, requests_mock, cli_runner):
 
@@ -216,10 +204,7 @@ class TestChange:
         assert not requests_mock.called
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestDelete:
     def test_success(self, requests_mock, cli_runner):
 

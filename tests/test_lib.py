@@ -137,9 +137,7 @@ class TestSideload:
         }
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": "some", "ELIS_PASSWORD": "secret"}
-)
+@pytest.mark.usefixtures("elis_credentials")
 class TestELISClient:
     api_client = ELISClient(None)
 

@@ -5,9 +5,8 @@ from traceback import print_tb
 
 import pytest
 
-from elisctl.schema.transform import commands as transform
 from elisctl.schema.commands import download_command
-from tests.conftest import API_URL
+from elisctl.schema.transform import commands as transform
 
 SCHEMA_NAME = "schema.json"
 OPTIONS_NAME = "options.json"
@@ -219,17 +218,11 @@ def _original_schema_file(isolated_cli_runner):
     yield
 
 
-USERNAME = "test_user@rossum.ai"
-PASSWORD = "secret"
-
 schema_id = "1"
 schema_content = [{"label": "Příliš žluťoučký kůň úpěl ďábelské ódy."}]
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request", "mock_get_schema")
+@pytest.mark.usefixtures("mock_login_request", "mock_get_schema", "elis_credentials")
 class TestDownload:
     output_file = Path("test.json")
 

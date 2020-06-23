@@ -1,14 +1,12 @@
-from itertools import chain
-from typing import Optional
-
 from functools import partial
+from itertools import chain
 from traceback import print_tb
+from typing import Optional
 
 import pytest
 
 from elisctl.queue import create_command, list_command, delete_command, change_command
 from tests.conftest import (
-    API_URL,
     TOKEN,
     match_uploaded_json,
     WORKSPACES_URL,
@@ -20,8 +18,6 @@ from tests.conftest import (
     WEBHOOKS_URL,
 )
 
-USERNAME = "test_user@rossum.ai"
-PASSWORD = "secret"
 WORKSPACE_ID = "1"
 WORKSPACE_URL = f"{WORKSPACES_URL}/{WORKSPACE_ID}"
 SCHEMA_URL = f"{SCHEMAS_URL}/1"
@@ -93,10 +89,7 @@ class QueueFixtures:
         return f"{QUEUES_URL}/{self.queue_id}"
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestCreate(QueueFixtures):
     name = "TestName"
     queue_id = "2"
@@ -205,10 +198,7 @@ class TestCreate(QueueFixtures):
         assert f"{self.queue_id}, no email-prefix specified\n" == result.output
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
         queue_id = 1
@@ -302,10 +292,7 @@ class TestList:
         assert result.output == expected_table
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestDelete:
     def test_success(self, requests_mock, cli_runner):
         queue_id = "1"
@@ -326,10 +313,7 @@ class TestDelete:
         assert not result.output
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestChange(QueueFixtures):
     name = "TestName"
     queue_id = "1"
