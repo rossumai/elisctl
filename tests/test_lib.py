@@ -40,14 +40,18 @@ ANNOTATION_URL = f"{ANNOTATIONS_URL}/{ANNOTATION_ID}"
 @pytest.mark.usefixtures("elis_credentials")
 class TestAPIClient:
     api_client = APIClient(None)
+    username = "some"
+    password = "secret"
+    login_data = {"username": username, "password": password}
 
-    def test_get_token_success(self, requests_mock):
+    def test_get_token_success(self, requests_mock, isolated_cli_runner):
         requests_mock.post(
             LOGIN_URL,
             additional_matcher=partial(match_uploaded_json, self.login_data),
             json={"key": TOKEN},
         )
-        assert TOKEN == self.api_client.get_token(None)
+        with isolated_cli_runner.isolation():
+            assert TOKEN == self.api_client.get_token()
 
     def test_get_token_with_custom_lifetime(self, requests_mock):
         token_lifetime = 3600
@@ -64,14 +68,23 @@ class TestAPIClient:
         assert TOKEN == self.api_client.get_token(token_lifetime)
 
     def test_get_token_failed(self, requests_mock):
-        requests_mock.post(LOGIN_URL, status_code=401)
+        requests_mock.post(
+            LOGIN_URL,
+            additional_matcher=partial(match_uploaded_json, self.login_data),
+            status_code=401,
+        )
         with pytest.raises(click.ClickException) as e:
             self.api_client.get_token()
         assert "Login failed with the provided credentials." == str(e.value)
 
     def test_get_token_error(self, requests_mock):
         error_json = {"password": ["required"]}
-        requests_mock.post(LOGIN_URL, status_code=400, json=error_json)
+        requests_mock.post(
+            LOGIN_URL,
+            additional_matcher=partial(match_uploaded_json, self.login_data),
+            status_code=400,
+            json=error_json,
+        )
         with pytest.raises(click.ClickException) as e:
             self.api_client.get_token()
         assert f"Invalid response [{LOGIN_URL}]: {json.dumps(error_json)}" == str(e.value)
