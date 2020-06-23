@@ -39,12 +39,14 @@ class APIClient(AbstractContextManager):
         password: Optional[str] = None,
         use_api_version: bool = True,
         auth_using_token: bool = True,
+        max_token_lifetime: Optional[int] = None,
     ):
         self._url = url
         self._user = user
         self._password = password
         self._use_api_version = use_api_version
         self._auth_using_token = auth_using_token
+        self._max_token_lifetime = max_token_lifetime
         self._profile = (context or {}).get(CTX_PROFILE, CTX_DEFAULT_PROFILE)
 
         self.token: Optional[str] = None
@@ -79,11 +81,10 @@ class APIClient(AbstractContextManager):
 
     def get_token(self) -> str:
         # self.post cannot be used as it is dependent on self.get_token().
-        response = requests.post(
-            f"{self.url}/auth/login",
-            json={"username": self.user, "password": self.password},
-            headers=HEADERS,
-        )
+        login_data: Dict[str, Union[str, int]] = {"username": self.user, "password": self.password}
+        if self._max_token_lifetime:
+            login_data["max_token_lifetime"] = self._max_token_lifetime
+        response = requests.post(f"{self.url}/auth/login", json=login_data, headers=HEADERS)
         if response.status_code == 401:
             raise click.ClickException(f"Login failed with the provided credentials.")
         elif not response.ok:

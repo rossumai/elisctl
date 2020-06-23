@@ -65,7 +65,7 @@ class TestAPIClient:
             additional_matcher=partial(match_uploaded_json, login_data),
             json={"key": TOKEN},
         )
-        assert TOKEN == self.api_client.get_token(token_lifetime)
+        assert TOKEN == APIClient(None, max_token_lifetime=token_lifetime).get_token()
 
     def test_get_token_failed(self, requests_mock):
         requests_mock.post(
