@@ -248,7 +248,7 @@ class XlsxToSchema:
                 return value
             try:
                 return json.loads(value)
-            except TypeError:
+            except (TypeError, ValueError):
                 raise click.ClickException(f"Cannot convert to bool: {value}")
         if type_ == "json":
             try:
