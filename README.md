@@ -97,6 +97,16 @@ or run the interactive shell by simply running
 ```shell
 elisctl
 ```
+See the sample using **elisctl** command line tool to create the main objects within an organization and  
+assign a user to a queue:
+```shell
+elisctl configure
+elisctl workspace create "My New Workspace"
+elisctl queue create "My New Queue Via Elisctl" -s schema.json -w 12345 --email-prefix my-queue-email --bounce-email bounced-docs-here@gmail.com
+elisctl user create john.doe@company.com -q 50117 -g annotator -p my-secret-password-154568
+elisctl user_assignment add -u 59119 -q 50117
+```
+
 ## Configure profiles
 
 To run commands described below under a chosen user, it is possible to use profiles defined by
