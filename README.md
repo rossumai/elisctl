@@ -102,7 +102,7 @@ assign a user to a queue:
 ```shell
 elisctl configure
 elisctl workspace create "My New Workspace"
-elisctl queue create "My New Queue Via Elisctl" -s schema.json -w 12345 --email-prefix my-queue-email --bounce-email bounced-docs-here@gmail.com
+elisctl queue create "My New Queue Via Elisctl" -s schema.json -w 12345 --email-prefix my-queue-email --bounce-email bounced-docs-here@company.com
 elisctl user create john.doe@company.com -q 50117 -g annotator -p my-secret-password-154568
 elisctl user_assignment add -u 59119 -q 50117
 ```
