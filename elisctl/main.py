@@ -4,7 +4,6 @@ from click_shell import shell
 import elisctl.schema.commands
 from elisctl import (
     tools,
-    csv,
     configure,
     user,
     workspace,
@@ -39,7 +38,6 @@ def entry_point(ctx: click.Context, profile: str) -> None:
 
 
 entry_point.add_command(tools.cli)
-entry_point.add_command(csv.cli)
 entry_point.add_command(elisctl.schema.commands.cli)
 entry_point.add_command(user.cli)
 entry_point.add_command(user_assignment.cli)
