@@ -101,9 +101,15 @@ See the sample using **elisctl** command line tool to create the main objects wi
 assign a user to a queue:
 ```shell
 $ elisctl configure
+API URL [https://api.elis.rossum.ai]:
+Username: your_username@company.com
+Password:
 $ elisctl workspace create "My New Workspace"
+12345
 $ elisctl queue create "My New Queue Via Elisctl" -s schema.json -w 12345 --email-prefix my-queue-email --bounce-email bounced-docs-here@company.com
+50117, my-queue-email-ccddc6@elis.rossum.ai
 $ elisctl user create john.doe@company.com -q 50117 -g annotator -p my-secret-password-154568
+59119, my-secret-password-154568
 $ elisctl user_assignment add -u 59119 -q 50117
 ```
 
