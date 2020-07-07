@@ -90,21 +90,21 @@ of multiple words (e.g. `user create` or `schema transform`).
 
 So either get the list of commands and execute them immediately such as:
 ```shell
-elisctl --help
-elisctl configure
+$ elisctl --help
+$ elisctl configure
 ```
 or run the interactive shell by simply running
 ```shell
-elisctl
+$ elisctl
 ```
 See the sample using **elisctl** command line tool to create the main objects within an organization and  
 assign a user to a queue:
 ```shell
-elisctl configure
-elisctl workspace create "My New Workspace"
-elisctl queue create "My New Queue Via Elisctl" -s schema.json -w 12345 --email-prefix my-queue-email --bounce-email bounced-docs-here@company.com
-elisctl user create john.doe@company.com -q 50117 -g annotator -p my-secret-password-154568
-elisctl user_assignment add -u 59119 -q 50117
+$ elisctl configure
+$ elisctl workspace create "My New Workspace"
+$ elisctl queue create "My New Queue Via Elisctl" -s schema.json -w 12345 --email-prefix my-queue-email --bounce-email bounced-docs-here@company.com
+$ elisctl user create john.doe@company.com -q 50117 -g annotator -p my-secret-password-154568
+$ elisctl user_assignment add -u 59119 -q 50117
 ```
 
 ## Configure profiles
@@ -112,12 +112,12 @@ elisctl user_assignment add -u 59119 -q 50117
 To run commands described below under a chosen user, it is possible to use profiles defined by
 configure function such as
 ```shell
-elisctl --profile profile_name configure
+$ elisctl --profile profile_name configure
 ```
 
 After defining necessary profiles and their credentials, the profile can be chosen the following way
 ```shell
-elisctl --profile profile_name queue list
+$ elisctl --profile profile_name queue list
 ```
 
 ## Edit Schema
@@ -128,7 +128,7 @@ you can edit schema easily as a JSON or XLSX file.
 
 List queues to obtain schema id:
 ```shell
-elisctl queue list
+$ elisctl queue list
   id  name                           workspace  inbox                                       schema  users
 ----  ---------------------------  -----------  ----------------------------------------  --------  ----------------------
    6  My Queue 1                             6  myqueue-ab12ee@elis.rossum.ai                    7  27
@@ -136,18 +136,18 @@ elisctl queue list
 
 Download schema as a json:
 ```shell
-elisctl schema get 7 -O schema.json
+$ elisctl schema get 7 -O schema.json
 ```
 
 Open the `schema.json` file in you favourite editor and upload modified version back to Rossum.
 ```shell
-elisctl schema update 7 --rewrite schema.json
+$ elisctl schema update 7 --rewrite schema.json
 ```
 
 You can also edit schema as an Excel (xlsx) file.
 ```shell
-elisctl schema get 7 --format xlsx -O schema.xlsx
-elisctl schema update 7 --rewrite schema.xlsx
+$ elisctl schema get 7 --format xlsx -O schema.xlsx
+$ elisctl schema update 7 --rewrite schema.xlsx
 ```
 
 From now on, documents will follow new schema. (Warning! If you don't use `--rewrite` option,
@@ -162,7 +162,7 @@ and `elisctl tools` tools for further reference.
 
 Run something like:
 ```shell
-elisctl schema transform substitute-options default_schema.json centre <( \
+$ elisctl schema transform substitute-options default_schema.json centre <( \
    elisctl tools xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 --sheet 1 | elisctl tools csv_to_options - ) \
  | elisctl schema transform substitute-options - gl_code <( \
     elisctl tools xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 | elisctl tools csv_to_options - ) \
