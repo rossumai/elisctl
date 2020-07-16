@@ -5,8 +5,9 @@ from traceback import print_tb
 
 import pytest
 
-from elisctl.schema.commands import download_command
 from elisctl.schema.transform import commands as transform
+from elisctl.schema.commands import download_command, list_command
+from tests.conftest import SCHEMAS_URL, QUEUES_URL, TOKEN
 
 SCHEMA_NAME = "schema.json"
 OPTIONS_NAME = "options.json"
@@ -237,3 +238,39 @@ class TestDownload:
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert schema_content == json.loads(self.output_file.read_text())
+
+
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
+class TestList:
+    def test_success(self, requests_mock, cli_runner):
+        schema_id = 3
+        name = "Test schema"
+        queue_ids = ["1", "42", "3"]
+
+        queue_urls = [f"{QUEUES_URL}/{id_}" for id_ in queue_ids]
+
+        requests_mock.get(
+            SCHEMAS_URL,
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"id": schema_id, "name": name, "queues": queue_urls}],
+            },
+        )
+        requests_mock.get(
+            QUEUES_URL,
+            request_headers={"Authorization": f"Token {TOKEN}"},
+            json={
+                "pagination": {"total": 1, "next": None},
+                "results": [{"id": id_, "url": url} for id_, url in zip(queue_ids, queue_urls)],
+            },
+        )
+
+        result = cli_runner.invoke(list_command)
+        assert not result.exit_code, print_tb(result.exc_info[2])
+        expected_table = f"""\
+  id  name         queues
+----  -----------  --------
+   {schema_id}  {name}  {', '.join(queue_ids)}
+"""
+        assert result.output == expected_table

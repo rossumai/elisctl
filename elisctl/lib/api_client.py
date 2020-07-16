@@ -476,6 +476,11 @@ class ELISClient(APIClient):
         ids = ",".join(str(a) for a in annotation_ids)
         return self.get(f"queues/{id_}/export", query={"id": ids, "format": format_})
 
+    def get_schemas(self, sideloads: Optional[Iterable[APIObject]] = None) -> List[dict]:
+        schemas_list, _ = self.get_paginated(SCHEMAS)
+        self._sideload(schemas_list, sideloads)
+        return schemas_list
+
 
 def get_json(response: Response) -> dict:
     try:
