@@ -6,10 +6,7 @@ from traceback import print_tb, format_tb
 import pytest
 
 from elisctl.webhook import list_command, change_command, delete_command, create_command
-from tests.conftest import API_URL, TOKEN, match_uploaded_json, QUEUES_URL, WEBHOOKS_URL
-
-USERNAME = "test_user@rossum.ai"
-PASSWORD = "secret"
+from tests.conftest import TOKEN, match_uploaded_json, QUEUES_URL, WEBHOOKS_URL
 
 QUEUES = ["1", "2"]
 QUEUE_ID = "12345"
@@ -24,10 +21,7 @@ CONFIG_SECRET = "some_secret_key"
 ACTIVE = True
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestCreate:
     def test_success(self, requests_mock, cli_runner):
 
@@ -127,10 +121,7 @@ class TestCreate:
         )
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
         result = self._test_list(cli_runner, requests_mock, True)
@@ -184,10 +175,7 @@ class TestList:
         return result
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestChange:
     new_webhook_name = "My patched new name"
     new_event = "new_event"
@@ -237,10 +225,7 @@ class TestChange:
         assert not requests_mock.called
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestDelete:
     def test_success(self, requests_mock, cli_runner):
 

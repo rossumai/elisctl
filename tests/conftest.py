@@ -1,5 +1,6 @@
 import email
 import json
+import os
 import re
 from platform import platform
 from typing import Dict, Tuple
@@ -28,6 +29,13 @@ CONNECTORS_URL = f"{API_URL}/v1/connectors"
 WEBHOOKS_URL = f"{API_URL}/v1/webhooks"
 
 REQUEST_HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
+
+
+@pytest.fixture
+def elis_credentials(monkeypatch):
+    monkeypatch.setitem(os.environ, "ELIS_URL", API_URL)
+    monkeypatch.setitem(os.environ, "ELIS_USERNAME", "some")
+    monkeypatch.setitem(os.environ, "ELIS_PASSWORD", "secret")
 
 
 @pytest.fixture

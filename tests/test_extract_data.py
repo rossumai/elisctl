@@ -6,10 +6,7 @@ from unittest import mock
 import pytest
 
 from elisctl.document.extract_data import get_data
-from tests.conftest import ANNOTATIONS_URL, API_URL, QUEUES_URL, TOKEN
-
-USERNAME = "something"
-PASSWORD = "secret"
+from tests.conftest import ANNOTATIONS_URL, QUEUES_URL, TOKEN
 
 ANNOTATION_IDS = [315510, 315511]
 EXPORT_IDS_CHAIN = ",".join(str(id_) for id_ in ANNOTATION_IDS)
@@ -33,10 +30,7 @@ OUTPUT_FILE = "output.json"
 
 
 @mock.patch("time.sleep")
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestExtractData:
     @pytest.mark.parametrize("format_", [None, "json", "xml", "csv"])
     def test_get_data(self, mock_sleep, requests_mock, isolated_cli_runner, format_, mock_file):

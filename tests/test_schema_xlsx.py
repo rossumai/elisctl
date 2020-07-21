@@ -3,22 +3,17 @@ from copy import deepcopy
 from functools import partial
 from pathlib import Path
 from traceback import print_tb
+from typing import List, Optional
 
 import pytest
-
-from tests.conftest import TOKEN, SCHEMAS_URL, match_uploaded_json
+from openpyxl import load_workbook, Workbook
 
 from elisctl.schema import xlsx
 from elisctl.schema.commands import download_command
 from elisctl.schema.upload import upload_command
-from openpyxl import load_workbook, Workbook
-from tests.conftest import API_URL
-from typing import List, Optional
+from tests.conftest import TOKEN, SCHEMAS_URL, match_uploaded_json
 
 Matrix = List[List[Optional[str]]]
-
-USERNAME = "test_user@rossum.ai"
-PASSWORD = "secret"
 
 schema_id = "1"
 with open(Path(__file__).parent / "data" / "schema.json") as f:
@@ -28,10 +23,7 @@ with open(Path(__file__).parent / "data" / "xlsx_dump.json") as f:
     xlsx_content = json.load(f)
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request", "mock_get_schema")
+@pytest.mark.usefixtures("mock_login_request", "mock_get_schema", "elis_credentials")
 class TestXlsx:
     output_file = Path("test.xlsx")
 

@@ -7,7 +7,6 @@ from more_itertools import ilen
 
 from elisctl.workspace import create_command, list_command, delete_command, change_command
 from tests.conftest import (
-    API_URL,
     TOKEN,
     match_uploaded_json,
     ORGANIZATIONS_URL,
@@ -17,16 +16,11 @@ from tests.conftest import (
     ANNOTATIONS_URL,
 )
 
-USERNAME = "test_user@rossum.ai"
-PASSWORD = "secret"
 ORGANIZATION_ID = "1"
 ORGANIZATION_URL = f"{ORGANIZATIONS_URL}/{ORGANIZATION_ID}"
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request", "mock_organization_urls")
+@pytest.mark.usefixtures("mock_login_request", "mock_organization_urls", "elis_credentials")
 class TestCreate:
     def test_success(self, requests_mock, cli_runner):
         name = "TestName"
@@ -46,10 +40,7 @@ class TestCreate:
         assert f"{new_id}\n" == result.output
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
         workspace_id = 1
@@ -83,10 +74,7 @@ class TestList:
         assert result.output == expected_table
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestDelete:
     def test_success(self, requests_mock, cli_runner):
         workspace_id = "1"
@@ -137,10 +125,7 @@ class TestDelete:
         )
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestChange:
     def test_success(self, requests_mock, cli_runner):
         name = "TestName"

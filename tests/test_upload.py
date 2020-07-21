@@ -6,25 +6,20 @@ from typing import List
 
 import pytest
 
-from tests.conftest import API_URL, TOKEN, match_uploaded_json, SCHEMAS_URL, QUEUES_URL
 from elisctl.schema.upload import upload_command
+from tests.conftest import TOKEN, match_uploaded_json, SCHEMAS_URL, QUEUES_URL
 
 DATA = """\
 1;abc
 2;cde
 3;fgh\
 """
-USERNAME = "something"
-PASSWORD = "secret"
 SCHEMA_NAME = "schema.json"
 schema_content: List = []
 schema_id = "1"
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestUpload:
     @pytest.mark.usefixtures("mock_get_schema")
     def test_schema_create(self, requests_mock, isolated_cli_runner):

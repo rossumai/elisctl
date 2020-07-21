@@ -5,16 +5,10 @@ from traceback import print_tb
 import pytest
 
 from elisctl.user_assignment import add_command, list_command, remove_command
-from tests.conftest import API_URL, QUEUES_URL, TOKEN, USERS_URL, match_uploaded_json
-
-USERNAME = "test_user@rossum.ai"
-PASSWORD = "secret"
+from tests.conftest import QUEUES_URL, TOKEN, USERS_URL, match_uploaded_json
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestList:
     queue_ids = ["1", "2"]
     name = "TestQueue"
@@ -96,10 +90,7 @@ class TestList:
         assert result.output == expected_table
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestAdd:
     orig_queue_url = f"{QUEUES_URL}/1"
     new_queue_id = "2"
@@ -133,10 +124,7 @@ class TestAdd:
         )
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": USERNAME, "ELIS_PASSWORD": PASSWORD}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestRemoveQueues:
     orig_queue_id = "1"
     orig_queue_url = f"{QUEUES_URL}/{orig_queue_id}"

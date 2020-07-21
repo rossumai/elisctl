@@ -37,27 +37,55 @@ ANNOTATION_ID = 1863864
 ANNOTATION_URL = f"{ANNOTATIONS_URL}/{ANNOTATION_ID}"
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": "some", "ELIS_PASSWORD": "secret"}
-)
+@pytest.mark.usefixtures("elis_credentials")
 class TestAPIClient:
     api_client = APIClient(None)
+    username = "some"
+    password = "secret"
+    login_data = {"username": username, "password": password}
 
     def test_get_token_success(self, requests_mock, isolated_cli_runner):
-        requests_mock.post(LOGIN_URL, json={"key": TOKEN})
+        requests_mock.post(
+            LOGIN_URL,
+            additional_matcher=partial(match_uploaded_json, self.login_data),
+            json={"key": TOKEN},
+        )
         with isolated_cli_runner.isolation():
             assert TOKEN == self.api_client.get_token()
 
-    def test_get_token_failed(self, requests_mock, isolated_cli_runner):
-        requests_mock.post(LOGIN_URL, status_code=401)
-        with isolated_cli_runner.isolation(), pytest.raises(click.ClickException) as e:
+    def test_get_token_with_custom_lifetime(self, requests_mock):
+        token_lifetime = 3600
+        login_data = {
+            "username": self.username,
+            "password": self.password,
+            "max_token_lifetime": token_lifetime,
+        }
+        requests_mock.post(
+            LOGIN_URL,
+            additional_matcher=partial(match_uploaded_json, login_data),
+            json={"key": TOKEN},
+        )
+        assert TOKEN == APIClient(None, max_token_lifetime=token_lifetime).get_token()
+
+    def test_get_token_failed(self, requests_mock):
+        requests_mock.post(
+            LOGIN_URL,
+            additional_matcher=partial(match_uploaded_json, self.login_data),
+            status_code=401,
+        )
+        with pytest.raises(click.ClickException) as e:
             self.api_client.get_token()
         assert "Login failed with the provided credentials." == str(e.value)
 
-    def test_get_token_error(self, requests_mock, isolated_cli_runner):
+    def test_get_token_error(self, requests_mock):
         error_json = {"password": ["required"]}
-        requests_mock.post(LOGIN_URL, status_code=400, json=error_json)
-        with isolated_cli_runner.isolation(), pytest.raises(click.ClickException) as e:
+        requests_mock.post(
+            LOGIN_URL,
+            additional_matcher=partial(match_uploaded_json, self.login_data),
+            status_code=400,
+            json=error_json,
+        )
+        with pytest.raises(click.ClickException) as e:
             self.api_client.get_token()
         assert f"Invalid response [{LOGIN_URL}]: {json.dumps(error_json)}" == str(e.value)
 
@@ -69,10 +97,7 @@ class TestAPIClient:
         assert requests_mock.called
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": "some", "ELIS_PASSWORD": "secret"}
-)
-@pytest.mark.usefixtures("mock_login_request")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestSideload:
     api_client = APIClient(None)
     url = f"{API_URL}/v1/tests"
@@ -80,32 +105,28 @@ class TestSideload:
     sideloaded_obj = {"url": obj_url, "some": "test"}
     TESTS = APIObject("tests")
 
-    def test_sideload_singular(self, requests_mock, isolated_cli_runner):
+    def test_sideload_singular(self, requests_mock):
         requests_mock.get(self.url, json=self._paginated_rsp())
 
-        with isolated_cli_runner.isolation():
-            res = self.api_client._sideload([{"test": self.obj_url}], (self.TESTS,))
+        res = self.api_client._sideload([{"test": self.obj_url}], (self.TESTS,))
         assert res == [{"test": self.sideloaded_obj}]
 
-    def test_sideload_plural(self, requests_mock, isolated_cli_runner):
+    def test_sideload_plural(self, requests_mock):
         requests_mock.get(self.url, json=self._paginated_rsp())
 
-        with isolated_cli_runner.isolation():
-            res = self.api_client._sideload([{"tests": [self.obj_url]}], (self.TESTS,))
+        res = self.api_client._sideload([{"tests": [self.obj_url]}], (self.TESTS,))
         assert res == [{"tests": [self.sideloaded_obj]}]
 
-    def test_sideload_not_reachable_singular(self, requests_mock, isolated_cli_runner):
+    def test_sideload_not_reachable_singular(self, requests_mock):
         requests_mock.get(self.url, json=self._paginated_rsp(0))
 
-        with isolated_cli_runner.isolation():
-            res = self.api_client._sideload([{"test": self.obj_url}], (self.TESTS,))
+        res = self.api_client._sideload([{"test": self.obj_url}], (self.TESTS,))
         assert res == [{"test": {}}]
 
-    def test_sideload_not_reachable_plural(self, requests_mock, isolated_cli_runner):
+    def test_sideload_not_reachable_plural(self, requests_mock):
         requests_mock.get(self.url, json=self._paginated_rsp(0))
 
-        with isolated_cli_runner.isolation():
-            res = self.api_client._sideload([{"tests": [self.obj_url]}], (self.TESTS,))
+        res = self.api_client._sideload([{"tests": [self.obj_url]}], (self.TESTS,))
         assert res == [{"tests": []}]
 
     def _paginated_rsp(self, total: int = 1):
@@ -116,14 +137,12 @@ class TestSideload:
         }
 
 
-@pytest.mark.runner_setup(
-    env={"ELIS_URL": API_URL, "ELIS_USERNAME": "some", "ELIS_PASSWORD": "secret"}
-)
+@pytest.mark.usefixtures("elis_credentials")
 class TestELISClient:
     api_client = ELISClient(None)
 
     @pytest.mark.usefixtures("mock_login_request")
-    def test_get_organization_old_api(self, requests_mock, isolated_cli_runner):
+    def test_get_organization_old_api(self, requests_mock):
         organization_json = {"test": "test"}
 
         user_url = f"{USERS_URL}/1"
@@ -132,12 +151,11 @@ class TestELISClient:
         requests_mock.get(user_url, json={"organization": organization_url})
         requests_mock.get(organization_url, json=organization_json)
 
-        with isolated_cli_runner.isolation():
-            assert organization_json == self.api_client.get_organization()
+        assert organization_json == self.api_client.get_organization()
         assert requests_mock.called
 
     @pytest.mark.usefixtures("mock_login_request")
-    def test_upload_overwrite_filename(self, requests_mock, isolated_cli_runner, mock_file):
+    def test_upload_overwrite_filename(self, requests_mock, mock_file):
         original_filename = "empty_file.pdf"
         overwritten_filename = "Overwritten filename.pdf"
         api_response = {"results": [{"document": DOCUMENT_URL}]}
@@ -150,8 +168,7 @@ class TestELISClient:
             status_code=201,
         )
 
-        with isolated_cli_runner.isolation():
-            assert api_response == self.api_client.upload_document(QUEUE_ID, mock_file)
+        assert api_response == self.api_client.upload_document(QUEUE_ID, mock_file)
 
         requests_mock.post(
             UPLOAD_ENDPOINT,
@@ -161,13 +178,12 @@ class TestELISClient:
             status_code=201,
         )
 
-        with isolated_cli_runner.isolation():
-            assert api_response == self.api_client.upload_document(
-                QUEUE_ID, mock_file, overwritten_filename
-            )
+        assert api_response == self.api_client.upload_document(
+            QUEUE_ID, mock_file, overwritten_filename
+        )
 
     @pytest.mark.usefixtures("mock_login_request")
-    def test_upload_values(self, requests_mock, isolated_cli_runner, mock_file):
+    def test_upload_values(self, requests_mock, mock_file):
         values = {"upload:key_1": "value_1", "upload:key_2": "value_2"}
         api_response = {
             "document": DOCUMENT_URL,
@@ -183,13 +199,10 @@ class TestELISClient:
             status_code=201,
         )
 
-        with isolated_cli_runner.isolation():
-            assert api_response == self.api_client.upload_document(
-                QUEUE_ID, mock_file, values=values
-            )
+        assert api_response == self.api_client.upload_document(QUEUE_ID, mock_file, values=values)
 
     @pytest.mark.usefixtures("mock_login_request")
-    def test_set_metadata(self, requests_mock, isolated_cli_runner):
+    def test_set_metadata(self, requests_mock):
         metadata = {"key_1": 42, "key_2": "str_value", "nested_key": {"key_a": "value_a"}}
         api_response = {
             "document": DOCUMENT_URL,
@@ -219,7 +232,4 @@ class TestELISClient:
             status_code=200,
         )
 
-        with isolated_cli_runner.isolation():
-            assert api_response == self.api_client.set_metadata(
-                ANNOTATIONS, ANNOTATION_ID, metadata
-            )
+        assert api_response == self.api_client.set_metadata(ANNOTATIONS, ANNOTATION_ID, metadata)
