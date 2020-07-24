@@ -58,7 +58,7 @@ class TestAPIClient:
         login_data = {
             "username": self.username,
             "password": self.password,
-            "max_token_lifetime": token_lifetime,
+            "max_token_lifetime_s": token_lifetime,
         }
         requests_mock.post(
             LOGIN_URL,

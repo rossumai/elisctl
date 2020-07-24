@@ -83,7 +83,7 @@ class APIClient(AbstractContextManager):
         # self.post cannot be used as it is dependent on self.get_token().
         login_data: Dict[str, Union[str, int]] = {"username": self.user, "password": self.password}
         if self._max_token_lifetime:
-            login_data["max_token_lifetime"] = self._max_token_lifetime
+            login_data["max_token_lifetime_s"] = self._max_token_lifetime
         response = requests.post(f"{self.url}/auth/login", json=login_data, headers=HEADERS)
         if response.status_code == 401:
             raise click.ClickException(f"Login failed with the provided credentials.")
