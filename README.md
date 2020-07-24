@@ -197,6 +197,16 @@ MIT
    
 ## Changelog
 
+### 2020-07-24 v2.10.0
+* Add `schema list` command
+* Fix `webhook change` command issue
+* Remove `csv get` command
+* Add example script for setting up a new organisation
+* Enable assigning manager role to user
+* Enable setting max token lifetime
+* Catch ValueError when parsing schema in XLSX
+* Fix Python3.8 support
+
 ### 2020-02-18 v2.9.0
 * allow editing inbox attributes separately on queue-related commands
 * add support for `can_collapse` in xlsx schema
