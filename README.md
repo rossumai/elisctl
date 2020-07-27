@@ -197,6 +197,9 @@ MIT
    
 ## Changelog
 
+### 2020-07-27 v2.10.1
+* Fix attribute name for setting max token lifetime
+
 ### 2020-07-24 v2.10.0
 * Add `schema list` command
 * Fix `webhook change` command issue
