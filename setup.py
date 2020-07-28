@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="elisctl",
-    version="2.10.0",
+    version="2.10.1",
     description="Command line interface for controlling the Rossum platform",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
