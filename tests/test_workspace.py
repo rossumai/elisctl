@@ -5,7 +5,7 @@ from traceback import print_tb
 import pytest
 from more_itertools import ilen
 
-from elisctl.workspace import create_command, list_command, delete_command, change_command
+from rossumctl.workspace import create_command, list_command, delete_command, change_command
 from tests.conftest import (
     TOKEN,
     match_uploaded_json,
@@ -20,7 +20,7 @@ ORGANIZATION_ID = "1"
 ORGANIZATION_URL = f"{ORGANIZATIONS_URL}/{ORGANIZATION_ID}"
 
 
-@pytest.mark.usefixtures("mock_login_request", "mock_organization_urls", "elis_credentials")
+@pytest.mark.usefixtures("mock_login_request", "mock_organization_urls", "rossum_credentials")
 class TestCreate:
     def test_success(self, requests_mock, cli_runner):
         name = "TestName"
@@ -40,7 +40,7 @@ class TestCreate:
         assert f"{new_id}\n" == result.output
 
 
-@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
+@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
         workspace_id = 1
@@ -74,7 +74,7 @@ class TestList:
         assert result.output == expected_table
 
 
-@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
+@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
 class TestDelete:
     def test_success(self, requests_mock, cli_runner):
         workspace_id = "1"
@@ -125,7 +125,7 @@ class TestDelete:
         )
 
 
-@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
+@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
 class TestChange:
     def test_success(self, requests_mock, cli_runner):
         name = "TestName"

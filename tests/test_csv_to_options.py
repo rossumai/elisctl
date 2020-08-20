@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from elisctl.tools import csv_to_options
+from rossumctl.tools import csv_to_options
 
 FILENAME = "some.csv"
 DATA = [

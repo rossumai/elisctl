@@ -3,9 +3,9 @@ import string
 from typing import Tuple, Optional, Dict, Any, List
 
 import click
-from elisctl import option, argument
-from elisctl.lib import QUEUES
-from elisctl.lib.api_client import ELISClient
+from rossumctl import option, argument
+from rossumctl.lib import QUEUES
+from rossumctl.lib.api_client import RossumClient
 from tabulate import tabulate
 
 
@@ -36,17 +36,17 @@ def create_command(
 ) -> None:
     token = auth_token or _generate_token()
 
-    with ELISClient(context=ctx.obj) as elis:
+    with RossumClient(context=ctx.obj) as rossum:
         if not queue_ids:
-            queue_urls = [elis.get_queue()["url"]]
+            queue_urls = [rossum.get_queue()["url"]]
         else:
             queue_urls = []
             for id_ in queue_ids:
-                queue_dict = elis.get_queue(id_)
+                queue_dict = rossum.get_queue(id_)
                 if queue_dict:
                     queue_urls.append(queue_dict["url"])
 
-        response = elis.create_connector(
+        response = rossum.create_connector(
             name=name,
             queues=queue_urls,
             service_url=service_url,
@@ -60,8 +60,8 @@ def create_command(
 @cli.command(name="list", help="List all connectors.")
 @click.pass_context
 def list_command(ctx: click.Context,):
-    with ELISClient(context=ctx.obj) as elis:
-        connectors_list = elis.get_connectors((QUEUES,))
+    with RossumClient(context=ctx.obj) as rossum:
+        connectors_list = rossum.get_connectors((QUEUES,))
 
     headers = ["id", "name", "service url", "queues", "params", "asynchronous"]
 
@@ -114,9 +114,9 @@ def change_command(
 
     data: Dict[str, Any] = {}
 
-    with ELISClient(context=ctx.obj) as elis:
+    with RossumClient(context=ctx.obj) as rossum:
         if queue_ids:
-            data["queues"] = [elis.get_queue(queue)["url"] for queue in queue_ids]
+            data["queues"] = [rossum.get_queue(queue)["url"] for queue in queue_ids]
         if name is not None:
             data["name"] = name
         if service_url is not None:
@@ -128,7 +128,7 @@ def change_command(
         if asynchronous is not None:
             data["asynchronous"] = asynchronous
 
-        elis.patch(f"connectors/{id_}", data)
+        rossum.patch(f"connectors/{id_}", data)
 
 
 @cli.command(name="delete", help="Delete a connector.")
@@ -138,9 +138,9 @@ def change_command(
 )
 @click.pass_context
 def delete_command(ctx: click.Context, id_: str) -> None:
-    with ELISClient(context=ctx.obj) as elis:
-        url = elis.url
-        elis.delete(to_delete={f"{id_}": f"{url}/connectors/{id_}"}, item="connector")
+    with RossumClient(context=ctx.obj) as rossum:
+        url = rossum.url
+        rossum.delete(to_delete={f"{id_}": f"{url}/connectors/{id_}"}, item="connector")
 
 
 def _generate_token():

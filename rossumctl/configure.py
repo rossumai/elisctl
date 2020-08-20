@@ -6,13 +6,13 @@ from pathlib import Path
 
 import click
 
-from elisctl import CTX_PROFILE, CTX_DEFAULT_PROFILE
+from rossumctl import CTX_PROFILE, CTX_DEFAULT_PROFILE
 
-CONFIGURATION_PATH = Path.home() / ".elis" / "credentials"
-DEFAULT_ELIS_URL = "https://api.elis.rossum.ai"
+CONFIGURATION_PATH = Path.home() / ".rossum" / "credentials"
+DEFAULT_ROSSUM_URL = "https://api.elis.rossum.ai"
 
 
-ELIS_ENV_PROFILE_VAR = "ELIS_PROFILE"
+ROSSUM_ENV_PROFILE_VAR = "ROSSUM_PROFILE"
 
 
 HELP = f"""\
@@ -25,9 +25,9 @@ If no profile is chosen, credentials are set to default profile.
 Alternatively, configuration can be set using
 environment variables:
 
-ELIS_URL: URL of the API (e.g. {DEFAULT_ELIS_URL})
-ELIS_USERNAME: username of an ELIS account
-ELIS_PASSWORD: password to the ELIS account
+ROSSUM_URL: URL of the API (e.g. {DEFAULT_ROSSUM_URL})
+ROSSUM_USERNAME: username of an ROSSUM account
+ROSSUM_PASSWORD: password to the ROSSUM account
 """
 
 
@@ -41,7 +41,7 @@ def cli(ctx: click.Context,):
             config.read_file(f)
 
     config[ctx.obj[CTX_PROFILE]] = {
-        "url": click.prompt(f"API URL", default=DEFAULT_ELIS_URL, type=str).strip().rstrip("/"),
+        "url": click.prompt(f"API URL", default=DEFAULT_ROSSUM_URL, type=str).strip().rstrip("/"),
         "username": click.prompt(f"Username", type=str).strip(),
         "password": click.prompt(f"Password", hide_input=True, type=str).strip(),
     }
@@ -52,11 +52,11 @@ def cli(ctx: click.Context,):
 
 
 def get_credential(attr: str, profile: Optional[str] = None) -> str:
-    res = os.getenv(f"ELIS_{attr.upper()}")
+    res = os.getenv(f"ROSSUM_{attr.upper()}")
     if res is not None:
         return res
 
-    profile = os.getenv(ELIS_ENV_PROFILE_VAR) or profile or CTX_DEFAULT_PROFILE
+    profile = os.getenv(ROSSUM_ENV_PROFILE_VAR) or profile or CTX_DEFAULT_PROFILE
 
     config = configparser.RawConfigParser()
     config.read(CONFIGURATION_PATH)
@@ -65,7 +65,7 @@ def get_credential(attr: str, profile: Optional[str] = None) -> str:
     except KeyError as e:
         raise click.ClickException(
             f"Provide API credential {attr}. "
-            f"Either by using `elisctl configure`, or environment variable ELIS_{attr.upper()}."
+            f"Either by using `rossumctl configure`, or environment variable ROSSUM_{attr.upper()}."
         ) from e
     else:
         res = config_dict.get(attr)

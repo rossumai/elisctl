@@ -6,8 +6,8 @@ from traceback import print_tb
 import pytest
 from click import ClickException
 
-from elisctl import configure, CTX_DEFAULT_PROFILE, CTX_PROFILE
-from elisctl.main import entry_point
+from rossumctl import configure, CTX_DEFAULT_PROFILE, CTX_PROFILE
+from rossumctl.main import entry_point
 
 
 class TestConfigure:
@@ -59,13 +59,13 @@ class TestConfigure:
 
         assert expected_credentials == config["new_profile"]
 
-    @pytest.mark.runner_setup(env={"ELIS_TEST": "test"})
+    @pytest.mark.runner_setup(env={"ROSSUM_TEST": "test"})
     def test_get_credential_from_env(self, isolated_cli_runner):
         with isolated_cli_runner.isolation():
             result = configure.get_credential("test")
         assert "test" == result
 
-    @pytest.mark.runner_setup(env={"ELIS_PROFILE": "test_profile"})
+    @pytest.mark.runner_setup(env={"ROSSUM_PROFILE": "test_profile"})
     def test_get_credential_from_env_profile(self, isolated_cli_runner, configuration_path):
         with isolated_cli_runner.isolation():
             configuration_path.parent.mkdir()
@@ -109,7 +109,7 @@ class TestConfigure:
 
         assert e.value.message == (
             "Provide API credential test. "
-            "Either by using `elisctl configure`, or environment variable ELIS_TEST."
+            "Either by using `rossumctl configure`, or environment variable ROSSUM_TEST."
         )
 
 
@@ -117,7 +117,7 @@ class TestConfigure:
 @pytest.mark.usefixtures("isolated_cli_runner")
 def configuration_path():
     old_path = configure.CONFIGURATION_PATH
-    new_path = Path(".elis") / "credentials"
+    new_path = Path(".rossum") / "credentials"
     configure.CONFIGURATION_PATH = new_path
     yield new_path
     configure.CONFIGURATION_PATH = old_path
