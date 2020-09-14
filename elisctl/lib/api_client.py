@@ -19,7 +19,7 @@ from . import (
     QUEUES,
     SCHEMAS,
     CONNECTORS,
-    WEBHOOKS,
+    HOOKS,
     USERS,
     GROUPS,
     ANNOTATIONS,
@@ -251,15 +251,15 @@ class ELISClient(APIClient):
         *,
         workspace: Optional[int] = None,
         users: Optional[Iterable[int]] = None,
-        webhooks: Optional[Iterable[int]] = None,
+        hooks: Optional[Iterable[int]] = None,
     ) -> List[dict]:
         query: Dict[str, Any] = {}
         if workspace:
             query[WORKSPACES.singular] = workspace
         if users:
             query[USERS.plural] = users
-        if webhooks:
-            query[WEBHOOKS.plural] = webhooks
+        if hooks:
+            query[HOOKS.plural] = hooks
         queues_list, _ = self.get_paginated(QUEUES, query=query)
         self._sideload(queues_list, sideloads)
         return queues_list
@@ -312,10 +312,10 @@ class ELISClient(APIClient):
         self._sideload(connectors_list, sideloads)
         return connectors_list
 
-    def get_webhooks(self, sideloads: Optional[Iterable[APIObject]] = None) -> List[dict]:
-        webhooks_list, _ = self.get_paginated(WEBHOOKS)
-        self._sideload(webhooks_list, sideloads)
-        return webhooks_list
+    def get_hooks(self, sideloads: Optional[Iterable[APIObject]] = None) -> List[dict]:
+        hooks_list, _ = self.get_paginated(HOOKS)
+        self._sideload(hooks_list, sideloads)
+        return hooks_list
 
     def get_annotation(self, id_: Optional[int] = None) -> dict:
         if id_ is None:
@@ -354,7 +354,7 @@ class ELISClient(APIClient):
         workspace_url: str,
         schema_url: str,
         connector_url: Optional[str] = None,
-        webhooks_urls: Optional[List] = None,
+        hooks_urls: Optional[List] = None,
         locale: Optional[str] = None,
     ) -> dict:
         data = {
@@ -366,8 +366,8 @@ class ELISClient(APIClient):
         }
         if connector_url is not None:
             data[CONNECTORS.singular] = connector_url
-        if webhooks_urls is not None:
-            data[WEBHOOKS.plural] = webhooks_urls  # type: ignore
+        if hooks_urls is not None:
+            data[HOOKS.plural] = hooks_urls  # type: ignore
         if locale is not None:
             data["locale"] = locale
         return get_json(self.post("queues", data))
@@ -436,7 +436,7 @@ class ELISClient(APIClient):
         }
         return get_json(self.post("connectors", data))
 
-    def create_webhook(
+    def create_hook(
         self,
         name: str,
         queues: List[str],
@@ -458,7 +458,7 @@ class ELISClient(APIClient):
                 "insecure_ssl": config_insecure_ssl,
             },
         }
-        return get_json(self.post("webhooks", data))
+        return get_json(self.post("hooks", data))
 
     def upload_document(
         self, id_: int, file: str, filename_overwrite: str = "", values: Dict[str, str] = None

@@ -20,11 +20,11 @@ connector_id = click.option(
     "--connector-id", type=str, help="If not specified, queue will not call back a connector."
 )
 
-webhook_id = click.option(
-    "--webhook-id",
+hook_id = click.option(
+    "--hook-id",
     type=int,
     multiple=True,
-    help="If not specified, webhook will not be associated with the queue.",
+    help="If not specified, hook will not be associated with the queue.",
 )
 
 output_file = click.option("-O", "--output-file", type=click.File("wb"))
@@ -97,11 +97,7 @@ asynchronous = click.option(
 )
 
 active = click.option(
-    "--active",
-    type=bool,
-    required=True,
-    default=True,
-    help="Affects whether the webhook is notified.",
+    "--active", type=bool, required=True, default=True, help="Affects whether the hook is notified."
 )
 
 events = click.option(
@@ -117,7 +113,7 @@ config_url = click.option(
     "--config-url",
     required=True,
     type=str,
-    help="URL endpoint where the message from the webhook should be pushed.",
+    help="URL endpoint where the message from the hook should be pushed.",
 )
 
 config_secret = click.option(

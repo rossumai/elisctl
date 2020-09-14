@@ -7,15 +7,15 @@ from elisctl.lib.api_client import ELISClient
 from tabulate import tabulate
 
 
-@click.group("webhook")
+@click.group("hook")
 def cli() -> None:
     pass
 
 
-@cli.command(name="create", help="Create a webhook object.")
+@cli.command(name="create", help="Create a hook object.")
 @argument.name
 @option.queue(
-    help="Queue IDs, that the webhook will be associated with. "
+    help="Queue IDs, that the hook will be associated with. "
     "Required field - will be assigned to an only queue automatically if not specified."
 )
 @option.active
@@ -45,7 +45,7 @@ def create_command(
                 if queue_dict:
                     queue_urls.append(queue_dict["url"])
 
-        response = elis.create_webhook(
+        response = elis.create_hook(
             name=name,
             queues=queue_urls,
             active=active,
@@ -59,26 +59,26 @@ def create_command(
         )
 
 
-@cli.command(name="list", help="List all webhooks.")
+@cli.command(name="list", help="List all hooks.")
 @click.pass_context
 def list_command(ctx: click.Context,):
     with ELISClient(context=ctx.obj) as elis:
-        webhooks_list = elis.get_webhooks((QUEUES,))
+        hooks_list = elis.get_hooks((QUEUES,))
 
     headers = ["id", "name", "events", "queues", "active", "url", "insecure_ssl"]
 
-    def get_row(webhook: dict) -> List[str]:
+    def get_row(hook: dict) -> List[str]:
         res = [
-            webhook["id"],
-            webhook["name"],
-            ", ".join(e for e in webhook["events"]),
-            ", ".join(str(q.get("id", "")) for q in webhook["queues"]),
-            webhook["active"],
-            webhook["config"]["url"],
-            webhook["config"]["insecure_ssl"],
+            hook["id"],
+            hook["name"],
+            ", ".join(e for e in hook["events"]),
+            ", ".join(str(q.get("id", "")) for q in hook["queues"]),
+            hook["active"],
+            hook["config"]["url"],
+            hook["config"]["insecure_ssl"],
         ]
         try:
-            secret_key = webhook["config"]["secret"]
+            secret_key = hook["config"]["secret"]
         except KeyError:
             pass
         else:
@@ -88,14 +88,14 @@ def list_command(ctx: click.Context,):
 
         return res
 
-    table = [get_row(webhook) for webhook in webhooks_list]
+    table = [get_row(hook) for hook in hooks_list]
 
     click.echo(tabulate(table, headers=headers))
 
 
-@cli.command(name="change", help="Update a webhook object.")
+@cli.command(name="change", help="Update a hook object.")
 @argument.id_
-@option.queue(related_object="webhook")
+@option.queue(related_object="hook")
 @option.name
 @option.events
 @option.active
@@ -135,16 +135,16 @@ def change_command(
         if config_insecure_ssl is not None:
             data["config"].update({"insecure_ssl": config_insecure_ssl})
 
-        elis.patch(f"webhooks/{id_}", data)
+        elis.patch(f"hooks/{id_}", data)
 
 
-@cli.command(name="delete", help="Delete a webhook.")
+@cli.command(name="delete", help="Delete a hook.")
 @argument.id_
 @click.confirmation_option(
-    prompt="This will delete the webhook deployed on the queue. Do you want to continue?"
+    prompt="This will delete the hook deployed on the queue. Do you want to continue?"
 )
 @click.pass_context
 def delete_command(ctx: click.Context, id_: str) -> None:
     with ELISClient(context=ctx.obj) as elis:
         url = elis.url
-        elis.delete(to_delete={f"{id_}": f"{url}/webhooks/{id_}"}, item="webhook")
+        elis.delete(to_delete={f"{id_}": f"{url}/hooks/{id_}"}, item="hook")

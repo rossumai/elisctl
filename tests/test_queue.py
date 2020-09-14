@@ -15,7 +15,7 @@ from tests.conftest import (
     INBOXES_URL,
     USERS_URL,
     CONNECTORS_URL,
-    WEBHOOKS_URL,
+    HOOKS_URL,
 )
 
 WORKSPACE_ID = "1"
@@ -52,7 +52,7 @@ class QueueFixtures:
             "workspace": WORKSPACE_URL,
             "schema": SCHEMA_URL,
             "rir_url": "https://all.rir.rossum.ai",
-            "webhooks": [],
+            "hooks": [],
         }
         requests_mock.post(
             QUEUES_URL,
@@ -156,21 +156,21 @@ class TestCreate(QueueFixtures):
         assert "Error: Inbox cannot be created without specified bounce email.\n" == result.output
 
     @pytest.mark.usefixtures("create_queue_urls", "create_queue_schema")
-    def test_create_queue_with_webhooks(self, requests_mock, isolated_cli_runner):
-        first_webhook_id = 101
-        second_webhook_id = 202
-        webhooks = [first_webhook_id, second_webhook_id]
+    def test_create_queue_with_hooks(self, requests_mock, isolated_cli_runner):
+        first_hook_id = 101
+        second_hook_id = 202
+        hooks = [first_hook_id, second_hook_id]
 
         requests_mock.get(
-            f"{WEBHOOKS_URL}/{first_webhook_id}",
+            f"{HOOKS_URL}/{first_hook_id}",
             request_headers={"Authorization": f"Token {TOKEN}"},
-            json={"id": first_webhook_id, "url": f"{WEBHOOKS_URL}/{first_webhook_id}"},
+            json={"id": first_hook_id, "url": f"{HOOKS_URL}/{first_hook_id}"},
         )
 
         requests_mock.get(
-            f"{WEBHOOKS_URL}/{second_webhook_id}",
+            f"{HOOKS_URL}/{second_hook_id}",
             request_headers={"Authorization": f"Token {TOKEN}"},
-            json={"id": second_webhook_id, "url": f"{WEBHOOKS_URL}/{second_webhook_id}"},
+            json={"id": second_hook_id, "url": f"{HOOKS_URL}/{second_hook_id}"},
         )
 
         queue_content = {
@@ -178,7 +178,7 @@ class TestCreate(QueueFixtures):
             "workspace": WORKSPACE_URL,
             "schema": SCHEMA_URL,
             "rir_url": "https://all.rir.rossum.ai",
-            "webhooks": [f"{WEBHOOKS_URL}/{id_}" for id_ in webhooks],
+            "hooks": [f"{HOOKS_URL}/{id_}" for id_ in hooks],
         }
 
         requests_mock.post(
@@ -192,7 +192,7 @@ class TestCreate(QueueFixtures):
         result = isolated_cli_runner.invoke(
             create_command,
             [self.name, "--schema-content-file", SCHEMA_FILE_NAME]
-            + list(chain.from_iterable(("--webhook-id", w) for w in webhooks)),
+            + list(chain.from_iterable(("--hook-id", w) for w in hooks)),
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert f"{self.queue_id}, no email-prefix specified\n" == result.output
@@ -211,8 +211,8 @@ class TestList:
         user_ids = ["4", "5"]
         user_urls = [f"{USERS_URL}/{id_}" for id_ in user_ids]
         connector_id = 2000
-        webhook_ids = ["101", "202"]
-        webhooks_urls = [f"{WEBHOOKS_URL}/{id_}" for id_ in webhook_ids]
+        hook_ids = ["101", "202"]
+        hooks_urls = [f"{HOOKS_URL}/{id_}" for id_ in hook_ids]
 
         queue_url = f"{QUEUES_URL}/{queue_id}"
         workspace_url = f"{WORKSPACES_URL}/{queue_id}"
@@ -232,7 +232,7 @@ class TestList:
                         "schema": schema_url,
                         "users": user_urls,
                         "connector": connector_url,
-                        "webhooks": webhooks_urls,
+                        "hooks": hooks_urls,
                     }
                 ],
             },
@@ -273,21 +273,19 @@ class TestList:
             },
         )
         requests_mock.get(
-            WEBHOOKS_URL,
+            HOOKS_URL,
             json={
                 "pagination": {"total": 1, "next": None},
-                "results": [
-                    {"id": id_, "url": webhook} for id_, webhook in zip(webhook_ids, webhooks_urls)
-                ],
+                "results": [{"id": id_, "url": hook} for id_, hook in zip(hook_ids, hooks_urls)],
             },
         )
 
         result = cli_runner.invoke(list_command)
         assert not result.exit_code, print_tb(result.exc_info[2])
         expected_table = f"""\
-  id  name         workspace  inbox               schema  users    connector                                         webhooks
-----  ---------  -----------  ----------------  --------  -------  ------------------------------------------------  ----------
-   {queue_id}  {name}            {workspace_id}  {inbox}         {schema_id}  {', '.join(user_ids)}     {connector_url}  {', '.join(webhook_ids)}
+  id  name         workspace  inbox               schema  users    connector                                         hooks
+----  ---------  -----------  ----------------  --------  -------  ------------------------------------------------  --------
+   {queue_id}  {name}            {workspace_id}  {inbox}         {schema_id}  {', '.join(user_ids)}     {connector_url}  {', '.join(hook_ids)}
 """
         assert result.output == expected_table
 
@@ -317,10 +315,10 @@ class TestDelete:
 class TestChange(QueueFixtures):
     name = "TestName"
     queue_id = "1"
-    first_webhook_id = 101
-    second_webhook_id = 202
-    webhooks = [first_webhook_id, second_webhook_id]
-    webhook_urls = [f"{WEBHOOKS_URL}/{id_}" for id_ in webhooks]
+    first_hook_id = 101
+    second_hook_id = 202
+    hooks = [first_hook_id, second_hook_id]
+    hook_urls = [f"{HOOKS_URL}/{id_}" for id_ in hooks]
     inbox_id = "1"
     email_prefix = "test-email-prefix"
     inbox_email = f"{email_prefix}-aaaaaa@elis.rossum.ai"
@@ -434,23 +432,23 @@ class TestChange(QueueFixtures):
             == result.output
         )
 
-    def test_change_webhook_ids(self, requests_mock, cli_runner):
+    def test_change_hook_ids(self, requests_mock, cli_runner):
         requests_mock.get(
-            f"{WEBHOOKS_URL}/{self.first_webhook_id}",
+            f"{HOOKS_URL}/{self.first_hook_id}",
             request_headers={"Authorization": f"Token {TOKEN}"},
-            json={"id": self.first_webhook_id, "url": f"{WEBHOOKS_URL}/{self.first_webhook_id}"},
+            json={"id": self.first_hook_id, "url": f"{HOOKS_URL}/{self.first_hook_id}"},
         )
 
         requests_mock.get(
-            f"{WEBHOOKS_URL}/{self.second_webhook_id}",
+            f"{HOOKS_URL}/{self.second_hook_id}",
             request_headers={"Authorization": f"Token {TOKEN}"},
-            json={"id": self.second_webhook_id, "url": f"{WEBHOOKS_URL}/{self.second_webhook_id}"},
+            json={"id": self.second_hook_id, "url": f"{HOOKS_URL}/{self.second_hook_id}"},
         )
 
         requests_mock.patch(
             self.queue_url,
             additional_matcher=partial(
-                match_uploaded_json, {"name": self.name, "webhooks": self.webhook_urls}
+                match_uploaded_json, {"name": self.name, "hooks": self.hook_urls}
             ),
             request_headers={"Authorization": f"Token {TOKEN}"},
             status_code=200,
@@ -458,7 +456,7 @@ class TestChange(QueueFixtures):
         result = cli_runner.invoke(
             change_command,
             [self.queue_id, "-n", self.name]
-            + list(chain.from_iterable(("--webhook-id", w) for w in self.webhooks)),
+            + list(chain.from_iterable(("--hook-id", w) for w in self.hooks)),
         )
         assert not result.exit_code, print_tb(result.exc_info[2])
         assert not result.output
