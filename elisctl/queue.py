@@ -4,7 +4,7 @@ import click
 from tabulate import tabulate
 
 from elisctl import argument, option
-from elisctl.lib import INBOXES, WORKSPACES, SCHEMAS, USERS, WEBHOOKS
+from elisctl.lib import INBOXES, WORKSPACES, SCHEMAS, USERS, HOOKS
 from elisctl.lib.api_client import ELISClient, get_json
 
 locale_option = click.option(
@@ -27,7 +27,7 @@ def cli() -> None:
 @option.workspace_id
 @option.connector_id
 @locale_option
-@option.webhook_id
+@option.hook_id
 @click.pass_context
 def create_command(
     ctx: click.Context,
@@ -37,7 +37,7 @@ def create_command(
     bounce_email: Optional[str],
     workspace_id: Optional[int],
     connector_id: Optional[int],
-    webhook_id: Optional[Tuple[int, ...]],
+    hook_id: Optional[Tuple[int, ...]],
     locale: Optional[str],
 ) -> None:
     if email_prefix is not None and bounce_email is None:
@@ -51,15 +51,15 @@ def create_command(
             else None
         )
 
-        webhooks_urls = []
-        if webhook_id:
-            for webhook in webhook_id:
-                webhook_url = get_json(elis.get(f"webhooks/{webhook}"))["url"]
-                webhooks_urls.append(webhook_url)
+        hooks_urls = []
+        if hook_id:
+            for hook in hook_id:
+                hook_url = get_json(elis.get(f"hooks/{hook}"))["url"]
+                hooks_urls.append(hook_url)
 
         schema_dict = elis.create_schema(f"{name} schema", schema_content)
         queue_dict = elis.create_queue(
-            name, workspace_url, schema_dict["url"], connector_url, webhooks_urls, locale
+            name, workspace_url, schema_dict["url"], connector_url, hooks_urls, locale
         )
 
         inbox_dict = {"email": "no email-prefix specified"}
@@ -74,7 +74,7 @@ def create_command(
 @click.pass_context
 def list_command(ctx: click.Context,) -> None:
     with ELISClient(context=ctx.obj) as elis:
-        queues = elis.get_queues((WORKSPACES, INBOXES, SCHEMAS, USERS, WEBHOOKS))
+        queues = elis.get_queues((WORKSPACES, INBOXES, SCHEMAS, USERS, HOOKS))
 
     table = [
         [
@@ -85,7 +85,7 @@ def list_command(ctx: click.Context,) -> None:
             str(queue["schema"].get("id", "")),
             ", ".join(str(q.get("id", "")) for q in queue["users"]),
             queue["connector"],
-            ", ".join(str(q.get("id", "")) for q in queue["webhooks"]),
+            ", ".join(str(q.get("id", "")) for q in queue["hooks"]),
         ]
         for queue in queues
     ]
@@ -93,16 +93,7 @@ def list_command(ctx: click.Context,) -> None:
     click.echo(
         tabulate(
             table,
-            headers=[
-                "id",
-                "name",
-                "workspace",
-                "inbox",
-                "schema",
-                "users",
-                "connector",
-                "webhooks",
-            ],
+            headers=["id", "name", "workspace", "inbox", "schema", "users", "connector", "hooks"],
         )
     )
 
@@ -126,7 +117,7 @@ def delete_command(ctx: click.Context, id_: int) -> None:
 @option.connector_id
 @option.email_prefix
 @option.bounce_email
-@option.webhook_id
+@option.hook_id
 @locale_option
 @click.pass_context
 def change_command(
@@ -137,13 +128,11 @@ def change_command(
     email_prefix: Optional[str],
     bounce_email: Optional[str],
     connector_id: Optional[int],
-    webhook_id: Optional[Tuple[int, ...]],
+    hook_id: Optional[Tuple[int, ...]],
     locale: Optional[str],
 ) -> None:
 
-    if not any(
-        [name, schema_content, email_prefix, bounce_email, connector_id, locale, webhook_id]
-    ):
+    if not any([name, schema_content, email_prefix, bounce_email, connector_id, locale, hook_id]):
         return
 
     data: Dict[str, Any] = {}
@@ -168,12 +157,12 @@ def change_command(
         if connector_id is not None:
             data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
 
-        if webhook_id:
-            webhooks_urls = []
-            for webhook in webhook_id:
-                webhook_url = get_json(elis.get(f"webhooks/{webhook}"))["url"]
-                webhooks_urls.append(webhook_url)
-                data["webhooks"] = webhooks_urls
+        if hook_id:
+            hooks_urls = []
+            for hook in hook_id:
+                hook_url = get_json(elis.get(f"hooks/{hook}"))["url"]
+                hooks_urls.append(hook_url)
+                data["hooks"] = hooks_urls
 
         if schema_content is not None:
             name = name or elis.get_queue(id_)["name"]

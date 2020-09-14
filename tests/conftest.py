@@ -26,7 +26,7 @@ USERS_URL = f"{API_URL}/v1/users"
 GROUPS_URL = f"{API_URL}/v1/groups"
 LOGIN_URL = f"{API_URL}/v1/auth/login"
 CONNECTORS_URL = f"{API_URL}/v1/connectors"
-WEBHOOKS_URL = f"{API_URL}/v1/webhooks"
+HOOKS_URL = f"{API_URL}/v1/hooks"
 
 REQUEST_HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
 
