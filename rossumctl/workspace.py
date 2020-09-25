@@ -3,9 +3,9 @@ from typing import Optional, Dict, Any
 import click
 from tabulate import tabulate
 
-from elisctl import argument, option
-from elisctl.lib import QUEUES
-from elisctl.lib.api_client import ELISClient, get_json
+from rossumctl import argument, option
+from rossumctl.lib import QUEUES
+from rossumctl.lib.api_client import RossumClient, get_json
 
 
 @click.group("workspace")
@@ -18,10 +18,10 @@ def cli() -> None:
 @option.organization
 @click.pass_context
 def create_command(ctx: click.Context, name: str, organization_id: Optional[int]) -> None:
-    with ELISClient(context=ctx.obj) as elis:
-        organization_url = elis.get_organization(organization_id)["url"]
+    with RossumClient(context=ctx.obj) as rossum:
+        organization_url = rossum.get_organization(organization_id)["url"]
 
-        res = elis.post("workspaces", {"name": name, "organization": organization_url})
+        res = rossum.post("workspaces", {"name": name, "organization": organization_url})
     workspace_dict = get_json(res)
     click.echo(workspace_dict["id"])
 
@@ -29,8 +29,8 @@ def create_command(ctx: click.Context, name: str, organization_id: Optional[int]
 @cli.command(name="list", help="List all workspaces.")
 @click.pass_context
 def list_command(ctx: click.Context,):
-    with ELISClient(context=ctx.obj) as elis:
-        workspaces = elis.get_workspaces((QUEUES,))
+    with RossumClient(context=ctx.obj) as rossum:
+        workspaces = rossum.get_workspaces((QUEUES,))
 
     table = [
         [
@@ -49,19 +49,19 @@ def list_command(ctx: click.Context,):
 @click.confirmation_option()
 @click.pass_context
 def delete_command(ctx: click.Context, id_: int) -> None:
-    with ELISClient(context=ctx.obj) as elis:
-        workspace = elis.get_workspace(id_)
-        queues = elis.get_queues(workspace=workspace["id"])
+    with RossumClient(context=ctx.obj) as rossum:
+        workspace = rossum.get_workspace(id_)
+        queues = rossum.get_queues(workspace=workspace["id"])
         documents = {}
         for queue in queues:
-            res, _ = elis.get_paginated(
+            res, _ = rossum.get_paginated(
                 "annotations",
                 {"page_size": 50, "queue": queue["id"], "sideload": "documents"},
                 key="documents",
             )
             documents.update({d["id"]: d["url"] for d in res})
 
-        elis.delete({workspace["id"]: workspace["url"], **documents})
+        rossum.delete({workspace["id"]: workspace["url"], **documents})
 
 
 @cli.command(name="change", help="Change a workspace.")
@@ -76,5 +76,5 @@ def change_command(ctx: click.Context, id_: str, name: Optional[str]) -> None:
     if name is not None:
         data["name"] = name
 
-    with ELISClient(context=ctx.obj) as elis:
-        elis.patch(f"workspaces/{id_}", data)
+    with RossumClient(context=ctx.obj) as rossum:
+        rossum.patch(f"workspaces/{id_}", data)

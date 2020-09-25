@@ -4,7 +4,7 @@ from typing import Optional, IO
 import click as click
 import pandas as pd
 
-from elisctl import option
+from rossumctl import option
 
 HELP = "Create options list from csv. Usable for filling options key of enum datapoint in schema."
 

@@ -1,8 +1,8 @@
 import click
 from click_shell import shell
 
-import elisctl.schema.commands
-from elisctl import (
+import rossumctl.schema.commands
+from rossumctl import (
     tools,
     configure,
     user,
@@ -19,8 +19,8 @@ from elisctl import (
 
 
 @shell(
-    prompt="elis> ",
-    intro="Welcome to the elisctl interactive mode. Start with `help` and `configure`.",
+    prompt="rossum> ",
+    intro="Welcome to the rossumctl interactive mode. Start with `help` and `configure`.",
     context_settings={"help_option_names": ["-h", "--help"]},
 )
 @click.version_option(__version__)
@@ -38,7 +38,7 @@ def entry_point(ctx: click.Context, profile: str) -> None:
 
 
 entry_point.add_command(tools.cli)
-entry_point.add_command(elisctl.schema.commands.cli)
+entry_point.add_command(rossumctl.schema.commands.cli)
 entry_point.add_command(user.cli)
 entry_point.add_command(user_assignment.cli)
 entry_point.add_command(workspace.cli)

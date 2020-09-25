@@ -5,7 +5,7 @@ from typing import List, Callable, Optional, Tuple, Set
 
 import click as click
 
-from elisctl.lib import DataPointDict, DataPoints
+from rossumctl.lib import DataPointDict, DataPoints
 
 
 def traverse_datapoints(

@@ -4,8 +4,8 @@ from typing import Optional, IO, Tuple
 
 import click as click
 
-from elisctl import option, argument
-from elisctl.lib import DataPoints, DataPointDict
+from rossumctl import option, argument
+from rossumctl.lib import DataPoints, DataPointDict
 from . import (
     traverse_datapoints,
     substitute_options,

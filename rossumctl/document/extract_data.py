@@ -6,8 +6,8 @@ import click
 import jmespath
 from typing.io import IO
 
-from elisctl.lib.api_client import ELISClient, get_json, get_text
-from elisctl import option
+from rossumctl.lib.api_client import RossumClient, get_json, get_text
+from rossumctl import option
 
 
 @click.command(name="extract", help="Upload documents and extract data from them.")
@@ -42,14 +42,14 @@ def get_data(
 ):
     annotations_to_export = list()
 
-    with ELISClient(context=ctx.obj) as elis:
+    with RossumClient(context=ctx.obj) as rossum:
         for file in files:
-            json_response = elis.upload_document(queue_id, file)
+            json_response = rossum.upload_document(queue_id, file)
             annotation_id = get_id(json_response)
             annotations_to_export.append(annotation_id)
-            elis.poll_annotation(annotation_id, _is_done)
+            rossum.poll_annotation(annotation_id, _is_done)
 
-        export_data = elis.export_data(queue_id, annotations_to_export, format_)
+        export_data = rossum.export_data(queue_id, annotations_to_export, format_)
 
         if format_ == "json":
             output = json.dumps(get_json(export_data), indent=indent, ensure_ascii=ensure_ascii)

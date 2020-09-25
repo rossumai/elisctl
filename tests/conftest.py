@@ -9,7 +9,7 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 from requests_mock.request import _RequestObjectProxy as Request
 
-from elisctl import __version__
+from rossumctl import __version__
 
 API_URL = "httpmock://api.elis.rossum.ai"
 TOKEN = "secretsecret"
@@ -28,14 +28,14 @@ LOGIN_URL = f"{API_URL}/v1/auth/login"
 CONNECTORS_URL = f"{API_URL}/v1/connectors"
 HOOKS_URL = f"{API_URL}/v1/hooks"
 
-REQUEST_HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
+REQUEST_HEADERS = {"User-Agent": f"rossumctl/{__version__} ({platform()})"}
 
 
 @pytest.fixture
-def elis_credentials(monkeypatch):
-    monkeypatch.setitem(os.environ, "ELIS_URL", API_URL)
-    monkeypatch.setitem(os.environ, "ELIS_USERNAME", "some")
-    monkeypatch.setitem(os.environ, "ELIS_PASSWORD", "secret")
+def rossum_credentials(monkeypatch):
+    monkeypatch.setitem(os.environ, "ROSSUM_URL", API_URL)
+    monkeypatch.setitem(os.environ, "ROSSUM_USERNAME", "some")
+    monkeypatch.setitem(os.environ, "ROSSUM_PASSWORD", "secret")
 
 
 @pytest.fixture

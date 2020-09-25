@@ -4,8 +4,8 @@ from functools import partial
 import click
 import pytest
 
-from elisctl.lib import APIObject, ANNOTATIONS
-from elisctl.lib.api_client import APIClient, ELISClient
+from rossumctl.lib import APIObject, ANNOTATIONS
+from rossumctl.lib.api_client import APIClient, RossumClient
 from tests.conftest import (
     ANNOTATIONS_URL,
     API_URL,
@@ -37,7 +37,7 @@ ANNOTATION_ID = 1863864
 ANNOTATION_URL = f"{ANNOTATIONS_URL}/{ANNOTATION_ID}"
 
 
-@pytest.mark.usefixtures("elis_credentials")
+@pytest.mark.usefixtures("rossum_credentials")
 class TestAPIClient:
     api_client = APIClient(None)
     username = "some"
@@ -97,7 +97,7 @@ class TestAPIClient:
         assert requests_mock.called
 
 
-@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
+@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
 class TestSideload:
     api_client = APIClient(None)
     url = f"{API_URL}/v1/tests"
@@ -137,9 +137,9 @@ class TestSideload:
         }
 
 
-@pytest.mark.usefixtures("elis_credentials")
-class TestELISClient:
-    api_client = ELISClient(None)
+@pytest.mark.usefixtures("rossum_credentials")
+class TestRossumClient:
+    api_client = RossumClient(None)
 
     @pytest.mark.usefixtures("mock_login_request")
     def test_get_organization_old_api(self, requests_mock):

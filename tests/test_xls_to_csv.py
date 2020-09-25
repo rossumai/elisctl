@@ -4,7 +4,7 @@ from traceback import print_tb
 
 import pandas as pd
 
-from elisctl.tools import xls_to_csv
+from rossumctl.tools import xls_to_csv
 
 FILENAME = "some.xls"
 DATA = """\
