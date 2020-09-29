@@ -2,7 +2,7 @@ from typing import Optional, Callable
 
 import click
 
-from rossumctl.common import schema_content_factory
+from elisctl.common import schema_content_factory
 
 
 organization = click.option(

@@ -8,7 +8,7 @@ import re
 from jsondiff import diff as json_diff, JsonDumper
 from typing import Iterable, IO
 
-from rossumctl.lib import split_dict_params
+from elisctl.lib import split_dict_params
 
 DIFF_TYPES = ["jsondiff", "difflib"]
 DIFF_RE = re.compile(r"^[+-^]")

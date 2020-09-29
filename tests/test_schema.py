@@ -5,8 +5,8 @@ from traceback import print_tb
 
 import pytest
 
-from rossumctl.schema.transform import commands as transform
-from rossumctl.schema.commands import download_command, list_command
+from elisctl.schema.transform import commands as transform
+from elisctl.schema.commands import download_command, list_command
 from tests.conftest import SCHEMAS_URL, QUEUES_URL, TOKEN
 
 SCHEMA_NAME = "schema.json"
@@ -223,7 +223,7 @@ schema_id = "1"
 schema_content = [{"label": "Příliš žluťoučký kůň úpěl ďábelské ódy."}]
 
 
-@pytest.mark.usefixtures("mock_login_request", "mock_get_schema", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "mock_get_schema", "elis_credentials")
 class TestDownload:
     output_file = Path("test.json")
 
@@ -240,7 +240,7 @@ class TestDownload:
         assert schema_content == json.loads(self.output_file.read_text())
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
         schema_id = 3

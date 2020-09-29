@@ -5,7 +5,7 @@ from traceback import print_tb, format_tb
 
 import pytest
 
-from rossumctl.hook import list_command, change_command, delete_command, create_command
+from elisctl.hook import list_command, change_command, delete_command, create_command
 from tests.conftest import TOKEN, match_uploaded_json, QUEUES_URL, HOOKS_URL
 
 QUEUES = ["1", "2"]
@@ -21,7 +21,7 @@ CONFIG_SECRET = "some_secret_key"
 ACTIVE = True
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestCreate:
     def test_success(self, requests_mock, cli_runner):
 
@@ -119,7 +119,7 @@ class TestCreate:
         )
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
         result = self._test_list(cli_runner, requests_mock, True)
@@ -172,7 +172,7 @@ class TestList:
         return result
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestChange:
     new_hook_name = "My patched new name"
     new_event = "new_event"
@@ -222,7 +222,7 @@ class TestChange:
         assert not requests_mock.called
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestDelete:
     def test_success(self, requests_mock, cli_runner):
 

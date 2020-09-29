@@ -2,9 +2,9 @@ from typing import Optional, Dict, Any, List, Tuple
 
 import click
 from tabulate import tabulate
-from rossumctl import argument, option
-from rossumctl.lib import INBOXES, WORKSPACES, SCHEMAS, USERS, HOOKS
-from rossumctl.lib.api_client import RossumClient, get_json
+from elisctl import argument, option
+from elisctl.lib import INBOXES, WORKSPACES, SCHEMAS, USERS, HOOKS
+from elisctl.lib.api_client import ElisClient, get_json
 
 locale_option = click.option(
     "--locale",
@@ -42,10 +42,10 @@ def create_command(
     if email_prefix is not None and bounce_email is None:
         raise click.ClickException("Inbox cannot be created without specified bounce email.")
 
-    with RossumClient(context=ctx.obj) as rossum:
-        workspace_url = rossum.get_workspace(workspace_id)["url"]
+    with ElisClient(context=ctx.obj) as elis:
+        workspace_url = elis.get_workspace(workspace_id)["url"]
         connector_url = (
-            get_json(rossum.get(f"connectors/{connector_id}"))["url"]
+            get_json(elis.get(f"connectors/{connector_id}"))["url"]
             if connector_id is not None
             else None
         )
@@ -53,17 +53,17 @@ def create_command(
         hooks_urls = []
         if hook_id:
             for hook in hook_id:
-                hook_url = get_json(rossum.get(f"hooks/{hook}"))["url"]
+                hook_url = get_json(elis.get(f"hooks/{hook}"))["url"]
                 hooks_urls.append(hook_url)
 
-        schema_dict = rossum.create_schema(f"{name} schema", schema_content)
-        queue_dict = rossum.create_queue(
+        schema_dict = elis.create_schema(f"{name} schema", schema_content)
+        queue_dict = elis.create_queue(
             name, workspace_url, schema_dict["url"], connector_url, hooks_urls, locale
         )
 
         inbox_dict = {"email": "no email-prefix specified"}
         if email_prefix is not None:
-            inbox_dict = rossum.create_inbox(
+            inbox_dict = elis.create_inbox(
                 f"{name} inbox", email_prefix, bounce_email, queue_dict["url"]
             )
     click.echo(f"{queue_dict['id']}, {inbox_dict['email']}")
@@ -72,8 +72,8 @@ def create_command(
 @cli.command(name="list", help="List all queues.")
 @click.pass_context
 def list_command(ctx: click.Context,) -> None:
-    with RossumClient(context=ctx.obj) as rossum:
-        queues = rossum.get_queues((WORKSPACES, INBOXES, SCHEMAS, USERS, HOOKS))
+    with ElisClient(context=ctx.obj) as elis:
+        queues = elis.get_queues((WORKSPACES, INBOXES, SCHEMAS, USERS, HOOKS))
 
     table = [
         [
@@ -104,9 +104,9 @@ def list_command(ctx: click.Context,) -> None:
 )
 @click.pass_context
 def delete_command(ctx: click.Context, id_: int) -> None:
-    with RossumClient(context=ctx.obj) as rossum:
-        queue = rossum.get_queue(id_)
-        rossum.delete({queue["id"]: queue["url"]})
+    with ElisClient(context=ctx.obj) as elis:
+        queue = elis.get_queue(id_)
+        elis.delete({queue["id"]: queue["url"]})
 
 
 @cli.command(name="change", help="Change a queue.")
@@ -142,50 +142,50 @@ def change_command(
     if locale is not None:
         data["locale"] = locale
 
-    with RossumClient(context=ctx.obj) as rossum:
+    with ElisClient(context=ctx.obj) as elis:
         if email_prefix or bounce_email:
-            queue_dict = rossum.get_queue(id_)
+            queue_dict = elis.get_queue(id_)
             if not queue_dict["inbox"]:
-                inbox_dict = _create_inbox(rossum, queue_dict, email_prefix, bounce_email, name)
+                inbox_dict = _create_inbox(elis, queue_dict, email_prefix, bounce_email, name)
             else:
-                inbox_dict = _patch_inbox(rossum, queue_dict, email_prefix, bounce_email)
+                inbox_dict = _patch_inbox(elis, queue_dict, email_prefix, bounce_email)
             click.echo(
                 f"{inbox_dict['id']}, {inbox_dict['email']}, {inbox_dict['bounce_email_to']}"
             )
 
         if connector_id is not None:
-            data["connector"] = get_json(rossum.get(f"connectors/{connector_id}"))["url"]
+            data["connector"] = get_json(elis.get(f"connectors/{connector_id}"))["url"]
 
         if hook_id:
             hooks_urls = []
             for hook in hook_id:
-                hook_url = get_json(rossum.get(f"hooks/{hook}"))["url"]
+                hook_url = get_json(elis.get(f"hooks/{hook}"))["url"]
                 hooks_urls.append(hook_url)
                 data["hooks"] = hooks_urls
 
         if schema_content is not None:
-            name = name or rossum.get_queue(id_)["name"]
-            schema_dict = rossum.create_schema(f"{name} schema", schema_content)
+            name = name or elis.get_queue(id_)["name"]
+            schema_dict = elis.create_schema(f"{name} schema", schema_content)
             data["schema"] = schema_dict["url"]
 
         if data:
-            rossum.patch(f"queues/{id_}", data)
+            elis.patch(f"queues/{id_}", data)
 
 
 def _create_inbox(
-    rossum: RossumClient,
+    elis: ElisClient,
     queue_dict: dict,
     email_prefix: Optional[str],
     bounce_email: Optional[str],
     name: Optional[str],
 ) -> dict:
-    return rossum.create_inbox(
+    return elis.create_inbox(
         f"{name or queue_dict['name']} inbox", email_prefix, bounce_email, queue_dict["url"]
     )
 
 
 def _patch_inbox(
-    rossum: RossumClient, queue_dict: dict, email_prefix: Optional[str], bounce_email: Optional[str]
+    elis: ElisClient, queue_dict: dict, email_prefix: Optional[str], bounce_email: Optional[str]
 ) -> dict:
     inbox_data: Dict[str, Any] = {}
 
@@ -197,4 +197,4 @@ def _patch_inbox(
         inbox_data["bounce_unprocessable_attachments"] = True
 
     _, inbox_id = queue_dict["inbox"].rsplit("/", 1)
-    return get_json(rossum.patch(f"inboxes/{inbox_id}", inbox_data))
+    return get_json(elis.patch(f"inboxes/{inbox_id}", inbox_data))

@@ -10,8 +10,8 @@ import requests
 from requests import Response
 from typing import Any, BinaryIO, Callable, Dict, IO, Iterable, List, Optional, Tuple, Union
 
-from rossumctl import __version__, CTX_PROFILE, CTX_DEFAULT_PROFILE
-from rossumctl.configure import get_credential
+from elisctl import __version__, CTX_PROFILE, CTX_DEFAULT_PROFILE
+from elisctl.configure import get_credential
 from . import (
     ORGANIZATIONS,
     APIObject,
@@ -25,14 +25,9 @@ from . import (
     ANNOTATIONS,
 )
 
-
-class RossumException(click.ClickException):
-    pass
-
-
 RequestsFiles = Dict[str, Tuple[Optional[str], Union[IO[bytes], BinaryIO, str]]]
 
-HEADERS = {"User-Agent": f"rossumctl/{__version__} ({platform()})"}
+HEADERS = {"User-Agent": f"elisctl/{__version__} ({platform()})"}
 
 
 class APIClient(AbstractContextManager):
@@ -91,9 +86,9 @@ class APIClient(AbstractContextManager):
             login_data["max_token_lifetime_s"] = self._max_token_lifetime
         response = requests.post(f"{self.url}/auth/login", json=login_data, headers=HEADERS)
         if response.status_code == 401:
-            raise RossumException(f"Login failed with the provided credentials.")
+            raise click.ClickException(f"Login failed with the provided credentials.")
         elif not response.ok:
-            raise RossumException(f"Invalid response [{response.url}]: {response.text}")
+            raise click.ClickException(f"Invalid response [{response.url}]: {response.text}")
 
         return response.json()["key"]
 
@@ -134,18 +129,18 @@ class APIClient(AbstractContextManager):
             method, url, params=_encode_booleans(query), headers=headers, **auth, **kwargs
         )
         if response.status_code != expected_status_code:
-            raise RossumException(f"Invalid response [{response.url}]: {response.text}")
+            raise click.ClickException(f"Invalid response [{response.url}]: {response.text}")
         return response
 
     def delete(self, to_delete: Dict[str, str], verbose: int = 0, item: str = "annotation") -> None:
         for id_, url in to_delete.items():
             try:
                 self.delete_url(url)
-            except RossumException as exc:
+            except click.ClickException as exc:
                 click.echo(f'Deleting {item} {id_} caused "{exc}".')
             except Exception as exc:
                 click.echo(f'Deleting {item} {id_} caused an unexpected exception: "{exc}".')
-                raise RossumException(str(exc))
+                raise click.ClickException(str(exc))
             else:
                 if verbose > 1:
                     click.echo(f"Deleted {item} {id_}.")
@@ -211,7 +206,7 @@ class APIClient(AbstractContextManager):
             self.post("auth/logout", {}, expected_status_code=200)
 
 
-class RossumClient(APIClient):
+class ElisClient(APIClient):
     def get_organization(self, organization_id: Optional[int] = None) -> dict:
         if organization_id is None:
             user_details = self.get_user()
@@ -243,7 +238,7 @@ class RossumClient(APIClient):
             try:
                 [workspace] = self.get_workspaces()
             except ValueError as e:
-                raise RossumException("Workspace ID must be specified.") from e
+                raise click.ClickException("Workspace ID must be specified.") from e
         else:
             workspace = get_json(self.get(f"{WORKSPACES}/{id_}"))
 
@@ -276,7 +271,7 @@ class RossumClient(APIClient):
             try:
                 [queue] = self.get_queues()
             except ValueError as e:
-                raise RossumException("Queue ID must be specified.") from e
+                raise click.ClickException("Queue ID must be specified.") from e
         else:
             queue = get_json(self.get(f"{QUEUES}/{id_}"))
 
@@ -324,7 +319,7 @@ class RossumClient(APIClient):
 
     def get_annotation(self, id_: Optional[int] = None) -> dict:
         if id_ is None:
-            raise RossumException("Annotation ID wasn't specified.")
+            raise click.ClickException("Annotation ID wasn't specified.")
         return get_json(self.get(f"{ANNOTATIONS}/{id_}"))
 
     def poll_annotation(
@@ -376,7 +371,7 @@ class RossumClient(APIClient):
         self, name: str, email_prefix: Optional[str], bounce_email: Optional[str], queue_url: str
     ) -> dict:
         if not (email_prefix and bounce_email):
-            raise RossumException(
+            raise click.ClickException(
                 "Inbox cannot be created without both bounce email and email prefix specified."
             )
 
@@ -486,14 +481,14 @@ def get_json(response: Response) -> dict:
     try:
         return response.json()
     except ValueError as e:
-        raise RossumException(f"Invalid JSON [{response.url}]: {response.text}") from e
+        raise click.ClickException(f"Invalid JSON [{response.url}]: {response.text}") from e
 
 
 def get_text(response: Response) -> str:
     try:
         return response.text
     except ValueError as e:
-        raise RossumException(f"Invalid text [{response.url}]: {response.text}") from e
+        raise click.ClickException(f"Invalid text [{response.url}]: {response.text}") from e
 
 
 def _encode_booleans(query: Optional[dict]) -> Optional[dict]:

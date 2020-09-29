@@ -1,57 +1,58 @@
-# rossumctl
+# elisctl
 
-[![PyPI - version](https://img.shields.io/pypi/v/rossumctl.svg)](https://pypi.python.org/pypi/rossumctl)
-[![Build Status](https://travis-ci.com/rossumai/rossumctl.svg?branch=master)](https://travis-ci.com/rossumai/rossumctl)
+[![PyPI - version](https://img.shields.io/pypi/v/elisctl.svg)](https://pypi.python.org/pypi/elisctl)
+[![Build Status](https://travis-ci.com/rossumai/elisctl.svg?branch=master)](https://travis-ci.com/rossumai/elisctl)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![codecov](https://codecov.io/gh/rossumai/rossumctl/branch/master/graph/badge.svg)](https://codecov.io/gh/rossumai/rossumctl)
-![PyPI - supported python versions](https://img.shields.io/pypi/pyversions/rossumctl.svg)
-![MIT licence](https://img.shields.io/pypi/l/rossumctl.svg)
+[![codecov](https://codecov.io/gh/rossumai/elisctl/branch/master/graph/badge.svg)](https://codecov.io/gh/rossumai/elisctl)
+![PyPI - supported python versions](https://img.shields.io/pypi/pyversions/elisctl.svg)
+![MIT licence](https://img.shields.io/pypi/l/elisctl.svg)
 
 ```
-The elisctl package has been renamed to rossumctl.
-You may want to uninstall elisctl before installing rossumctl.
+The elisctl package has been renamed to elisctl.
+You may want to uninstall elisctl before installing elisctl.
 ```
 
-**rossumctl** is a set of [tools for Rossum integrators](https://developers.rossum.ai/) that wrap
+**elisctl** is a set of [tools for Rossum integrators](https://developers.rossum.ai/) that wrap
 the [Rossum API](https://api.elis.rossum.ai/docs)
 to provide an easy way to configure and customize a Rossum account - either
 interactively or programmatically.
 
 ## Installation
 
-See the [rossumctl setup tutorial](https://developers.rossum.ai/docs/setting-up-rossumctl)
+See the [elisctl setup tutorial](https://developers.rossum.ai/docs/setting-up-rossum-tool)
 for detailed instructions.
 
 ### Windows
 
 Download an installation file from
-[GitHub releases](https://github.com/rossumai/rossumctl/releases).
+[GitHub releases](https://github.com/rossumai/elisctl/releases).
 Install it. And run it either from start menu or from command prompt.
 
 ### UNIX based systems
 
 Install the package from PyPI:
 ```bash
-pip install rossumctl
+pip install elisctl
 ```
 
 ## Usage
 ### Python API Client Library
-The **rossumctl** library can be used to communicate with Rossum API,
-instead of using `requests` library directly. The advantages of using **rossumctl**:
+The **elisctl** library can be used to communicate with Rossum API,
+instead of using `requests` library directly. The advantages of using **elisctl**:
 * it contains a function that merges the paginated results into one list so the user does not need
 to get results page by page and take care of their merging,
 * it takes care of login and logout for the user,
 * in case the API version changes, the change will be implemented to the
 library by Rossum for all the users.
 
-See the sample script using **rossumctl** within a code to export the documents:
+See the sample script using **elisctl** within a code to export the documents:
 
+```python
 ```python
 import json
 import logging
 
-from rossumctl.lib.api_client import APIClient
+from elisctl.lib.api_client import APIClient
 from datetime import date, timedelta
 
 queue_id = 12673
@@ -66,9 +67,9 @@ date_start = date_today - timedelta(days=1)
 
 def export_documents():
     logging.info("Export started...")
-    with APIClient(context=None, user=username, password=password) as rossum:
+    with APIClient(context=None, user=username, password=password) as elis:
 
-            annotations_list, _ = rossum.get_paginated(f"queues/{queue_id}/export",
+            annotations_list, _ = elis.get_paginated(f"queues/{queue_id}/export",
                                                         {"status": reviewed_documents,
                                                         "format": "json",
                                                         "ordering": "exported_at",
@@ -84,38 +85,38 @@ if __name__ == "__main__":
 
 ```
 ### API Client command line tool
-The **rossumctl** tool can be either used in a **command line interface** mode
-by executing each command through `rossumctl` individually by passing it as an argument,
-or in an **interactive shell** mode of executing `rossumctl` without parameters
+The **elisctl** tool can be either used in a **command line interface** mode
+by executing each command through `elisctl` individually by passing it as an argument,
+or in an **interactive shell** mode of executing `elisctl` without parameters
 and then typing the commands into the shown prompt.
 
-Individual Rossum operations are triggered by passing specific *commands* to `rossumctl`.
+Individual Rossum operations are triggered by passing specific *commands* to `elisctl`.
 Commands are organized by object type in a tree-like structure and thus are composed
 of multiple words (e.g. `user create` or `schema transform`).
 
 So either get the list of commands and execute them immediately such as:
 ```shell
-$ rossumctl --help
-$ rossumctl configure
+$ elisctl --help
+$ elisctl configure
 ```
 or run the interactive shell by simply running
 ```shell
-$ rossumctl
+$ elisctl
 ```
-See the sample using **rossumctl** command line tool to create the main objects within an organization and  
+See the sample using **elisctl** command line tool to create the main objects within an organization and  
 assign a user to a queue:
 ```shell
-$ rossumctl configure
+$ elisctl configure
 API URL [https://api.elis.rossum.ai]:
 Username: your_username@company.com
 Password:
-$ rossumctl workspace create "My New Workspace"
+$ elisctl workspace create "My New Workspace"
 12345
-$ rossumctl queue create "My New Queue Via Rossumctl" -s schema.json -w 12345 --email-prefix my-queue-email --bounce-email bounced-docs-here@company.com
+$ elisctl queue create "My New Queue Via elisctl" -s schema.json -w 12345 --email-prefix my-queue-email --bounce-email bounced-docs-here@company.com
 50117, my-queue-email-ccddc6@elis.rossum.ai
-$ rossumctl user create john.doe@company.com -q 50117 -g annotator -p my-secret-password-154568
+$ elisctl user create john.doe@company.com -q 50117 -g annotator -p my-secret-password-154568
 59119, my-secret-password-154568
-$ rossumctl user_assignment add -u 59119 -q 50117
+$ elisctl user_assignment add -u 59119 -q 50117
 ```
 
 ## Configure profiles
@@ -123,23 +124,23 @@ $ rossumctl user_assignment add -u 59119 -q 50117
 To run commands described below under a chosen user, it is possible to use profiles defined by
 configure function such as
 ```shell
-$ rossumctl --profile profile_name configure
+$ elisctl --profile profile_name configure
 ```
 
 After defining necessary profiles and their credentials, the profile can be chosen the following way
 ```shell
-$ rossumctl --profile profile_name queue list
+$ elisctl --profile profile_name queue list
 ```
 
 ## Edit Schema
 
 Some of the most common advanced operations are related to setting up
-the sidebar-describing schema according to business requirements. Using rossumctl
+the sidebar-describing schema according to business requirements. Using elisctl
 you can edit schema easily as a JSON or XLSX file.
 
 List queues to obtain schema id:
 ```shell
-$ rossumctl queue list
+$ elisctl queue list
   id  name                           workspace  inbox                                       schema  users
 ----  ---------------------------  -----------  ----------------------------------------  --------  ----------------------
    6  My Queue 1                             6  myqueue-ab12ee@elis.rossum.ai                    7  27
@@ -147,18 +148,18 @@ $ rossumctl queue list
 
 Download schema as a json:
 ```shell
-$ rossumctl schema get 7 -O schema.json
+$ elisctl schema get 7 -O schema.json
 ```
 
 Open the `schema.json` file in you favourite editor and upload modified version back to Rossum.
 ```shell
-$ rossumctl schema update 7 --rewrite schema.json
+$ elisctl schema update 7 --rewrite schema.json
 ```
 
 You can also edit schema as an Excel (xlsx) file.
 ```shell
-$ rossumctl schema get 7 --format xlsx -O schema.xlsx
-$ rossumctl schema update 7 --rewrite schema.xlsx
+$ elisctl schema get 7 --format xlsx -O schema.xlsx
+$ elisctl schema update 7 --rewrite schema.xlsx
 ```
 
 From now on, documents will follow new schema. (Warning! If you don't use `--rewrite` option,
@@ -168,16 +169,16 @@ the new schema will receive a new id - obtain it by `queue list` again.)
 ## Schema Transformations
 
 In addition, there is a scripting support for many common schema operations,
-that may be easily used for schema management automation. See `rossumctl schema transform`
-and `rossumctl tools` tools for further reference.
+that may be easily used for schema management automation. See `elisctl schema transform`
+and `elisctl tools` tools for further reference.
 
 Run something like:
 ```shell
-$ rossumctl schema transform substitute-options default_schema.json centre <( \
-   rossumctl tools xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 --sheet 1 | rossumctl tools csv_to_options - ) \
- | rossumctl schema transform substitute-options - gl_code <( \
-    rossumctl tools xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 | rossumctl tools csv_to_options - ) \
- | rossumctl schema transform remove - contract \
+$ elisctl schema transform substitute-options default_schema.json centre <( \
+   elisctl tools xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 --sheet 1 | elisctl tools csv_to_options - ) \
+ | elisctl schema transform substitute-options - gl_code <( \
+    elisctl tools xls_to_csv ~/Downloads/ERA_osnova_strediska.xlsx --header 0 | elisctl tools csv_to_options - ) \
+ | elisctl schema transform remove - contract \
  > era_schema.json
 ```
 

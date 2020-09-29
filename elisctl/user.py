@@ -4,9 +4,9 @@ from typing import Any, Dict, Optional, Tuple
 import click
 from tabulate import tabulate
 
-from rossumctl import argument, option
-from rossumctl.lib import GROUPS, QUEUES, USERS, generate_secret
-from rossumctl.lib.api_client import RossumClient
+from elisctl import argument, option
+from elisctl.lib import GROUPS, QUEUES, USERS, generate_secret
+from elisctl.lib.api_client import ElisClient
 
 
 @click.group("user")
@@ -35,16 +35,16 @@ def create_command(
     Create user with USERNAME and add him to QUEUES specified by ids.
     """
     password = password or generate_secret()
-    with RossumClient(context=ctx.obj) as rossum:
-        if rossum.get_users(username=username):
+    with ElisClient(context=ctx.obj) as elis:
+        if elis.get_users(username=username):
             raise click.ClickException(f"User with username {username} already exists.")
-        organization = rossum.get_organization(organization_id)
+        organization = elis.get_organization(organization_id)
 
-        workspaces = rossum.get_workspaces(organization=organization["id"], sideloads=(QUEUES,))
+        workspaces = elis.get_workspaces(organization=organization["id"], sideloads=(QUEUES,))
         queues = chain.from_iterable(w[str(QUEUES)] for w in workspaces)
         queue_urls = [q["url"] for q in queues if q["id"] in queue_ids]
 
-        response = rossum.create_user(
+        response = elis.create_user(
             username, organization["url"], queue_urls, password, group, locale
         )
         click.echo(f"{response['id']}, {password}")
@@ -53,8 +53,8 @@ def create_command(
 @cli.command(name="list", help="List all users.")
 @click.pass_context
 def list_command(ctx: click.Context,):
-    with RossumClient(context=ctx.obj) as rossum:
-        users_list = rossum.get_users((QUEUES, GROUPS), is_active=True)
+    with ElisClient(context=ctx.obj) as elis:
+        users_list = elis.get_users((QUEUES, GROUPS), is_active=True)
 
     table = [
         [
@@ -91,16 +91,16 @@ def change_command(
     if password is not None:
         data["password"] = password
 
-    with RossumClient(context=ctx.obj) as rossum:
+    with ElisClient(context=ctx.obj) as elis:
         if queue_ids:
-            data[str(QUEUES)] = [rossum.get_queue(queue)["url"] for queue in queue_ids]
+            data[str(QUEUES)] = [elis.get_queue(queue)["url"] for queue in queue_ids]
         if group is not None:
-            data[str(GROUPS)] = [g["url"] for g in rossum.get_groups(group_name=group)]
+            data[str(GROUPS)] = [g["url"] for g in elis.get_groups(group_name=group)]
         if locale is not None:
-            ui_settings = rossum.get_user(id_)["ui_settings"]
+            ui_settings = elis.get_user(id_)["ui_settings"]
             data["ui_settings"] = {**ui_settings, "locale": locale}
 
-        rossum.patch(f"{USERS}/{id_}", data)
+        elis.patch(f"{USERS}/{id_}", data)
 
 
 @cli.command(name="delete", help="Delete a user.")
@@ -108,5 +108,5 @@ def change_command(
 @click.confirmation_option()
 @click.pass_context
 def delete_command(ctx: click.Context, id_: int) -> None:
-    with RossumClient(context=ctx.obj) as rossum:
-        rossum.patch(f"{USERS}/{id_}", {"is_active": False})
+    with ElisClient(context=ctx.obj) as elis:
+        elis.patch(f"{USERS}/{id_}", {"is_active": False})
