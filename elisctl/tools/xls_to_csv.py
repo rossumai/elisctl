@@ -7,7 +7,7 @@ import click as click
 import pandas as pd
 from typing.io import IO
 
-from rossumctl import option
+from elisctl import option
 
 
 @click.command("xls_to_csv", help="Convert an Excel sheet to a CSV. All indices are 0-based.")

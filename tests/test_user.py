@@ -9,7 +9,7 @@ from itertools import chain
 from requests import Request
 from requests_mock.response import _Context
 
-from rossumctl.user import change_command, create_command, delete_command, list_command
+from elisctl.user import change_command, create_command, delete_command, list_command
 from tests import SuperDictOf
 from tests.conftest import (
     API_URL,
@@ -29,10 +29,10 @@ ORGANIZATION_URL = f"{ORGANIZATIONS_URL}/{ORGANIZATION_ID}"
 WORKSPACES = QUEUES = ["1", "2"]
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestCreate:
     @pytest.mark.usefixtures("mock_user_urls", "mock_organization_urls")
-    @mock.patch("rossumctl.user.generate_secret")
+    @mock.patch("elisctl.user.generate_secret")
     def test_create(self, mock_password, requests_mock, cli_runner):
         mock_password.return_value = generated_password = "secret" * 2
         new_user_id = 1
@@ -138,7 +138,7 @@ class TestCreate:
         assert result.output == f"Error: User with username {NEW_USERNAME} already exists.\n"
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
         user_id = 1
@@ -189,7 +189,7 @@ class TestList:
         assert result.output == expected_table
 
 
-@pytest.mark.usefixtures("mock_login_request", "mock_user_urls", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "mock_user_urls", "elis_credentials")
 class TestChange:
     def test_success(self, requests_mock, cli_runner):
         queue_id = "1"
@@ -219,7 +219,7 @@ class TestChange:
         assert not requests_mock.called
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestDelete:
     def test_success(self, requests_mock, cli_runner):
         user_id = "1"

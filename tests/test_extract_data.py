@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 
-from rossumctl.document.extract_data import get_data
+from elisctl.document.extract_data import get_data
 from tests.conftest import ANNOTATIONS_URL, QUEUES_URL, TOKEN
 
 ANNOTATION_IDS = [315510, 315511]
@@ -30,7 +30,7 @@ OUTPUT_FILE = "output.json"
 
 
 @mock.patch("time.sleep")
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestExtractData:
     @pytest.mark.parametrize("format_", [None, "json", "xml", "csv"])
     def test_get_data(self, mock_sleep, requests_mock, isolated_cli_runner, format_, mock_file):

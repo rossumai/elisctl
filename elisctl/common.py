@@ -4,7 +4,7 @@ from typing import Callable, IO, Optional
 
 import click
 
-from rossumctl.schema.xlsx import SchemaContent, XlsxToSchema
+from elisctl.schema.xlsx import SchemaContent, XlsxToSchema
 
 
 def schema_content_factory(file_decorator):

@@ -9,7 +9,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.writer.excel import save_virtual_workbook
 from typing import List, Optional, Dict, Callable, Union, Tuple, IO, Any
 
-from rossumctl.schema import transform
+from elisctl.schema import transform
 
 SCHEMA_SHEET_NAME = "Schema"
 OPTIONS_SHEET_PREFIX = "Options of "

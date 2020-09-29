@@ -5,9 +5,9 @@ from typing import Optional, IO
 import click
 from tabulate import tabulate
 
-from rossumctl import option, argument
-from rossumctl.lib.api_client import APIClient, get_json, RossumClient
-from rossumctl.lib import QUEUES
+from elisctl import option, argument
+from elisctl.lib.api_client import APIClient, get_json, ElisClient
+from elisctl.lib import QUEUES
 
 from . import upload
 from .xlsx import SchemaToXlsx
@@ -53,8 +53,8 @@ def download_command(
 @cli.command(name="list", help="List all schemas.")
 @click.pass_context
 def list_command(ctx: click.Context,):
-    with RossumClient(context=ctx.obj) as rossum:
-        schemas = rossum.get_schemas((QUEUES,))
+    with ElisClient(context=ctx.obj) as elis:
+        schemas = elis.get_schemas((QUEUES,))
 
     table = [
         [schema["id"], schema["name"], ", ".join(str(s.get("id", "")) for s in schema["queues"])]

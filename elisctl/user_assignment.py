@@ -4,9 +4,9 @@ from tabulate import tabulate
 from typing import Tuple, Optional, List, Dict
 
 import click
-from rossumctl import option
-from rossumctl.lib import USERS, QUEUES
-from rossumctl.lib.api_client import RossumClient
+from elisctl import option
+from elisctl.lib import USERS, QUEUES
+from elisctl.lib.api_client import ElisClient
 
 
 @click.group("user_assignment")
@@ -21,8 +21,8 @@ def cli() -> None:
 @click.pass_context
 def list_command(ctx: click.Context, user_ids: Tuple[int], queue_ids: Tuple[int]) -> None:
     """List all users and their assignments to queues."""
-    with RossumClient(context=ctx.obj) as rossum:
-        queue_users = rossum.get_queues((USERS,), users=user_ids)
+    with ElisClient(context=ctx.obj) as elis:
+        queue_users = elis.get_queues((USERS,), users=user_ids)
 
     user_queues: Dict[int, List[List[Optional[str]]]] = {}
     for queue in queue_users:
@@ -51,11 +51,11 @@ def list_command(ctx: click.Context, user_ids: Tuple[int], queue_ids: Tuple[int]
 @option.queue
 @click.pass_context
 def add_command(ctx: click.Context, user_ids: Tuple[int], queue_ids: Tuple[int]) -> None:
-    with RossumClient(context=ctx.obj) as rossum:
+    with ElisClient(context=ctx.obj) as elis:
         for user_id in user_ids:
-            user = rossum.get_user(user_id)
-            new_queues = user["queues"] + [rossum.get_queue(q_id)["url"] for q_id in queue_ids]
-            rossum.patch(f"{USERS}/{user_id}", {str(QUEUES): new_queues})
+            user = elis.get_user(user_id)
+            new_queues = user["queues"] + [elis.get_queue(q_id)["url"] for q_id in queue_ids]
+            elis.patch(f"{USERS}/{user_id}", {str(QUEUES): new_queues})
 
 
 @cli.command(name="remove", help="Remove user from queues.")
@@ -63,8 +63,8 @@ def add_command(ctx: click.Context, user_ids: Tuple[int], queue_ids: Tuple[int])
 @option.queue
 @click.pass_context
 def remove_command(ctx: click.Context, user_ids: Tuple[int], queue_ids: Tuple[int]) -> None:
-    with RossumClient(context=ctx.obj) as rossum:
+    with ElisClient(context=ctx.obj) as elis:
         for user_id in user_ids:
-            queues = rossum.get_queues(users=[user_id])
+            queues = elis.get_queues(users=[user_id])
             new_queues = [q["url"] for q in queues if int(q["id"]) not in queue_ids]
-            rossum.patch(f"{USERS}/{user_id}", {str(QUEUES): new_queues})
+            elis.patch(f"{USERS}/{user_id}", {str(QUEUES): new_queues})

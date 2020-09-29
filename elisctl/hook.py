@@ -1,9 +1,9 @@
 from typing import Tuple, Optional, Dict, Any, List
 
 import click
-from rossumctl import option, argument
-from rossumctl.lib import QUEUES
-from rossumctl.lib.api_client import RossumClient
+from elisctl import option, argument
+from elisctl.lib import QUEUES
+from elisctl.lib.api_client import ElisClient
 from tabulate import tabulate
 
 
@@ -35,17 +35,17 @@ def create_command(
     config_insecure_ssl: bool,
 ) -> None:
 
-    with RossumClient(context=ctx.obj) as rossum:
+    with ElisClient(context=ctx.obj) as elis:
         if not queue_ids:
-            queue_urls = [rossum.get_queue()["url"]]
+            queue_urls = [elis.get_queue()["url"]]
         else:
             queue_urls = []
             for id_ in queue_ids:
-                queue_dict = rossum.get_queue(id_)
+                queue_dict = elis.get_queue(id_)
                 if queue_dict:
                     queue_urls.append(queue_dict["url"])
 
-        response = rossum.create_hook(
+        response = elis.create_hook(
             name=name,
             queues=queue_urls,
             active=active,
@@ -62,8 +62,8 @@ def create_command(
 @cli.command(name="list", help="List all hooks.")
 @click.pass_context
 def list_command(ctx: click.Context,):
-    with RossumClient(context=ctx.obj) as rossum:
-        hooks_list = rossum.get_hooks((QUEUES,))
+    with ElisClient(context=ctx.obj) as elis:
+        hooks_list = elis.get_hooks((QUEUES,))
 
     headers = ["id", "name", "events", "queues", "active", "url", "insecure_ssl"]
 
@@ -119,9 +119,9 @@ def change_command(
 
     data: Dict[str, Any] = {"config": {}}
 
-    with RossumClient(context=ctx.obj) as rossum:
+    with ElisClient(context=ctx.obj) as elis:
         if queue_ids:
-            data["queues"] = [rossum.get_queue(queue)["url"] for queue in queue_ids]
+            data["queues"] = [elis.get_queue(queue)["url"] for queue in queue_ids]
         if name is not None:
             data["name"] = name
         if active is not None:
@@ -135,7 +135,7 @@ def change_command(
         if config_insecure_ssl is not None:
             data["config"].update({"insecure_ssl": config_insecure_ssl})
 
-        rossum.patch(f"hooks/{id_}", data)
+        elis.patch(f"hooks/{id_}", data)
 
 
 @cli.command(name="delete", help="Delete a hook.")
@@ -145,6 +145,6 @@ def change_command(
 )
 @click.pass_context
 def delete_command(ctx: click.Context, id_: str) -> None:
-    with RossumClient(context=ctx.obj) as rossum:
-        url = rossum.url
-        rossum.delete(to_delete={f"{id_}": f"{url}/hooks/{id_}"}, item="hook")
+    with ElisClient(context=ctx.obj) as elis:
+        url = elis.url
+        elis.delete(to_delete={f"{id_}": f"{url}/hooks/{id_}"}, item="hook")

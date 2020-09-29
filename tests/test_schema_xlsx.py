@@ -8,9 +8,9 @@ from typing import List, Optional
 import pytest
 from openpyxl import load_workbook, Workbook
 
-from rossumctl.schema import xlsx
-from rossumctl.schema.commands import download_command
-from rossumctl.schema.upload import upload_command
+from elisctl.schema import xlsx
+from elisctl.schema.commands import download_command
+from elisctl.schema.upload import upload_command
 from tests.conftest import TOKEN, SCHEMAS_URL, match_uploaded_json
 
 Matrix = List[List[Optional[str]]]
@@ -23,7 +23,7 @@ with open(Path(__file__).parent / "data" / "xlsx_dump.json") as f:
     xlsx_content = json.load(f)
 
 
-@pytest.mark.usefixtures("mock_login_request", "mock_get_schema", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "mock_get_schema", "elis_credentials")
 class TestXlsx:
     output_file = Path("test.xlsx")
 

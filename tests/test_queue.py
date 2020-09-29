@@ -5,7 +5,7 @@ from typing import Optional
 
 import pytest
 
-from rossumctl.queue import create_command, list_command, delete_command, change_command
+from elisctl.queue import create_command, list_command, delete_command, change_command
 from tests.conftest import (
     TOKEN,
     match_uploaded_json,
@@ -89,7 +89,7 @@ class QueueFixtures:
         return f"{QUEUES_URL}/{self.queue_id}"
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestCreate(QueueFixtures):
     name = "TestName"
     queue_id = "2"
@@ -198,7 +198,7 @@ class TestCreate(QueueFixtures):
         assert f"{self.queue_id}, no email-prefix specified\n" == result.output
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestList:
     def test_success(self, requests_mock, cli_runner):
         queue_id = 1
@@ -290,7 +290,7 @@ class TestList:
         assert result.output == expected_table
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestDelete:
     def test_success(self, requests_mock, cli_runner):
         queue_id = "1"
@@ -311,7 +311,7 @@ class TestDelete:
         assert not result.output
 
 
-@pytest.mark.usefixtures("mock_login_request", "rossum_credentials")
+@pytest.mark.usefixtures("mock_login_request", "elis_credentials")
 class TestChange(QueueFixtures):
     name = "TestName"
     queue_id = "1"
