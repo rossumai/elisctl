@@ -40,6 +40,7 @@ setup(
         "openpyxl>=2.6",
         "jmespath",
         "polling2",
+        "more-itertools",
     ],
     python_requires=">=3.6",
     setup_requires=["pytest-runner"],
