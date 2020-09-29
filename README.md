@@ -7,9 +7,10 @@
 ![PyPI - supported python versions](https://img.shields.io/pypi/pyversions/rossumctl.svg)
 ![MIT licence](https://img.shields.io/pypi/l/rossumctl.svg)
 
-# IMPORTANT!
-# The elisctl package has been renamed to rossumctl.
-# You may need to uninstall elisctl before installing rossumctl.
+```
+The elisctl package has been renamed to rossumctl.
+You may want to uninstall elisctl before installing rossumctl.
+```
 
 **rossumctl** is a set of [tools for Rossum integrators](https://developers.rossum.ai/) that wrap
 the [Rossum API](https://api.elis.rossum.ai/docs)
