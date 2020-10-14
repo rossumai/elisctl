@@ -6,6 +6,9 @@ Use [rossum](https://pypi.org/project/rossum/) library instead :exclamation:
 
 
 ## Changelog
+### 2020-10-14 v2.11
+* Empty elisctl and add information on deprecation.
+This is the very last release of elisctl. For the future usage, use [rossum](https://pypi.org/project/rossum/) library instead.
 
 ### 2020-07-27 v2.10.1
 * Fix attribute name for setting max token lifetime
